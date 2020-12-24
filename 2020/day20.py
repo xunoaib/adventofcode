@@ -8,10 +8,10 @@ import math
 # - the same edge does not appear on more than two tiles
 # - there are no symmetric edges
 
-# part 1 - corner tiles are those with 2 unmatched edges (those that dont appear on any other tile).
-#          these can be found without solving the entire puzzle.
+# part 1 - corner tiles are those with 2 unmatched edges (those that dont appear in any other tile).
+# these can be found without solving the entire puzzle.
 
-SIDES = UP, RIGHT, DOWN, LEFT = 0,1,2,3
+UP, RIGHT, DOWN, LEFT = 0,1,2,3
 
 OFFSETS = {
     UP:    (-1,0),
@@ -19,6 +19,11 @@ OFFSETS = {
     RIGHT: (0,1),
     LEFT:  (0,-1),
 }
+
+sea_monster_str = '''
+                  #
+#    ##    ##    ###
+ #  #  #  #  #  #'''.strip('\n')
 
 class Tile:
     def __init__(self, block):
@@ -30,7 +35,7 @@ class Tile:
         self.pos = None
         self.oriented = False
 
-        self.transform = [False,False,0] # (flip_x, flip_y, rotations)
+        self.transform = [False,False,0] # (flip_y, flip_x, rotations)
 
         edges = []  # top, right, bottom, left (clockwise order)
         edges.append(grid[0])
@@ -52,7 +57,7 @@ class Tile:
         for lst in (self.nodes, self.edges):
             lst[axis], lst[axis+2] = lst[axis+2], lst[axis]
 
-        # axis varies depending on current rotation
+        # flipped axis varies depending on current number of rotations
         axis = (axis + self.transform[2]) % 2
         self.transform[axis] = not self.transform[axis]
 
@@ -92,12 +97,13 @@ class Tile:
         src_edge = self.edges[src_idx]
         tar_edge = target.edges[tar_idx]
 
+        # matching edges are always the reverse of each other
         if src_edge == tar_edge:
             self.reflect(src_idx+1)
             src_edge = self.edges[src_idx]
 
         if src_edge != tar_edge[::-1]:
-            raise ValueError('')
+            raise ValueError('matching edge was reflected incorrectly')
 
         # set current position relative to the target
         side = target.nodes.index(self)
@@ -105,9 +111,8 @@ class Tile:
         tar_row, tar_col = target.pos
         self.pos = tar_row + roff, tar_col + coff
 
-        # avoid marking this tile as complete if the shared edge is a palindrome (ambiguous orientation)
-        # allow another tile to orient it
-
+        # avoid marking this tile complete if their shared edge is symmetrical (has ambiguous orientation)
+        # this allows another tile to eventually orient it
         if src_edge == tar_edge:
             print('ambiguous', self, target)
             return False
@@ -128,12 +133,10 @@ class Tile:
         # orient all connected nodes
         for side, node in enumerate(self.nodes):
             if node and not node.oriented:
-                # if node.id == 2801:
-                #     raise ValueError('should never happen', node)
                 node.orient_subnodes(self, side)
 
     def transformed_grid(self):
-        '''Returns block with transformations applied'''
+        '''Returns current grid with transformations applied'''
         lines = self.grid
         flipped_y, flipped_x, rotations = self.transform
 
@@ -148,6 +151,7 @@ class Tile:
         return lines
 
     def cropped_grid(self):
+        '''Returns current transformed grid with borders removed'''
         lines = self.transformed_grid()
         return [line[1:-1] for line in lines[1:-1]]
 
@@ -160,66 +164,18 @@ class Tile:
     def __hash__(self):
         return hash(self.id)
 
-blocks = sys.stdin.read().split('\n\n')
-tiles = list(map(Tile, blocks))
-tileids = {tile.id: tile for tile in tiles}
-
-# find matchable edges
-edgemap = defaultdict(set)
-for tile in tiles:
-    for side,edge in enumerate(tile.edges):
-        edgemap[edge].add((tile, side))
-        edgemap[edge[::-1]].add((tile, side))
-
-# find borders
-bordercount = defaultdict(lambda: 0)
-for edge, tlist in edgemap.items():
-    if len(tlist) == 1:
-        tile, side = next(iter(tlist))
-        bordercount[tile] += 1
-
-# find corners
-corners = [tile for tile, count in bordercount.items() if count == 4]
-product = math.prod(t.id for t in corners)
-print('part1:', product)
-# assert product == 51214443014783
-
-# part 2
-
-def get_locations(node):
-    locations = {node: (0,0)}
-    frontier = [node]
-    while frontier:
-        node = frontier.pop(0)
-        row, col = locations.get(node)
-        # print(row, col, node)
-        for side, neighbor in enumerate(node.nodes):
-            if not neighbor:
-                continue
-            if side not in (RIGHT, DOWN):
-                continue
-            if neighbor in locations:
-                continue
-            locations[neighbor] = (row+1, col) if side == DOWN else (row, col+1)
-            frontier.append(neighbor)
-    return locations
-
 class TileSet:
     def __init__(self, tiles, num_rows, num_cols):
         self.tiles = tiles
-        self.create_edgemap()
-        self.link_neighbors_all()
-
         self.num_rows = num_rows
         self.num_cols = num_cols
-
-        # print(self.edgemap['.#######..'])
-        # exit()
+        self.create_edgemap()
+        self.link_neighbors_all()
 
     def create_edgemap(self):
         ''' Associates edges with tiles that have them (fuzzy match).'''
         edgemap = defaultdict(set)
-        for tile in tiles:
+        for tile in self.tiles:
             for edge in tile.edges:
                 edgemap[edge].add(tile)
                 edgemap[edge[::-1]].add(tile)
@@ -257,9 +213,9 @@ class TileSet:
 
     def whole_grid(self, borders=False):
         '''Returns the tileset all tile borders cropped as a list of strings'''
+        grid = ts.grid_tiles()
         dim = 10 if borders else 8
         lines = ['' for _ in range(dim*self.num_rows)]
-        # lines = ['' for _ in range(10*self.num_rows)]
         for col in range(self.num_cols):
             for row in range(self.num_rows):
                 tile = grid[row][col]
@@ -268,91 +224,33 @@ class TileSet:
                     lines[row*dim + i] += line
         return lines
 
-    def check_links(self, node):
-        visited = {node}
-        frontier = [node]
-        while frontier:
-            node = frontier.pop(0)
-            # print(node, node.nodes, node.edges)
+def check_links(node):
+    ''' Recursively check connected nodes and borders for errors '''
+    visited = {node}
+    frontier = [node]
+    while frontier:
+        node = frontier.pop(0)
+        # print(node, node.nodes, node.edges)
 
-            # check all edges
-            for side,(neighbor,edge1) in enumerate(zip(node.nodes, node.edges)):
-                if not neighbor:
-                    continue
+        # check all edges
+        for side,(neighbor,edge1) in enumerate(zip(node.nodes, node.edges)):
+            if not neighbor or neighbor in visited:
+                continue
 
-                # pass
+            visited.add(neighbor)
+            frontier.append(neighbor)
 
-                if neighbor in visited:
-                    continue
-
-                visited.add(neighbor)
-                frontier.append(neighbor)
-
-                n_idx = (side + 2) % 4
-                edge2, node2 = neighbor.edges[n_idx], neighbor.nodes[n_idx]
-                # print(neighbor, side, node2, edge2, edge1)
-                # print(neighbor.nodes)
-                # print(neighbor.edges)
-                # print(node.nodes)
-                # print(node.edges)
-                if node2 != node or edge2 == edge1:
-                    print(neighbor, 'error')
-                    print(neighbor, neighbor.nodes, neighbor.edges)
-                    print(node, node.nodes, node.edges)
-                    print('')
-                assert node2 == node and edge2 == edge1[::-1]
-
-def debug(node):
-    if node:
-        print(node, f'{str(node.nodes):<27}', node.edges)
-
-def pg(grid):
-    print('\n' + '\n'.join(grid))
-
-# start from upper left corner
-corner = corners[0]
-# ts = TileSet(tiles, 3, 3)
-# dim = 3
-dim = int(math.sqrt(len(tiles)))
-ts = TileSet(tiles, dim, dim)
-
-# select a corner for the upper left (specific to data)
-if dim == 3:
-    # test puzzle
-    corner.rotate(-3)
-else:
-    corner.rotate(2) # my puzzle
-
-# debug(corner)
-
-corner.orient_subnodes()
-ts.check_links(corner)
-
-# for t in corners:
-#     print(t, t.nodes, t.edges)
-# t = tileids[2971]
-# t2 = tileids[1489]
-# t3 = tileids[2729]
-# debug(t)
-# debug(t2)
-# debug(t3)
-
-# pg(t.cropped_grid())
-# pg(t2.cropped_grid())
-# pg(t3.cropped_grid())
-# print(ts.whole_grid())
-
-# print([tile for tile in tiles if not tile.oriented])
-
-grid = ts.grid_tiles()
-gg = ts.whole_grid(False)
-
-sea_monster_str = '''
-                  #
-#    ##    ##    ###
- #  #  #  #  #  #'''.strip('\n')
+            n_idx = (side + 2) % 4
+            edge2, node2 = neighbor.edges[n_idx], neighbor.nodes[n_idx]
+            if node2 != node or edge2 == edge1:
+                print(neighbor, 'error')
+                print(neighbor, neighbor.nodes, neighbor.edges)
+                print(node, node.nodes, node.edges)
+                print('')
+            assert node2 == node and edge2 == edge1[::-1]
 
 def sea_monster_set():
+    ''' Returns a list of row/col offsets to check for a sea monster '''
     # row/col offsets for sea monster body
     sea_monster = []
     for r,line in enumerate(sea_monster_str.split('\n')):
@@ -374,16 +272,59 @@ def monster_match(grid, row, col, body):
     return matches
 
 def find_monsters(grid):
+    ''' Finds the set of all points containing sea monsters '''
     body = sea_monster_set()
     matches = set()
-
     for r, line in enumerate(grid):
         for c, char in enumerate(line):
             if cells := monster_match(grid, r, c, body):
                 matches |= cells
     return matches
 
-# flip y and rotate clockwise (specific to data)
+# part 1
+blocks = sys.stdin.read().split('\n\n')
+tiles = list(map(Tile, blocks))
+tileids = {tile.id: tile for tile in tiles}
+
+# find matchable edges
+edgemap = defaultdict(set)
+for tile in tiles:
+    for side,edge in enumerate(tile.edges):
+        edgemap[edge].add((tile, side))
+        edgemap[edge[::-1]].add((tile, side))
+
+# find borders
+bordercount = defaultdict(lambda: 0)
+for edge, tlist in edgemap.items():
+    if len(tlist) == 1:
+        tile, side = next(iter(tlist))
+        bordercount[tile] += 1
+
+# find corners
+corners = [tile for tile, count in bordercount.items() if count == 4]
+
+product = math.prod(t.id for t in corners)
+print('part1:', product)
+assert product == 51214443014783
+
+# part 2
+dim = int(math.sqrt(len(tiles)))  # grid must be square
+ts = TileSet(tiles, dim, dim)
+
+corner = corners[0]  # designate upper left corner
+
+# orient corner (specific to input)
+if dim == 3:
+    corner.rotate(-3) # sample puzzle
+else:
+    corner.rotate(2) # my puzzle
+
+corner.orient_subnodes()  # orient all nodes relative to the corner
+ts.check_links(corner)    # check for errors
+
+gg = ts.whole_grid()
+
+# reorient final grid (specific to input)
 if dim == 3:
     gg = gg[::-1]
     gg = list(map("".join, zip(*reversed(gg))))
@@ -397,16 +338,15 @@ else:
 matches = find_monsters(gg)
 
 numhashes = ''.join(gg).count('#')
+total = numhashes - len(matches)
+print('part2:', total)
+assert matches
+assert total == 2065
 
-print('matches:', len(matches), 'numhashes:', numhashes)
-print('diff:', numhashes - len(matches))
-# 1777 to 2200 2215
-
+# draw sea monsters
 newg = [list(line) for line in gg]
 for r,c in matches:
     newg[r][c] = 'O'
-
-# print(len(sea_monster_set()))
 
 # print('\n'.join(gg))
 # print('\n'.join(''.join(row) for row in newg))
