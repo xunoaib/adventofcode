@@ -33,6 +33,7 @@ def count_valid(rules: str, messages):
             if res.expr_name == 'R0':
                 valid.append(msg)
         except ParseError as exc:
+            print(exc)
             if "Rule 'R31' didn't match at ''" in str(exc): # ಠ_ಠ
                 valid.append(msg)
     return valid

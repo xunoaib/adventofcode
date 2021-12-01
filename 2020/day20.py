@@ -320,7 +320,7 @@ else:
     corner.rotate(2) # my puzzle
 
 corner.orient_subnodes()  # orient all nodes relative to the corner
-ts.check_links(corner)    # check for errors
+check_links(corner)    # check for errors
 
 gg = ts.whole_grid()
 
