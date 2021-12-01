@@ -9,8 +9,7 @@ def count_increases(lst):
     return count
 
 def main():
-    lines = sys.stdin.readlines()
-    depths = list(map(int, lines))
+    depths = list(map(int, sys.stdin))
 
     part1 = count_increases(depths)
     print('part1:', part1)
