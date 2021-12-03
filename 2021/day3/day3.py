@@ -1,55 +1,46 @@
 #!/usr/bin/env python3
 import sys
 
-def count_bits(lines):
-    d = [0] * len(lines[0])
-    for line in lines:
-        for idx, bit in enumerate(line):
-            if bit == '1':
-                d[int(idx)] += 1
-    return d
+def count_column(lines, column_idx):
+    ''' Count the number of 1s in a specific column '''
+    return sum(int(line[column_idx]) for line in lines)
+
+def count_columns(lines):
+    ''' Count the number of 1s in each column '''
+    return [count_column(lines, cidx) for cidx in range(len(lines[0]))]
 
 def part1(lines):
-    d = count_bits(lines)
-
-    gamma = ''
-    for idx, ones in sorted(enumerate(d)):
-        gamma += '1' if ones > len(lines)/2 else '0'
-
+    counts = count_columns(lines)
+    gamma = ''.join('1' if ones > len(lines)/2 else '0' for ones in counts)
     gamma = int(gamma, 2)
-    epsilon = 2 ** len(lines[0])-1 - gamma
+    epsilon = 2 ** len(lines[0])-1 - gamma  # bitwise NOT of gamma
     return gamma * epsilon
 
-def remove_lines(lines, idx, keep_bit):
-    return [line for line in lines if line[idx] == keep_bit]
+def remove_lines(lines, column_idx, keep_bit):
+    ''' Remove lines that do not have a matching bit value in the given column '''
+    return [line for line in lines if int(line[column_idx]) == int(keep_bit)]
 
-def calc_oxy(lines):
-    d = count_bits(lines)
-    for idx in range(len(d)):
-        keep_bit = '1' if d[idx] >= len(lines)/2 else '0'
+def sieve(lines, keep_common: bool):
+    ''' Iteratively remove lines that do not contain the most common bit in each column.
+        If keep_common is False, remove lines that contain the LEAST common bit.
+        Returns: numeric representation of the remaining line
+    '''
+    bitcounts = count_columns(lines)
+    for idx in range(len(bitcounts)):
+        keep_bit = int((bitcounts[idx] >= len(lines)/2) == keep_common)
         lines = remove_lines(lines, idx, keep_bit)
-        d = count_bits(lines)
-        if len(lines) <= 1:
-            break
-    return int(lines[0], 2)
-
-def calc_co2(lines):
-    d = count_bits(lines)
-    for idx in range(len(d)):
-        keep_bit = '1' if d[idx] < len(lines)/2 else '0'
-        lines = remove_lines(lines, idx, keep_bit)
-        d = count_bits(lines)
-        if len(lines) <= 1:
-            break
-    return int(lines[0], 2)
+        bitcounts = count_columns(lines)
+        if len(lines) == 1:
+            return int(lines[0], 2)
 
 def part2(lines):
-    oxy = calc_oxy(lines)
-    co2 = calc_co2(lines)
+    oxy = sieve(lines, True)
+    co2 = sieve(lines, False)
     return oxy * co2
 
 def main():
-    lines = sys.stdin.read().strip().split('\n')
+    lines = sys.stdin.read().split()
+
     ans1 = part1(lines)
     ans2 = part2(lines)
 
@@ -59,5 +50,5 @@ def main():
     assert ans1 == 3923414
     assert ans2 == 5852595
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
