@@ -40,13 +40,8 @@ def part2(numbers, boards):
 
 def main():
     numbers = list(map(int, sys.stdin.readline().split(',')))
-    boards = []
-    for line in sys.stdin:
-        if line == '\n':
-            boards.append([])
-            continue
-        row = list(map(int, re.split(r'\s+', line.strip())))
-        boards[-1].append(row)
+    groups = sys.stdin.read().strip().split('\n\n')
+    boards = [[list(map(int, re.split(r'\s+', line.strip()))) for line in group.split('\n')] for group in groups]
 
     ans1 = part1(numbers, boards)
     ans2 = part2(numbers, boards)
