@@ -2,7 +2,6 @@
 import copy
 import re
 import sys
-import numpy as np
 
 def mark_board(board, num):
     ''' Update a bingo board with the called number '''
@@ -11,10 +10,7 @@ def mark_board(board, num):
 
 def has_won(board):
     ''' Look for 5 marked cells in any row or column '''
-    if [None]*5 in board:
-        return True
-    rot = np.rot90(np.array(board), 1, (0,1))
-    return any(list(row) == [None]*5 for row in rot)
+    return [None]*5 in board or (None,)*5 in list(zip(*board))
 
 def calc_score(board, num):
     ''' Return the sum of all unmarked cells multiplied by the winning bingo number '''
