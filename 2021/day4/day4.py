@@ -3,14 +3,15 @@ import copy
 import re
 import sys
 
-def mark_board(board, num):
-    ''' Update a bingo board with the called number '''
-    for r, row in enumerate(board):
-        board[r] = [None if n == num else n for n in row]
-
 def has_won(board):
     ''' Look for 5 marked cells in any row or column '''
     return [None]*5 in board or (None,)*5 in list(zip(*board))
+
+def mark_board(board, num):
+    ''' Update a bingo board with the given number. Returns whether it was a winning move '''
+    for r, row in enumerate(board):
+        board[r] = [None if n == num else n for n in row]
+    return has_won(board)
 
 def calc_score(board, num):
     ''' Return the sum of all unmarked cells multiplied by the winning bingo number '''
@@ -21,22 +22,18 @@ def part1(numbers, boards):
     boards = copy.deepcopy(boards)
     for num in numbers:
         for i, board in enumerate(boards):
-            mark_board(board, num)
-            if has_won(board):
+            if mark_board(board, num):
                 return calc_score(board, num)
-    return None, None
 
 def part2(numbers, boards):
     ''' Play rounds until all boards have won. Returns the score of the last winning board '''
     boards = copy.deepcopy(boards)
     for num in numbers:
         for i, board in list(enumerate(boards)):
-            mark_board(board, num)
-            if has_won(board):
+            if mark_board(board, num):
                 boards.remove(board)
                 if len(boards) == 0:
                     return calc_score(board, num)
-    return None, None
 
 def main():
     numbers = list(map(int, sys.stdin.readline().split(',')))
@@ -45,6 +42,7 @@ def main():
 
     ans1 = part1(numbers, boards)
     ans2 = part2(numbers, boards)
+
     print('part1:', ans1)
     print('part2:', ans2)
     assert ans1 == 41503
