@@ -6,7 +6,7 @@ import numpy as np
 
 def mark_board(board, num):
     ''' Update a bingo board with the called number '''
-    for r,row in enumerate(board):
+    for r, row in enumerate(board):
         board[r] = [None if n == num else n for n in row]
 
 def has_won(board):
@@ -27,23 +27,18 @@ def part1(numbers, boards):
         for i, board in enumerate(boards):
             mark_board(board, num)
             if has_won(board):
-                # print(f'board {i+1} has won with {num}!')
                 return calc_score(board, num)
     return None, None
 
 def part2(numbers, boards):
     ''' Play rounds until all boards have won. Returns the score of the last winning board '''
     boards = copy.deepcopy(boards)
-    winners = set()
     for num in numbers:
-        for i, board in enumerate(boards):
-            if i in winners:
-                continue
+        for i, board in list(enumerate(boards)):
             mark_board(board, num)
             if has_won(board):
-                # print(f'board {i+1} has won with {num}!')
-                winners.add(i)
-                if len(winners) == len(boards):
+                boards.remove(board)
+                if len(boards) == 0:
                     return calc_score(board, num)
     return None, None
 
