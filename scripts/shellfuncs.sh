@@ -4,8 +4,8 @@
 # "submit" pipes previous output to aoc executable for submission
 
 # aliases aoc to ./scripts/aoc.py in this github repo
-if ! command -v aoc &> /dev/null; then
-    alias aoc="$(git -C `dirname "$0"` rev-parse --show-toplevel)/scripts/aoc.py"
+if ! command -v aocs &> /dev/null; then
+    alias aoc="`dirname "$0"`/aoc.py"
 fi
 
 function run {

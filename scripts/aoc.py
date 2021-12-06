@@ -21,6 +21,9 @@ def get_parser():
 
     subparsers.add_parser('submit', help='Submit answer for last input line matching "part[1-2]: <answer>"')
     subparsers.add_parser('auth', help='Retrieve name of currently logged-in user using cookie (auth check)')
+
+    stats = subparsers.add_parser('stats', help='Retrieve leaderboard stats')
+    stats.add_argument('year', nargs='?')
     return parser
 
 def main():
@@ -28,11 +31,11 @@ def main():
     args = parser.parse_args()
 
     aoc = AOC.from_dotenv(args.cookiefile)
-
     funcs = {
-        'submit': lambda args: submit(aoc, args.challenge),
+        'submit': lambda args: not submit(aoc, args.challenge),
         'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),
         'auth': lambda args: auth(aoc),
+        'stats': lambda args: aoc.personal_stats(args.year) and 0  # suppress output
     }
 
     if func := funcs.get(args.cmd):
@@ -41,8 +44,10 @@ def main():
 def auth(aoc: AOC):
     if username := aoc.get_username():
         print(f'logged in as {username}')
+        return 0
     else:
         print('not logged in')
+        return 1
 
 def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
     year, day = AOC.parse_date(challenge_path)
@@ -64,7 +69,7 @@ def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
             sample_input = aoc.get_input(year, day)
             with open(outfile, 'w') as f:
                 f.write(sample_input)
-            print(f'saved {len(sample_input)} bytes')
+            print(f'{len(sample_input)} bytes written')
             break
         except Exception:
             if interval:
@@ -93,6 +98,7 @@ def submit(aoc, challenge_path):
 
     message = aoc.submit_answer(year, day, level, answer)
     print(message)
+    return "That's the right answer!" in message
 
 if __name__ == "__main__":
     try:

@@ -1,3 +1,4 @@
+import datetime
 import pathlib
 import re
 import requests
@@ -55,3 +56,20 @@ class AOC:
         resp = self.session.get(self.URL)
         if m := re.search('<div class="user">(.*?)</div>', resp.text):
             return re.sub(r'<.*?>.*</.*?>', '', m.group(1)).strip()
+
+    def personal_stats(self, year=None, print_stats=True):
+        if year is None:
+            year = datetime.datetime.now().year
+
+        resp = self.session.get(self.URL + f'/{year}/leaderboard/self')
+        if match := re.search(r'<main>.*Score</span>(.*?)</pre>.*?</main>', resp.text, flags=re.DOTALL):
+            lines = match.group(1).strip().split('\n')
+            results = []
+            for line in lines[::-1]:
+                result = re.split(r'\s+', line.strip())
+                result = [v if ':' in v else int(v) for v in result]
+                day, time1, rank1, score1, time2, rank2, score2 = result
+                if print_stats:
+                    print(day, '', time1, rank1, '', time2, rank2)
+                results.append(result)
+            return results
