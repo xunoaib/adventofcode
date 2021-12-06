@@ -67,9 +67,9 @@ class AOC:
             results = []
             for line in lines[::-1]:
                 result = re.split(r'\s+', line.strip())
-                result = [v if ':' in v else int(v) for v in result]
+                result = [int(v) if v.isnumeric() else v.replace('&gt;', '>') for v in result]
                 day, time1, rank1, score1, time2, rank2, score2 = result
                 if print_stats:
-                    print(day, '', time1, rank1, '', time2, rank2)
+                    print(f'{day:2}  {time1:>8} {rank1:6}  {time2:>8} {rank2:6}')
                 results.append(result)
             return results
