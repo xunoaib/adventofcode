@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+import json
 import sys
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import permutations
 
 lookup = {
@@ -32,6 +33,35 @@ for num, segments in lookup.items():
     for wire in segments:
         used_wires[wire].add(num)
 used_wires = dict(used_wires)
+
+# -----------------------
+def newsolve():
+    # patterns = sorted(''.join(sorted(g)) for g in sys.stdin.readline().split(' | ')[0].split())
+    # print('\n'.join(patterns))
+
+    # from known data, associate segment counts (across all digits) to their possible segments
+    # print(' '.join(lookup.values()).upper())
+    segment_counts = Counter(''.join(lookup.values()).upper())
+    counts_to_segments = defaultdict(set)
+    for segment, count in segment_counts.items():
+        counts_to_segments[count].add(segment)
+    counts_to_segments = dict(counts_to_segments)
+    # print(segment_counts)
+    print('counts -> segments:', counts_to_segments)
+
+    # from unknown data, deduce real segment candidates based on scrambled segment counts
+    scrambled_counts = Counter(''.join(patterns))
+    candidates = {segment: counts_to_segments[count] for segment, count in scrambled_counts.items()}
+    # print(candidates)
+
+    # assign any conclusive candidates
+    for segment, candset in candidates.items():
+        if len(candset) == 1:
+            print(segment, '->', list(candset)[0])
+        else:
+            print(segment, '->', sorted(candset))
+
+    # permute remaining candidates
 
 def part1_count(line):
     g1, g2 = ((list(map(lambda s: ''.join(sorted(s)), side.split(' ')))) for side in line.split(' | '))
