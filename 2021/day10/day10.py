@@ -30,7 +30,7 @@ def part1(lines):
 def incomplete_score(stack):
     score = 0
     for ch in stack:
-        score = (score * 5) + inc_scores[pairs[ch]]
+        score = score * 5 + inc_scores[pairs[ch]]
     return score
 
 def part2(lines):

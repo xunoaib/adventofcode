@@ -7,14 +7,10 @@ unmatched_scores = '([{<'  # str.index(ch) + 1 => unmatched character score
 
 def simplify(line):
     """Iteratively remove adjacent opening/closing pairs"""
-    replaced = True
-    while replaced:
-        replaced = False
-        for ch in ['()', '{}', '[]', '<>']:
-            if ch in line:
-                replaced = True
-                line = line.replace(ch, '')
-    return line
+    pattern = re.compile('|'.join(map(re.escape, ['()', '{}', '[]', '<>'])))
+    while (nextline := pattern.sub('', line)) != line:
+        line = nextline
+    return nextline
 
 def find_corruption(line):
     line = simplify(line)
