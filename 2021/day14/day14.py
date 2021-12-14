@@ -29,9 +29,9 @@ def part2(pattern, rules):
         if char := rules.get(pair):
             left = recurse(pair[0] + char, depth - 1)
             right = recurse(char + pair[1], depth - 1)
-            res = {k: left.get(k, 0) + right.get(k, 0) for k in set(left) | set(right)}
-            res[char] -= 1
-            return res
+            count = left + right
+            count[char] -= 1
+            return count
         return Counter(pair)
 
     # split large string into character pairs and gather character counts for each
