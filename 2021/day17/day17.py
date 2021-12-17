@@ -4,28 +4,20 @@ import sys
 from itertools import count, product
 
 
-def valid_yvel(vel, ymin, ymax):
-    y = 0
-    while y >= ymin:
-        y += vel
-        vel -= 1
-        if ymin <= y <= ymax:
-            return True
-    return False
-
-
-def valid_velocity(xvel, yvel, xmin, xmax, ymin, ymax):
-    for step in count(0):
-        x, y = getpos(xvel, yvel, step)
+def hits_target(xvel, yvel, xmin, xmax, ymin, ymax):
+    """Checks if the launch vector lands in the target region"""
+    for t in count(0):
+        x, y = getpos(xvel, yvel, t)
         if x > xmax or y < ymin:
             return False
         if xmin <= x <= xmax and ymin <= y <= ymax:
             return True
 
 
-def getpos(xvel, yvel, step):
+def getpos(xvel, yvel, t):
+    """Calculate the (x,y) position after 't' steps given a launch vector"""
     x, y = 0, 0
-    for i in range(step):
+    for _ in range(t):
         x += xvel
         y += yvel
         if xvel > 0:
@@ -34,41 +26,24 @@ def getpos(xvel, yvel, step):
     return x, y
 
 
-def part1(xmin, xmax, ymin, ymax):
-    yvels = find_yvels(xmin, xmax, ymin, ymax)
-    return sum(range(yvels[-1] + 1))
-
-
-def find_yvels(xmin, xmax, ymin, ymax):
-    yvels = []
-    for vel_y in count(ymin):
-        if valid_yvel(vel_y, ymin, ymax):
-            yvels.append(vel_y)
-        if vel_y > 100:  # horribly hardcoded
-            return yvels
-
-
 def part2(xmin, xmax, ymin, ymax):
     vx_min = next(vx for vx in count(0) if sum(range(vx + 1)) > xmin)
-    vx_max = xmax
+    vy_range = max(abs(ymin), abs(ymax))
 
-    yvels = find_yvels(xmin, xmax, ymin, ymax)
-    vy_min, vy_max = yvels[0], yvels[-1]
+    vectors = set()
+    for xvel, yvel in product(range(vx_min, xmax + 1),
+                              range(-vy_range, vy_range + 1)):
+        if hits_target(xvel, yvel, xmin, xmax, ymin, ymax):
+            vectors.add((xvel, yvel))
 
-    valid = set()
-    for xvel, yvel in product(range(vx_min, vx_max + 1),
-                              range(vy_min, vy_max + 1)):
-        if valid_velocity(xvel, yvel, xmin, xmax, ymin, ymax):
-            valid.add((xvel, yvel))
-
-    return len(valid)
+    return len(vectors)
 
 
 def main():
     match = re.search(r' x=(.*)\.\.(.*), y=(.*)\.\.(.*)', sys.stdin.read())
     xmin, xmax, ymin, ymax = map(int, match.groups())
 
-    ans1 = part1(xmin, xmax, ymin, ymax)
+    ans1 = sum(range(abs(ymin)))
     print('part1:', ans1)
 
     ans2 = part2(xmin, xmax, ymin, ymax)
