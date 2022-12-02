@@ -9,38 +9,22 @@ LOSE = 0
 DRAW = 3
 WIN = 6
 
-def outcome(a, b):
-    table = {
-        (ROCK, ROCK): DRAW,
-        (PAPER, PAPER): DRAW,
-        (SCISSORS, SCISSORS): DRAW,
+# looks up the winning move against another move
+winner_against = {
+    ROCK: PAPER,
+    PAPER: SCISSORS,
+    SCISSORS: ROCK,
+}
 
-        (ROCK, PAPER): LOSE,
-        (PAPER, ROCK): WIN,
+loser_against = {v:k for k,v in winner_against.items()}
 
-        (ROCK, SCISSORS): WIN,
-        (SCISSORS, ROCK): LOSE,
-
-        (SCISSORS, PAPER): WIN,
-        (PAPER, SCISSORS): LOSE,
+def score_outcome(a, b):
+    outcomes = {
+        (a, loser_against[a]): WIN,
+        (a, a): DRAW,
+        (a, winner_against[a]): LOSE,
     }
-    return a + table[(a,b)]
-
-def beats(a):
-    return {
-        ROCK: PAPER,
-        PAPER: SCISSORS,
-        SCISSORS: ROCK,
-    }[a]
-
-def loses_to(a):
-    kv = {
-        ROCK: PAPER,
-        PAPER: SCISSORS,
-        SCISSORS: ROCK,
-    }
-    kv = {v:k for k,v in kv.items()}
-    return kv[a]
+    return a + outcomes[(a,b)]
 
 
 def main():
@@ -50,26 +34,27 @@ def main():
     for a, b in pairs:
         a = 'ABC'.index(a) + 1
         b = 'XYZ'.index(b) + 1
-        score += outcome(b, a)
+        score += score_outcome(b, a)
 
     print('part1:', score)
     assert score == 15422
 
     score = 0
-    for a, result in pairs:
+    for a, b in pairs:
         a = 'ABC'.index(a) + 1
 
-        if result == 'X':
-            b = loses_to(a)
-        elif result == 'Y':
-            b = a
-        elif result == 'Z':
-            b = beats(a)
+        match b:
+            case 'X':
+                b = loser_against[a]
+            case 'Y':
+                b = a
+            case 'Z':
+                b = winner_against[a]
 
-        score += outcome(b, a)
+        score += score_outcome(b, a)
 
     print('part2:', score)
-    assert score == 15422
+    assert score == 15442
 
 
 if __name__ == "__main__":
