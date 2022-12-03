@@ -13,7 +13,7 @@ def get_parser():
 
     group = parser.add_argument_group()
     group.add_argument('challenge', nargs='?', default='.', help='Challenge path/string in the form: 2021/day1. Defaults to the current directory')
-    group.add_argument('-c', '--cookiefile', default='cookies.env', help='Path to dotenv file with "cookies" field')
+    group.add_argument('-c', '--cookiefile', help='Path to dotenv file with "cookies" field')
 
     dl = subparsers.add_parser('download', help='Download sample input based on current directory')
     dl.add_argument('-i', '--interval', type=float, help='Seconds to wait between failed requests')
@@ -30,7 +30,7 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
-    aoc = AOC.from_dotenv(args.cookiefile)
+    aoc = AOC.from_firefox()
     funcs = {
         'submit': lambda args: not submit(aoc, args.challenge),
         'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),

@@ -2,6 +2,8 @@ import datetime
 import pathlib
 import re
 import requests
+
+import browser_cookie3
 from dotenv import dotenv_values, find_dotenv
 
 class AOC:
@@ -10,15 +12,20 @@ class AOC:
 
     def __init__(self, cookies: str):
         self.session = requests.Session()
-        if cookies:
-            self.session.headers['Cookie'] = cookies
+        self.session.cookies = cookies
 
     @staticmethod
-    def from_dotenv(cookies_file='cookies.env', find=True, usecwd=True):
+    def from_dotenv(cookie_file='cookies.env', find=True, usecwd=True):
         ''' Parse HTTP cookies from a dotenv file found in the current or parent directories '''
         if find:
-            cookies_env = find_dotenv(cookies_file, usecwd=usecwd)
+            cookies_env = find_dotenv(cookie_file, usecwd=usecwd)
         cookies = dotenv_values(cookies_env)['cookies']
+        return AOC(cookies)
+
+    @staticmethod
+    def from_firefox(cookie_file=None):
+        # Ex: ~/.mozilla/firefox/xxxxxxxx.default-release/cookies.sqlite
+        cookies = browser_cookie3.firefox(cookie_file=cookie_file, domain_name='adventofcode.com')
         return AOC(cookies)
 
     @classmethod
