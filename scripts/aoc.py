@@ -4,6 +4,7 @@ import pathlib
 import re
 import sys
 import time
+from datetime import datetime
 
 from aoclib import AOC
 
@@ -51,17 +52,32 @@ def auth(aoc: AOC):
 
 def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
     year, day = AOC.parse_date(challenge_path)
+    dirname = pathlib.Path(challenge_path).expanduser().resolve().name
 
     # infer output filename
     if outfile is None:
         outfile = '/dev/stdout'
     elif outfile == '':
-        outfile = f'day{day}.in'
+        outfile = f'{dirname}.in'
 
     # prompt to overwrite
     if outfile != '/dev/stdout' and pathlib.Path(outfile).exists():
         if input(f'{outfile} already exists. Overwrite? [y/N] ').lower() != 'y':
             return 1
+
+    # if day is today, wait until midnight
+    target = datetime(year, 12, day)
+    today = datetime.now()
+    if target > today:
+        diff = target - today
+        delay = diff.total_seconds()
+        print(f'sleeping for {diff}')
+        time.sleep(delay)
+
+        # if we're downloading the upcoming challenge, assume an interval of
+        # 1 sec for convenience
+        if interval is None:
+            interval = 1
 
     print(f'downloading {AOC.URL}/{year}/day/{day}/input to {outfile}')
     while True:
