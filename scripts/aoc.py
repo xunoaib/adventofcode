@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import pathlib
 import re
+import shutil
 import sys
 import time
 from datetime import datetime
@@ -23,20 +25,24 @@ def get_parser():
     subparsers.add_parser('submit', help='Submit answer for last input line matching "part[1-2]: <answer>"')
     subparsers.add_parser('auth', help='Retrieve name of currently logged-in user using cookie (auth check)')
 
+    mkdir = subparsers.add_parser('mkdir', help='Create the next non-existent challenge directory, copy code template, and download sample input')
+    mkdir.add_argument('-d','--dir-only', help='Only create the directory')
+
     stats = subparsers.add_parser('stats', help='Retrieve leaderboard stats')
     stats.add_argument('year', nargs='?')
     return parser
 
-def main():
+def main(args=None):
     parser = get_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     aoc = AOC.from_firefox(args.cookiefile)
     funcs = {
-        'submit': lambda args: not submit(aoc, args.challenge),
+        'submit':   lambda args: not submit(aoc, args.challenge),
         'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),
-        'auth': lambda args: auth(aoc),
-        'stats': lambda args: aoc.personal_stats(args.year) and 0  # suppress output
+        'auth':     lambda args: auth(aoc),
+        'stats':    lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
+        'mkdir':    lambda args: make_next_dir(aoc, args.dir_only),
     }
 
     if func := funcs.get(args.cmd):
@@ -49,6 +55,55 @@ def auth(aoc: AOC):
     else:
         print('not logged in')
         return 1
+
+def make_next_dir(aoc: AOC, dir_only: bool):
+    '''
+    Creates the next non-existent challenge directory (ie: day02) in the current directory.
+    The zero-padding convention (ie: day2 or day02) of the highest existing day will be used (or default: day02)
+    '''
+    cwd = pathlib.Path().absolute()
+
+    if not re.match(r'^\d{4}$', cwd.name):
+        print('Invalid year format for current directory:', cwd.name)
+        return False
+
+    year = int(cwd.name)
+    if year < 2015:
+        print(f"Invalid year ({year})! Advent of Code doesn't go back that far")
+        return False
+
+    # find the highest existing day number
+    if daydirs := list(cwd.glob('day*')):
+        lastdaynumstr = max(daydirs).name[3:]
+    else:
+        lastdaynumstr = '00'
+    nextdaynum = int(lastdaynumstr) + 1
+
+    if not (1 <= nextdaynum <= 25):
+        print('Invalid day:', nextdaynum)
+        return False
+
+    # infer zero-padding convention
+    nextdirname = f'day{nextdaynum:02}' if lastdaynumstr.startswith('0') else f'day{nextdaynum}'
+    print('$ mkdir', nextdirname)
+    path = pathlib.Path(nextdirname)
+    path.mkdir()
+
+    if dir_only:
+        return True
+
+    # copy code template (hardcoded python file)
+    source = pathlib.Path(__file__).parent / 'template.py'
+    target = path / f'{nextdirname}.py'
+    print(f'$ cp {source} {target}')
+    shutil.copy(source, target)
+
+    # download sample input
+    os.chdir(path)
+    print('$ aoc download')
+    main(['download', '-o'])
+
+    return True
 
 def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
     year, day = AOC.parse_date(challenge_path)
