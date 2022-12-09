@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-# import copy
-# import re
-# import numpy as np
-# from collections import defaultdict
-# from itertools import permutations
 import sys
 
 dirs = {
@@ -13,60 +8,57 @@ dirs = {
     'R': (0, 1),
 }
 
+
+def step_knot(hr, hc, tr, tc):
+    diffr = hr - tr
+    diffc = hc - tc
+    adr = abs(diffr)
+    adc = abs(diffc)
+
+    if {adr, adc} in [{1, 2}, {2}]:
+        tr += diffr // adr
+        tc += diffc // adc
+
+    elif adr == 2:
+        tr += diffr // adr
+
+    elif adc == 2:
+        tc += diffc // adc
+
+    return tr, tc
+
+
 def main():
     lines = sys.stdin.read().strip().split('\n')
 
-    visited = {(0,0)}
+    p1visited = set()
+    p2visited = set()
 
-    hr = hc = tr = tc = 0
+    knots = [(0, 0)] * 10
     for line in lines:
         d, n = line.split(' ')
         dr, dc = dirs[d]
         for _ in range(int(n)):
-            hr += dr
-            hc += dc
+            # update head knot
+            hr, hc = knots[0]
+            knots[0] = (hr + dr, hc + dc)
 
-            diffr = hr - tr
-            diffc = hc - tc
+            # update subsequent knots
+            for i, (r, c) in enumerate(knots[1:], start=1):
+                knots[i] = step_knot(*knots[i - 1], r, c)
 
-            adr = abs(diffr)
-            adc = abs(diffc)
+            p1visited.add(knots[1])
+            p2visited.add(knots[-1])
 
-            if adr >= 2 and adc >= 2:
-                print('b', end=' ')
-                tr += diffr // adr
-                tc += diffc // adc
+    ans1 = len(p1visited)
+    ans2 = len(p2visited)
 
-            elif (adr, adc) == (1,2):
-                tr += diffr // adr
-                tc += diffc // adc
+    print('part1:', ans1)
+    print('part2:', ans2)
 
-            elif (adr, adc) == (2,1):
-                tc += diffc // adc
-                tr += diffr // adr
+    assert ans1 == 5981
+    assert ans2 == 2352
 
-            elif adr >= 2:
-                print('r', end=' ')
-                tr += diffr // adr
-
-            elif adc >= 2:
-                print('c', end=' ')
-                tc += diffc // adc
-            else:
-                print(' ', end=' ')
-
-            visited.add((tr, tc))
-            print((diffr, diffc), (hr,hc), (tr,tc))
-        print()
-
-    # ans1 = part1(lines)
-    print('part1:', len(visited))
-
-    # ans2 = part2(lines)
-    # print('part2:', ans2)
-
-    # assert ans1 == 0
-    # assert ans2 == 0
 
 if __name__ == '__main__':
     main()
