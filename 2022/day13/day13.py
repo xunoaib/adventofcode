@@ -11,8 +11,7 @@ def compare(left, right):
         return left < right
     elif isinstance(left, list) and isinstance(right, list):
         for a, b in zip(left, right):
-            res = compare(a, b)
-            if res is not None:
+            if (res := compare(a, b)) is not None:
                 return res
         if len(left) == len(right):
             return None
@@ -25,24 +24,14 @@ def compare(left, right):
         return compare(left, right)
 
 
-def make_comparator(less_than):
-
-    def compare(x, y):
-        if less_than(x, y):
-            return -1
-        elif less_than(y, x):
-            return 1
-        else:
-            return 0
-
-    return compare
+def cmp(left, right):
+    result = compare(left, right)
+    return [True, None, False].index(result) - 1
 
 
 def main():
     groups = sys.stdin.read().strip().split('\n\n')
-    pairs = [
-        list(json.loads(line) for line in group.split('\n')) for group in groups
-    ]
+    pairs = [list(map(json.loads, group.split('\n'))) for group in groups]
 
     ans1 = 0
     for i, (a, b) in enumerate(pairs):
@@ -51,12 +40,12 @@ def main():
 
     print('part1:', ans1)
 
-    pairs.append([[[2]], [[6]]])
     flattened = [item for sublist in pairs for item in sublist]
-    sorted_pairs = sorted(flattened, key=cmp_to_key(make_comparator(compare)))
+    flattened += [[[2]], [[6]]]
+    flattened.sort(key=cmp_to_key(cmp))
 
-    p1 = sorted_pairs.index([[2]]) + 1
-    p2 = sorted_pairs.index([[6]]) + 1
+    p1 = flattened.index([[2]]) + 1
+    p2 = flattened.index([[6]]) + 1
     ans2 = p1 * p2
     print('part2:', ans2)
 
