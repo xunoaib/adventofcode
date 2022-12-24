@@ -52,14 +52,7 @@ def count_ground(elves):
     minc = min(c for r, c in elves)
     maxr = max(r for r, c in elves)
     maxc = max(c for r, c in elves)
-
-    count = 0
-    for r in range(minr, maxr + 1):
-        for c in range(minc, maxc + 1):
-            if (r, c) not in elves:
-                count += 1
-
-    return count
+    return (maxr - minr + 1) * (maxc - minc + 1) - len(elves)
 
 
 def main():
