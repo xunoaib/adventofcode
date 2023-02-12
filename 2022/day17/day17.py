@@ -44,35 +44,45 @@ def print_grid(grid):
         print()
 
 def find_largest_repeat(grid):
-    from collections import Counter
-
-    ymax = max(y for x,y in grid)
+    ymax = max(y for _,y in grid)
     rows = [
         tuple(x for x in range(MAX_X + 1) if (x,y) in grid)
         for y in range(ymax + 1)
     ]
 
-    # counts = Counter(rows)
-    # __import__('pprint').pprint(counts.most_common())
+    best_total = 0
+    for ystart in range(3100, ymax):  # save time by starting at 3100
+        height_left = ymax + 1 - ystart
+        for length in range(1, height_left // 2):  # when trying to place 2 blocks, their max height will be 1/2 the space left
+            # find the total number of duplicated blocks of height 'length' starting from 'ystart'
+            repeats = 0
+            for num_repeats in range(1, height_left // length):
+                if not compare_blocks(rows, ystart, ystart + num_repeats * length, length):
+                    break
+                else:
+                    repeats = num_repeats
 
-    best = tuple()
-    for ystart in range(3100, ymax):
-        for length in range(1, (ymax + 1 - ystart) // 2):
-            g1 = rows[ystart:ystart+length]
-            g2 = rows[ystart+length:ystart+length*2]
-            # TODO: also account for looping rock_idx and ch_idx!
-            # if len(g1) != len(g2):
-            #     print('error:', len(g1), len(g2))
-            #     exit()
-            if all(a == b for a,b in zip(g1, g2)):
-                if len(g1) > len(best):
-                    best = tuple(g1)
-                    print(f'new best: {ystart=}, {length=}')
+            total = repeats * length
+            if total > best_total:
+                # print(f'{ystart=}, {length=}, {repeats=}, {total=}')
+                best_total = total
 
-    # for y_start in range(ymax):
-    #     for y in range(y_start, ymax):
-    #         print(row)
-    #     break
+            if best_total > 1000:
+                leftover = ymax - (ystart + best_total)
+                # print('unmatched at the top:', leftover)
+                return ystart, length, repeats, leftover
+
+    return (0,) * 4
+
+def compare_blocks(rows, ystart1, ystart2, height):
+    """Check if two regions of the given height at ystart1 and ystart2 are equal"""
+    if ystart2 < ystart1:
+        ystart1, ystart2 = ystart2, ystart1
+
+    for yoff in range(height):
+        if rows[ystart1 + yoff] != rows[ystart2 + yoff]:
+            return False
+    return True
 
 def main():
     data = sys.stdin.read().strip()
@@ -90,14 +100,63 @@ def main():
         turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
         if fallen_count >= 2022:
             print('part1:', y - 3)
-            assert y - 3 == 3181
+            # assert y - 3 == 3181
             break
 
-    for _ in range(10000):
+    # for _ in range(30000):
+    for _ in range(20000):
         turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
 
-    print('finding largest repeat')
-    find_largest_repeat(grid)
+    # 1. establish a baseline by dropping rocks until the repeated pattern count increases.
+    # 2. then drop more rocks until the repeat count increases again.
+    # 3. then count the number of dropped rocks between these events for the final calculation.
+
+    ret0 = ystart0, length0, repeats0, leftover0 = find_largest_repeat(grid)
+
+    # 1. drop rocks until a new repeat occurs
+    repeats1 = repeats0
+    while repeats1 == repeats0:
+        turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
+        ystart1, length1, repeats1, _ = find_largest_repeat(grid)
+
+    # drop_rock(grid, data, turn, rock_idx, x, y, fallen_count)
+
+    fallen_count1 = fallen_count
+    ymax1 = max(y for x,y in grid)
+
+    # # 2. drop rocks until a second repeat occurs
+    # repeats2 = repeats1
+    # while repeats2 == repeats1:
+    #     turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
+    #     ystart2, length2, repeats2, _ = find_largest_repeat(grid)
+    fallen_count2 = fallen_count
+    ymax2 = max(y for x,y in grid)
+
+    # number of rocks needed to cause a repeated pattern
+    rock_repeat_interval = fallen_count2 - fallen_count1
+
+    # the height increase of a single repetition
+    single_repeat_height = ymax2 - ymax1
+
+    repeats_left = (1000000000000 - fallen_count) // rock_repeat_interval
+    total_height = ymax2 + (single_repeat_height) * repeats_left
+
+    print(f'{rock_repeat_interval=}')
+    print(f'{single_repeat_height=}')
+    print(f'{ymax2=}')
+    print(f'{repeats_left=}')
+    print(f'{total_height=}')
+    print('diff:', total_height - 1514285714288)
+
+    # # test interval (drop 6 sets of 5 rocks)
+    # for _ in range(6):
+    #     for _ in range(repeat_rock_interval):
+    #         turn, rock_idx, x, y, fallen_count = drop_rock(grid, data, turn, rock_idx, x, y, fallen_count)
+
+    print(f'{ystart0=}, {length0=}, {repeats0=}, {leftover0=}')
+
+    # print('finding duplicate blocks...')
+    # find_largest_repeat(grid)
 
 def tick(grid, data, turn, rock_idx, x, y, fallen_count):
     ch = data[turn % len(data)]
@@ -126,5 +185,15 @@ def tick(grid, data, turn, rock_idx, x, y, fallen_count):
 
     return turn, rock_idx, x, y, fallen_count
 
+def drop_rock(grid, data, turn, rock_idx, x, y, fallen_count):
+    old_idx = rock_idx
+    while True:
+        ret = turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
+        if fallen_count != fallen_count0:
+            return ret
+
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
