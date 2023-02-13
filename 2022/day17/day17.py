@@ -122,7 +122,7 @@ def main():
     # drop_rock(grid, data, turn, rock_idx, x, y, fallen_count)
 
     fallen_count1 = fallen_count
-    ymax1 = max(y for x,y in grid)
+    ymax1 = max(y for _,y in grid)
 
     # # 2. drop rocks until a second repeat occurs
     # repeats2 = repeats1
@@ -130,13 +130,22 @@ def main():
     #     turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
     #     ystart2, length2, repeats2, _ = find_largest_repeat(grid)
     fallen_count2 = fallen_count
-    ymax2 = max(y for x,y in grid)
+    ymax2 = max(y for _,y in grid)
 
     # number of rocks needed to cause a repeated pattern
     rock_repeat_interval = fallen_count2 - fallen_count1
 
     # the height increase of a single repetition
     single_repeat_height = ymax2 - ymax1
+
+    print(find_largest_repeat(grid))
+
+    print(fallen_count)
+    print(rock_repeat_interval)
+
+    if not rock_repeat_interval:
+        print('woops, zero interval')
+        exit(0)
 
     repeats_left = (1000000000000 - fallen_count) // rock_repeat_interval
     total_height = ymax2 + (single_repeat_height) * repeats_left
@@ -155,42 +164,49 @@ def main():
 
     print(f'{ystart0=}, {length0=}, {repeats0=}, {leftover0=}')
 
-    # print('finding duplicate blocks...')
-    # find_largest_repeat(grid)
-
 def tick(grid, data, turn, rock_idx, x, y, fallen_count):
+    '''
+    Runs one tick of the simulation. Applies left/right jet stream,
+    then drops rock down one tile. Grid only stores settled (not falling)
+    rocks. rock_idx, x, and y correspond to the current falling rock.
+    '''
     ch = data[turn % len(data)]
     rock = rocks[rock_idx]
-    xoff = 1 if ch == '>' else -1
-    newx = max(0, min(6, x + xoff))
-    newy = y - 1
+    xoff = 1 if ch == '>' else -1   # horiz direction to shift based on jet stream
+    newx = max(0, min(6, x + xoff)) # clamp x position to game area
+    newy = y - 1  # drop rock down
 
+    # validate and apply horizontal movement
     if valid_pos(grid, newx, y, rock):
         x = newx
 
+    # validate and apply vertical movement
     if valid_pos(grid, x, newy, rock):
         y = newy
 
+    # rock has settled, so update the grid
     else:
         coords = list(rock_to_coords(x, y, rock))
         for coord in coords:
             grid[coord] = '#'
 
+        # spawn new rock
         x = 2
-        y = 4 + max(y for x,y in grid)
+        y = 4 + max(y for _,y in grid)
         rock_idx += 1
         rock_idx %= len(rocks)
-
         fallen_count += 1
 
     return turn, rock_idx, x, y, fallen_count
 
 def drop_rock(grid, data, turn, rock_idx, x, y, fallen_count):
-    old_idx = rock_idx
-    while True:
-        ret = turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
-        if fallen_count != fallen_count0:
-            return ret
+    '''Continues running the simulation until the current rock settles and a
+    new rock is spawned.'''
+
+    fallen_start = fallen_count
+    while fallen_count == fallen_start:
+        turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
+    return turn, rock_idx, x, y, fallen_count
 
 if __name__ == '__main__':
     try:
