@@ -20,7 +20,7 @@ def part2(nums):
     return count
 
 def main():
-    with open('day05.in') as f:
+    with open('input') as f:
         nums = list(map(int, f))
 
     ans1 = part1(nums.copy())
