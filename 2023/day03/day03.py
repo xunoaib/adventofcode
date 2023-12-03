@@ -14,20 +14,18 @@ def get_neighbors(r, c):
 def main():
     lines = sys.stdin.read().strip().split('\n')
 
-    grid = {}
-    syms = []  # symbol positions
+    grid = {
+        (r, c): ch
+        for r, line in enumerate(lines)
+        for c, ch in enumerate(line)
+    }
+    syms = [pos for pos, ch in grid.items() if ch not in string.digits + '.']
+
+    # give each part number (having 1+ digits) a unique identifier, and create
+    # a lookup table associating each position the number occupies with that id
     numid_vals = {}  # part number ids (unique) => actual part number
     pos_numid = {}  # (r,c) => part number id
 
-    # convert input to dict and collect symbol positions
-    for r, line in enumerate(lines):
-        for c, ch in enumerate(line):
-            grid[r, c] = ch
-            if ch in '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~':
-                syms.append((r, c))
-
-    # give each part number (having 1+ digits) a unique identifier, and create
-    # a lookup table associating that id with each position the number occupies
     for r, line in enumerate(lines):
         for match in re.finditer(r'[0-9]+', line):
             num = int(match.group())
