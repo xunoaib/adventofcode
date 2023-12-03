@@ -2,12 +2,10 @@
 import re
 import sys
 
-GOAL_COUNTS = {'red': 12, 'green': 13, 'blue': 14}
-GOAL_TOTALS = sum(GOAL_COUNTS.values())
-
 
 def valid_round(round):
-    return all(count <= GOAL_COUNTS[color] for color, count in round.items())
+    counts = {'red': 12, 'green': 13, 'blue': 14}
+    return all(count <= counts[color] for color, count in round.items())
 
 
 def main():
