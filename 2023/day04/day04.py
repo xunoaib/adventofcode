@@ -1,35 +1,28 @@
 #!/usr/bin/env python3
 import re
-from collections import Counter
 import sys
+from collections import Counter
 
 
 def main():
-    lines = sys.stdin.read().strip().split('\n')
-
-    # total number of each scratchcard (original + copies)
+    data = sys.stdin.read().replace('  ', ' ')
+    groups = re.findall(r'Card .*?: (.*?) \| (.*)', data)
     numcards = Counter()
-
     ans1 = 0
-    for i, line in enumerate(lines):
-        line = re.sub(r'\s+', ' ', line)
-        win, cards = line.split(':')[1].split(' | ')
-        win = set(map(int, win.strip().split(' ')))
-        cards = list(map(int, cards.strip().split(' ')))
+
+    for c, group in enumerate(groups):
+        wins, cards = [set(map(int, s.strip().split(' '))) for s in group]
 
         matches = Counter()
-        for match in win & set(cards):
-            matches[match] += 1
+        for m in wins & cards:
+            matches[m] += 1
 
-        num_matches = sum(matches.values())
-        ans1 += 2**(num_matches - 1) if matches else 0
+        if num_matches := sum(matches.values()):
+            ans1 += 2**(num_matches - 1)
 
-        # count the original card, then add copies of later cards based on how
-        # many matches there were (also based on how many of the current card
-        # we have)
-        numcards[i] += 1
-        for j in range(num_matches):
-            numcards[i + j + 1] += numcards[i]
+        numcards[c] += 1
+        for i in range(num_matches):
+            numcards[c + i + 1] += numcards[c]
 
     ans2 = sum(numcards.values())
     print('part1:', ans1)
