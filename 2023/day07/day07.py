@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import sys
 from collections import Counter
-from functools import cmp_to_key, partial
 
 
 def score_part1(cards):
@@ -37,10 +36,8 @@ def score_part2(cards, idx=0):
     return best
 
 
-def compare_cards(a, b, score_func):
-    if diff := score_func(a) - score_func(b):
-        return diff
-    return -1 if a < b else 1
+def key_sort_func(hand, score_func):
+    return (score_func(hand), ) + tuple(hand)
 
 
 def solve(lines, cardvals, score_func):
@@ -53,7 +50,7 @@ def solve(lines, cardvals, score_func):
         bids[hand] = int(bid)
 
     ans = 0
-    hands.sort(key=cmp_to_key(partial(compare_cards, score_func=score_func)))
+    hands.sort(key=lambda h: key_sort_func(h, score_func))
     for rank, hand in enumerate(hands, 1):
         ans += rank * bids[hand]
     return ans
