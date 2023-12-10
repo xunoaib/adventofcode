@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 import sys
 from collections import defaultdict
-from heapq import heappush, heappop
+from itertools import pairwise
 
 DIRS = U, R, D, L = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+DIAGS = DL, DR, UL, UR = [(1, -1), (1, 1), (-1, -1), (-1, 1)]
+
+
+def flip(direction):
+    return DIRS[(DIRS.index(direction) + 2) % len(DIRS)]
+
 
 SYMDIRS = {
     '|': (U, D),
@@ -14,9 +20,36 @@ SYMDIRS = {
     'F': (R, D),
 }
 
+# maps character to [left_rel_positions, right_rel_positions]
+# designate relative tile positions to be considered to the "left" or "right"
+# of each tile type when the tile has been entered from a given direction
+SIDES = {
+    '|': {
+        U: ((L, ), (R, ))
+    },
+    '-': {
+        R: ((U, ), (D, ))
+    },
+    'F': {
+        U: ((L, U), (DR, )),
+    },
+    'J': {
+        R: ((UL, ), (D, R)),
+    },
+    '7': {
+        R: ((U, R), (DL, ))
+    },
+    'L': {
+        D: ((UR, ), (D, L))
+    }
+}
 
-def flip(direction):
-    return DIRS[(DIRS.index(direction) + 2) % len(DIRS)]
+# swap and add left/right designations when moving in the opposite pipe direction from above
+for ch, dirs in SYMDIRS.items():
+    val = tuple(SIDES[ch].values())[0]
+    for d in dirs:
+        if flip(d) not in SIDES[ch]:
+            SIDES[ch][flip(d)] = val[::-1]
 
 
 def neighbors(r, c):
@@ -30,8 +63,6 @@ def makegraph(grid):
     cs = defaultdict(set)
     for p1, ch1 in grid.items():
         r, c = p1
-        # for ch2, dirs in SYMDIRS.items():
-        # print(ch1, SYMDIRS[ch1])
         for d in SYMDIRS[ch1]:
             p2 = (r + d[0], c + d[1])
             if ch2 := grid.get(p2):
@@ -39,11 +70,10 @@ def makegraph(grid):
                 if flip(d) in dirs2:
                     cs[p2].add((r, c))
                     cs[(r, c)].add(p2)
-
     return cs
 
 
-def findpath(grid, graph, spos):
+def findpath(graph, spos):
     visited = {spos}
     q = [spos]
     p = None
@@ -61,65 +91,67 @@ def findpath(grid, graph, spos):
         return len(path) // 2, path
     return 0, []
 
-def getpool(grid, pos, path):
 
-    max_r = max(r for r,c in grid)
-    max_c = max(c for r,c in grid)
-    min_r = min(r for r,c in grid)
-    min_c = min(c for r,c in grid)
+def getpool(grid, pos):
+
+    max_r = max(r for r, _ in grid)
+    max_c = max(c for _, c in grid)
+    min_r = min(r for r, _ in grid)
+    min_c = min(c for _, c in grid)
 
     pool = {pos}
-    borders = set()
     visited = {pos}
-    valid = True
     q = [pos]
 
     while q:
         p = q.pop()
         for p2 in neighbors(*p):
             r2, c2 = p2
-
             if p2 in visited:
                 continue
             visited.add(p2)
-
-            # out of bounds
             if not (min_r <= r2 <= max_r and min_c <= c2 <= max_c):
-                valid = False
                 continue
-
-            if ch2 := grid.get(p2):
-                # unexpected border
-                if p2 not in path:
-                    valid = False
-            else:
-                # empty space, continue
+            if not grid.get(p2):
                 pool.add(p2)
                 q.append(p2)
-    return pool, valid
+    return pool
 
-# CHSIDES = {
-#     '|': ((L,),(R,)),
-#     '-': ((U,),(D,)),
-# }
 
-def getleft(grid, r,c):
-    ch = grid[r,c]
+def part2(grid, path):
+    # remove irrelevant/unused pipes
+    for p in list(grid):
+        if p not in path:
+            del grid[p]
 
-def part2(grid, g, path):
-    adj = list({n for p in path for n in neighbors(*p) if not grid.get(n)})
+    path.append(path[0])
+    left, right = set(), set()
 
-    # left, right = set(), set()
-    # print(path)
+    for p1, p2 in pairwise(path):
+        vec = tuple(y - x for x, y in zip(p1, p2))
+        ch2 = grid[p2]
+        leftpos, rightpos = SIDES[ch2][vec]
 
-    # valid_set = set()
-    # for p in adj:
-    #     print(p)
-    #     pool, valid = getpool(grid, p, path)
-    #     if valid:
-    #         print(pool)
-    #         valid_set |= pool
-    # print('xxx', len(valid_set), sorted(valid_set))
+        for roff, coff in leftpos:
+            p3 = p2[0] + roff, p2[1] + coff
+            if not grid.get(p3):
+                left.add(p3)
+
+        for roff, coff in rightpos:
+            p3 = p2[0] + roff, p2[1] + coff
+            if not grid.get(p3):
+                right.add(p3)
+
+    leftpool = set()
+    for p in left:
+        leftpool |= getpool(grid, p)
+
+    rightpool = set()
+    for p in right:
+        rightpool |= getpool(grid, p)
+
+    return min(len(leftpool), len(rightpool))
+
 
 def main():
     lines = sys.stdin.read().strip().split('\n')
@@ -133,20 +165,16 @@ def main():
 
     for ch in SYMDIRS:
         grid[spos] = ch
-        g = makegraph(grid)
-        if len(g[spos]) == 2:
-            ans1, path = findpath(grid, g, spos)
+        graph = makegraph(grid)
+        if len(graph[spos]) == 2:
+            ans1, path = findpath(graph, spos)
             print('part1:', ans1)
-            ans2 = part2(grid, g, path)
+            ans2 = part2(grid, path)
+            print('part2:', ans2)
 
-    # ans1 = part1(lines)
-    # print('part1:', ans1)
-
-    # ans2 = part2(lines)
-    # print('part2:', ans2)
-
-    # assert ans1 == 0
-    # assert ans2 == 0
+            assert ans1 == 6733
+            assert ans2 == 435
+            break
 
 
 if __name__ == '__main__':
