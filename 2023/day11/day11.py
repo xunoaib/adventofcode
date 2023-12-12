@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from itertools import permutations
+from itertools import combinations
 
 
 def solve(lines, expand_multiplier):
@@ -15,23 +15,16 @@ def solve(lines, expand_multiplier):
 
     adds = [[0, 0] for _ in galaxies]
 
-    for erow in erows:
-        for i, (r, c) in enumerate(galaxies):
-            if erow < r:
-                adds[i][0] += expand_multiplier - 1
-
-    for ecol in ecols:
-        for i, (r, c) in enumerate(galaxies):
-            if ecol < c:
-                adds[i][1] += expand_multiplier - 1
+    for i, (r, c) in enumerate(galaxies):
+        adds[i][0] += sum(expand_multiplier - 1 for erow in erows if erow < r)
+        adds[i][1] += sum(expand_multiplier - 1 for ecol in ecols if ecol < c)
 
     for i, (gr, gc) in enumerate(galaxies):
         galaxies[i] = (gr + adds[i][0], gc + adds[i][1])
 
-    ans = 0
-    for a, b in permutations(galaxies, r=2):
-        ans += abs(a[0] - b[0]) + abs(a[1] - b[1])
-    return ans // 2
+    return sum(
+        abs(a[0] - b[0]) + abs(a[1] - b[1])
+        for a, b in combinations(galaxies, 2))
 
 
 def main():
