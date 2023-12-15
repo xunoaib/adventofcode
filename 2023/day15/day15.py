@@ -16,26 +16,23 @@ def part2(lines):
     for line in lines:
         label, *flen = line.split('=')
         label = label.split('-')[0]
-        box = hashit(label, 0)
+        boxid = hashit(label, 0)
 
         if line[-1] == '-':
-            for nentry in boxes[box]:
-                if nentry[0] == label:
-                    boxes[box].remove(nentry)
-                    break
+            boxes[boxid] = [lens for lens in boxes[boxid] if lens[0] != label]
         else:
-            nentry = (label, int(flen[0]))
-            for idx, entry in enumerate(boxes[box]):
-                if entry[0] == label:
-                    boxes[box][idx] = nentry
+            new = (label, int(flen[0]))
+            for idx, lens in enumerate(boxes[boxid]):
+                if lens[0] == label:
+                    boxes[boxid][idx] = new
                     break
             else:
-                boxes[box].append(nentry)
+                boxes[boxid].append(new)
 
     ans = 0
-    for bnum, box in enumerate(boxes):
+    for boxnum, box in enumerate(boxes):
         for lnum, (label, flen) in enumerate(box):
-            ans += (1 + bnum) * (1 + lnum) * flen
+            ans += (1 + boxnum) * (1 + lnum) * flen
     return ans
 
 
