@@ -3,18 +3,16 @@ import sys
 from time import time
 
 
-def settle_step(grid):
-    g = {}
-    for (r, c), ch in grid.items():
-        if r > 0 and ch == 'O' and grid.get((r - 1, c), '.') == '.':
-            g[r, c] = '.'
-            g[r - 1, c] = 'O'
-    return grid | g
-
-
 def settle(grid):
-    while (newgrid := settle_step(grid)) != grid:
-        grid = newgrid
+    grid = grid.copy()
+    while True:
+        spots = [(r, c) for (r, c), ch in grid.items()
+                 if ch == 'O' and r > 0 and (r - 1, c) not in grid]
+        if not spots:
+            break
+        for (r, c) in spots:
+            grid[r - 1, c] = 'O'
+            del grid[r, c]
     return grid
 
 
