@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-# import copy
-# import re
-# import numpy as np
-# from collections import defaultdict
-# from itertools import permutations
 import sys
 
-L, R, U, D = (0,-1), (0,1), (-1,0), (1,0)
+DIRS = L, R, U, D = (0,-1), (0,1), (-1,0), (1,0)
+
+states = set()
 
 def nextdirs(ch, curdir):
     if ch == '.':
@@ -34,10 +31,6 @@ def nextdirs(ch, curdir):
             D: (R,),
         }[curdir]
 
-    return tuple()
-
-states = set()
-
 def part1(grid, visited, r, c, curdir):
     state = (r,c, curdir)
     if state in states:
@@ -45,10 +38,8 @@ def part1(grid, visited, r, c, curdir):
     states.add(state)
 
     visited.add((r,c))
-    # while len(ndirs := nextdirs(grid.get((r,c)), curdir)) == 1:
     while True:
         ndirs = nextdirs(grid.get((r,c)), curdir)
-        print(r, c, grid.get((r,c)), ndirs)
         if len(ndirs) != 1:
             break
         curdir = ndirs[0]
@@ -57,7 +48,6 @@ def part1(grid, visited, r, c, curdir):
         if (r,c) not in grid:
             return
         visited.add((r,c))
-    print('end', r, c, curdir)
 
     for ndir in ndirs:
         roff, coff = ndir
@@ -76,15 +66,32 @@ def main():
     visited = set()
     r,c = pos = (0, 0)
     roff, coff = curdir = R
-
     part1(g,visited,r,c,curdir)
-    print('part1:', len(visited))
+    a1 = len(visited)
+    print('part1:', a1)
 
-    # print('part1:', a1)
-    # print('part2:', a2)
+    rs, cs = zip(*g)
+    maxr = max(rs)
+    maxc = max(cs)
 
-    # assert a1 == 0
-    # assert a2 == 0
+    points = [(r, 0) for r in range(maxr+1)]
+    points += [(r, maxc) for r in range(maxr+1)]
+    points += [(0, c) for c in range(maxc+1)]
+    points += [(maxr, c) for c in range(maxc+1)]
+    points = set(points)
+
+    a2 = 0
+    for d in DIRS:
+        for r,c in points:
+            states.clear()
+            visited = set()
+            curdir = R
+            part1(g,visited,r,c,d)
+            a2 = max(a2, len(visited))
+    print('part2:', a2)
+
+    assert a1 == 6622
+    assert a2 == 7130
 
 if __name__ == '__main__':
     main()
