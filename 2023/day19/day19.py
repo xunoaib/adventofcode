@@ -8,10 +8,33 @@ import operator
 def make_rule(rulestr):
     args = re.split(r'[<>:]', rulestr)
     if len(args) == 1:
-        return lambda p: args[0]
+        return LiteralRule(rulestr)
     else:
-        op = operator.lt if '<' in rulestr else operator.gt
-        return lambda p: args[2] if op(p[args[0]], int(args[1])) else None
+        args.insert(1, '<' if '<' in rulestr else '>')
+        return ConditionalRule(*args)
+
+
+class LiteralRule:
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, part):
+        return self.value
+
+
+class ConditionalRule:
+
+    def __init__(self, checkvar, opchar, checkval, retval):
+        self.checkvar = checkvar
+        self.opchar = opchar
+        self.checkval = int(checkval)
+        self.retval = retval
+        self.opfunc = operator.lt if opchar == '<' else operator.gt
+
+    def __call__(self, part):
+        if self.opfunc(part[self.checkvar], self.checkval):
+            return self.retval
 
 
 class Workflow:
@@ -20,7 +43,7 @@ class Workflow:
         self.name, inner = re.search(r'(.*)\{(.*)\}', line).groups()
         self.rules = [make_rule(rulestr) for rulestr in inner.split(',')]
 
-    def process(self, part):
+    def __call__(self, part):
         for rule in self.rules:
             if (res := rule(part)) is not None:
                 return res
@@ -40,12 +63,13 @@ def main():
     for line in _rs:
         part = json.loads(re.sub(r'([xmas])', r'"\1"', line.replace('=', ':')))
         w = workflows['in']
-        while (res := w.process(part)) not in 'RA':
+        while (res := w(part)) not in 'RA':
             w = workflows[res]
         if res == 'A':
             a1 += sum(part.values())
 
     print('part1:', a1)
+
 
 if __name__ == '__main__':
     main()
