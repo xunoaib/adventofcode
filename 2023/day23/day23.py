@@ -1,18 +1,9 @@
 #!/usr/bin/env python3
 import sys
-import string
-from heapq import heappop, heappush
 from collections import defaultdict
 
 DIRS = U, D, L, R = (-1, 0), (1, 0), (0, -1), (0, 1)
-CHDIRS = {'>': R, 'v': D}
-
-
-def alphadict(s):
-    return {
-        n: string.ascii_letters[i % len(string.ascii_letters)]
-        for i, n in enumerate(s)
-    }
+SLIDE_DIRS = {'>': R, 'v': D}
 
 
 def neighbors(r, c):
@@ -21,86 +12,93 @@ def neighbors(r, c):
             yield r + roff, c + coff
 
 
-def intersections(grid):
-    nodes = set()
+def find_all_junctions(grid):
+    junctions = set()
     for (r, c), ch in grid.items():
-        if ch == '#':
-            continue
-        adjtiles = [grid.get(pos, '#') for pos in neighbors(r, c)]
-        numopen = sum(1 for ch in adjtiles if ch != '#')
+        numopen = sum(1 for pos in neighbors(r, c) if pos in grid)
         if numopen >= 3:
-            nodes.add((r, c))
-    return nodes | {get_start(grid), get_end(grid)}
+            junctions.add((r, c))
+    return junctions | {min(grid), max(grid)}
 
 
-def get_start(grid):
-    minr = min(r for r, c in grid)
-    return [p for p, ch in grid.items() if p[0] == minr and ch == '.'][0]
-
-
-def get_end(grid):
-    maxr = max(r for r, c in grid)
-    return [p for p, ch in grid.items() if p[0] == maxr and ch == '.'][0]
+def find_reachable_junctions(grid, current):
+    found = {}
+    visited = {current}
+    alljunctions = find_all_junctions(grid)
+    q: list[tuple[int, tuple[int, int]]] = [(0, current)]
+    while q:
+        cost, current = q.pop()
+        for neighbor in neighbors(*current):
+            if neighbor in visited or neighbor not in grid:
+                continue
+            if direction := SLIDE_DIRS.get(grid[neighbor]):
+                if direction != (neighbor[0] - current[0],
+                                 neighbor[1] - current[1]):
+                    continue
+            visited.add(neighbor)
+            if neighbor in alljunctions:
+                found[neighbor] = cost + 1
+                continue
+            q.append((cost + 1, neighbor))
+    return found
 
 
 def build_graph(grid):
     graph = defaultdict(dict)
-    start = get_start(grid)
-    q = [(start, )]
-    visited = {start}  # excludes junctions
-    junctions = intersections(grid)
-    while q:
-        path = q.pop()
-        for npos in neighbors(*path[-1]):
-            ch = grid.get(npos, '#')
-            if ch == '#' or npos in path:
-                continue
-            if d := CHDIRS.get(ch):
-                if npos != (path[-1][0] + d[0], path[-1][1] + d[1]):
-                    continue
-            npath = path + (npos, )
-            if npos in junctions:
-                graph[npath[0]][npath[-1]] = npath
-                graph[npath[-1]][npath[0]] = npath
-                heappush(q, (npos, ))
-            elif npos not in visited:
-                visited.add(npos)
-                heappush(q, npath)
-    return graph
+    for src in find_all_junctions(grid):
+        for dst, cost in find_reachable_junctions(grid, src).items():
+            graph[src][dst] = cost
+    return dict(graph)
 
 
-def longest(graph, start, goal):
-    assert start in graph and goal in graph
-    costs = {start: 0}
-    cameFrom = {start: None}
-    q = [(0, start, {start})]
-    while q:
-        cost, current, visited = heappop(q)
-        for neighbor, path in graph[current].items():
-            path = path[1:]
-            if set(path) & visited:
-                continue
-            ncost = cost - len(path)
-            if ncost < costs.get(neighbor, sys.maxsize):
-                costs[neighbor] = ncost
-                cameFrom[neighbor] = current
-                q.append((ncost, neighbor, visited | set(path)))
-    return abs(costs[goal])
+class Solver:
+
+    def __init__(self, start, goal):
+        self.start = start
+        self.goal = goal
+
+    def solve(self, graph):
+        self.graph = graph
+        self.best = 0
+        return self.maximize(self.start, (self.start, ))
+
+    def maximize(self, current, path, cost=0):
+        if current == self.goal:
+            return cost
+
+        for neighbor, pcost in self.graph[current].items():
+            if neighbor not in path:
+                self.best = max(
+                    self.best,
+                    self.maximize(neighbor, path + (neighbor, ), cost + pcost))
+
+        return self.best
 
 
 def main():
     lines = sys.stdin.read().strip().split('\n')
-    g = {
+    grid = {
         (r, c): ch
         for r, line in enumerate(lines)
-        for c, ch in enumerate(line)
+        for c, ch in enumerate(line) if ch != '#'
     }
+    grid2 = {pos: '.' for pos in grid}
+    start, goal = min(grid), max(grid)
 
-    graph = build_graph(g)
-    start, end = get_start(g), get_end(g)
-    a1 = longest(graph, start, end)
+    graph1 = build_graph(grid)
+    graph2 = build_graph(grid2)
 
+    s = Solver(start, goal)
+
+    a1 = s.solve(graph1)
     print('part1:', a1)
+
+    a2 = s.solve(graph2)
+    print('part2:', a2)
+
+    assert a1 == 2210
+    assert a2 == 6522
+
 
 if __name__ == '__main__':
     main()
