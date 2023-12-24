@@ -8,16 +8,16 @@ SLIDE_DIRS = {'>': R, 'v': D}
 
 def neighbors(r, c):
     for roff, coff in DIRS:
-        if not (roff == coff == 0):
+        if not (roff and coff):
             yield r + roff, c + coff
 
 
 def find_all_junctions(grid):
     junctions = set()
-    for (r, c), ch in grid.items():
-        numopen = sum(1 for pos in neighbors(r, c) if pos in grid)
-        if numopen >= 3:
-            junctions.add((r, c))
+    for pos in grid:
+        numpaths = sum(1 for pos in neighbors(*pos) if pos in grid)
+        if numpaths >= 3:
+            junctions.add(pos)
     return junctions | {min(grid), max(grid)}
 
 
