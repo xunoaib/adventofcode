@@ -36,21 +36,17 @@ def score_part2(cards, idx=0):
     return best
 
 
-def key_sort_func(hand, score_func):
-    return (score_func(hand), ) + tuple(hand)
-
-
 def solve(lines, cardvals, score_func):
     hands = []
     bids = {}
     for line in lines:
         hand, bid = line.split()
-        hand = tuple(cardvals[c] if c in cardvals else int(c) for c in hand)
+        hand = tuple(int(cardvals.get(c, c)) for c in hand)
         hands.append(hand)
         bids[hand] = int(bid)
 
+    hands.sort(key=lambda hand: (score_func(hand), *hand))
     ans = 0
-    hands.sort(key=lambda h: key_sort_func(h, score_func))
     for rank, hand in enumerate(hands, 1):
         ans += rank * bids[hand]
     return ans
