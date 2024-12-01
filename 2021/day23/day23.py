@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import re
+import sys
 from collections import defaultdict
 from heapq import heappop, heappush
 from time import time
-import sys
 
 # incorrect:
 # 41089
@@ -363,12 +363,12 @@ def next_states(state):
 #             pass
 
 def main():
-    s = '.......ABCDABCDABCDABCD'
-    state = state_fromstring(s)
-    print(state)
-    # print(solved(state))
-    print(next_states(state))
-    return
+    # s = '.......ABCDABCDABCDABCD'
+    # state = state_fromstring(s)
+    # print(state)
+    # # print(solved(state))
+    # print(next_states(state))
+    # return
 
     Game.create_graph()
     Game.find_shortest_bfs_all()

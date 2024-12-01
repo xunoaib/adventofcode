@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 
 from aoclib import AOC
+from private_leaderboard import PrivateLeaderboard
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -30,6 +31,13 @@ def get_parser():
 
     stats = subparsers.add_parser('stats', help='Retrieve leaderboard stats')
     stats.add_argument('year', nargs='?')
+
+    leaderboard = subparsers.add_parser('pstats', help='Retrieve private leaderboard stats')
+    leaderboard.add_argument('code')
+    leaderboard.add_argument('year', nargs='?')
+    leaderboard.add_argument('-l','--loop', action='store_true')
+    leaderboard.add_argument('-e','--events', action='store_true', help='Notify of leaderboard changes')
+    leaderboard.add_argument('-t','--times', action='store_true', help='Show completion datetimes')
     return parser
 
 def main(args=None):
@@ -42,6 +50,7 @@ def main(args=None):
         'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),
         'auth':     lambda args: auth(aoc),
         'stats':    lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
+        'pstats':   lambda args: handle_private_leaderboard(aoc, args) and 0,  # suppress output
         'mkdir':    lambda args: make_next_dir(aoc, args.dir_only),
     }
 
@@ -65,12 +74,12 @@ def make_next_dir(aoc: AOC, dir_only: bool):
 
     if not re.match(r'^\d{4}$', cwd.name):
         print('Invalid year format for current directory:', cwd.name)
-        return False
+        return 1
 
     year = int(cwd.name)
     if year < 2015:
         print(f"Invalid year ({year})! Advent of Code doesn't go back that far")
-        return False
+        return 1
 
     # find the highest existing day number
     if daydirs := list(cwd.glob('day*')):
@@ -81,7 +90,7 @@ def make_next_dir(aoc: AOC, dir_only: bool):
 
     if not (1 <= nextdaynum <= 25):
         print('Invalid day:', nextdaynum)
-        return False
+        return 1
 
     # infer zero-padding convention
     nextdirname = f'day{nextdaynum:02}' if lastdaynumstr.startswith('0') else f'day{nextdaynum}'
@@ -90,7 +99,7 @@ def make_next_dir(aoc: AOC, dir_only: bool):
     path.mkdir()
 
     if dir_only:
-        return True
+        return 0
 
     # copy code template (hardcoded python file)
     source = pathlib.Path(__file__).parent / 'template.py'
@@ -103,7 +112,7 @@ def make_next_dir(aoc: AOC, dir_only: bool):
     print('$ aoc download')
     main(['download', '-o'])
 
-    return True
+    return 0
 
 def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
     year, day = AOC.parse_date(challenge_path)
@@ -170,6 +179,16 @@ def submit(aoc, challenge_path):
     message = aoc.submit_answer(year, day, level, answer)
     print(message)
     return "That's the right answer!" in message
+
+def handle_private_leaderboard(aoc, args):
+    if args.year is None:
+        args.year = datetime.now().year
+    lb = PrivateLeaderboard(aoc)
+    if args.times:
+        lb.print_times(args.year)
+    elif args.events:
+        events = lb.loop_differences(args.year, args.code, args.loop)
+        print(events)
 
 if __name__ == "__main__":
     try:
