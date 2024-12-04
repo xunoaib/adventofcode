@@ -23,7 +23,7 @@ for r, row in enumerate(sys.stdin):
     for c, ch in enumerate(row.strip()):
         d[r,c] = ch
 
-p1 = sum(count(r,c) for (r,c), ch in d.items() if ch == 'X')
+p1 = sum(count(*p) for p, ch in d.items() if ch == 'X')
 
 print('part1:', p1)
 
@@ -31,17 +31,17 @@ p2 = 0
 for (r,c), ch in d.items():
     if ch == 'A':
 
-        op1 = sorted([
-            d.get((r-1, c-1), ''),
-            d.get((r+1, c+1), '')
-        ])
+        diag1 = {
+            d.get((r-1, c-1)),
+            d.get((r+1, c+1))
+        }
 
-        op2 = sorted([
-            d.get((r+1, c-1), ''),
-            d.get((r-1, c+1), '')
-        ])
+        diag2 = {
+            d.get((r+1, c-1)),
+            d.get((r-1, c+1))
+        }
 
-        if op1 == op2 == list('MS'):
+        if diag1 == diag2 == set('MS'):
             p2 += 1
 
 print('part2:', p2)
