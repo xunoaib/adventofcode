@@ -34,3 +34,22 @@ for (r,c), ch in d.items():
         p1 += count(r,c)
 
 print('part1:', p1)
+
+p2 = 0
+for (r,c), ch in d.items():
+    if ch == 'A':
+
+        op1 = sorted([
+            d.get((r-1, c-1), ''),
+            d.get((r+1, c+1), '')
+        ])
+
+        op2 = sorted([
+            d.get((r+1, c-1), ''),
+            d.get((r-1, c+1), '')
+        ])
+
+        if op1 == op2 == list('MS'):
+            p2 += 1
+
+print('part2:', p2)
