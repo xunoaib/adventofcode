@@ -5,33 +5,25 @@ from itertools import product
 
 dirs = [(r,c) for r,c in product([-1,0,1], [-1,0,1]) if r or c]
 
-def count(r, c):
+def count(r_start, c_start):
     total = 0
     for roff, coff in dirs:
-        R, C = r, c
-        for ch in 'XMAS':
-            if d.get((R,C)) != ch:
+        r, c = r_start, c_start
+        for ch in 'MAS':
+            r += roff
+            c += coff
+            if d.get((r,c)) != ch:
                 break
-            R += roff
-            C += coff
         else:
             total += 1
     return total
 
-g = []
-for line in sys.stdin:
-    line = line.strip()
-    g.append(line)
-
 d = {}
-for r, row in enumerate(g):
-    for c, ch in enumerate(row):
+for r, row in enumerate(sys.stdin):
+    for c, ch in enumerate(row.strip()):
         d[r,c] = ch
 
-p1 = 0
-for (r,c), ch in d.items():
-    if ch == 'X':
-        p1 += count(r,c)
+p1 = sum(count(r,c) for (r,c), ch in d.items() if ch == 'X')
 
 print('part1:', p1)
 
