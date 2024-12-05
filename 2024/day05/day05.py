@@ -11,10 +11,7 @@ def find_smallest(update):
     '''Find the only number which has no other numbers come before it'''
 
     right = [y for x,y in rules if x in update and y in update]
-
-    for v in update:
-        if v not in right:
-            return v
+    return next(v for v in update if v not in right)
 
 def fix_order(update):
     fixed = []
