@@ -10,16 +10,11 @@ updates = [tuple(map(int, line.split(','))) for line in s2.split('\n')]
 def find_smallest(update):
     '''Find the only number which has no other numbers come before it'''
 
-    lessthan = {v: set() for v in update}
+    right = [y for x,y in rules if x in update and y in update]
 
-    for x,y in rules:
-        if x in update and y in update:
-            lessthan[y].add(x)
-
-    for v, lessthanv in lessthan.items():
-        if not lessthanv:
+    for v in update:
+        if v not in right:
             return v
-
 
 def fix_order(update):
     fixed = []
