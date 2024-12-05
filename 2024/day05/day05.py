@@ -7,20 +7,16 @@ s1, s2  = sys.stdin.read().strip().split('\n\n')
 rules = [tuple(map(int, line.split('|'))) for line in s1.split('\n')]
 updates = [tuple(map(int, line.split(','))) for line in s2.split('\n')]
 
-def find_smallest(update):
-    '''Find the only number which has no other numbers come before it'''
-
-    right = [y for x,y in rules if x in update and y in update]
-    return next(v for v in update if v not in right)
-
 def fix_order(update):
     fixed = []
     left = list(update)
 
     while left:
-        s = find_smallest(left)
-        fixed.append(s)
-        left.remove(s)
+        # find the only number which has no other numbers come before it
+        right = [y for x,y in rules if x in update and y in update]
+        n = next(v for v in update if v not in right)
+        fixed.append(n)
+        left.remove(n)
 
     return fixed
 
