@@ -14,36 +14,66 @@ grid = {
     for c, ch in enumerate(line)
 }
 
-maxrow = max(r for r,c in grid)
-maxcol = max(c for r,c in grid)
-
 walls = {p for p,ch in grid.items() if ch == '#'}
-pos = next(p for p,ch in grid.items() if ch == '^')
-
-visited = set()
+start = next(p for p,ch in grid.items() if ch == '^')
 
 a1 = a2 = 0
 
-while pos in grid:
-    visited.add(pos)
+visited_p1 = set()
 
-    r,c = pos
-    np = r+DIRS[d][0], c + DIRS[d][1]
-    if grid.get(np) == '#':
-        d += 1
-        d %= 4
-    else:
-        pos = np
+def part1():
+    pos = start
+    d = 0
 
-    # for r in range(maxrow+1):
-    #     for c in range(maxcol+1):
-    #         print('X' if (r,c) in visited else grid[r,c], end='')
-    #     print()
-    # print()
-    # time.sleep(0.1)
+    while pos in grid:
+        visited_p1.add(pos)
+        r,c = pos
+        np = r+DIRS[d][0], c + DIRS[d][1]
+        if grid.get(np) == '#':
+            d += 1
+            d %= 4
+        else:
+            pos = np
+    return len(visited_p1)
 
-print('part1:', len(visited))
-# print('part2:', a2)
+def loops(block):
+    g = grid.copy()
+    g[block] = '#'
+    pos = start
+    d = 0
+    states = set()
+    visited = set()
 
-# assert a1 == 0
-# assert a2 == 0
+    while pos in g:
+        visited.add(pos)
+        if (pos, d) in states:
+            return True
+        states.add((pos, d))
+
+        r,c = pos
+        np = r + DIRS[d][0], c + DIRS[d][1]
+        if g.get(np) == '#':
+            d += 1
+            d %= 4
+        else:
+            pos = np
+
+        # maxrow = max(r for r,c in grid)
+        # maxcol = max(c for r,c in grid)
+        # for r in range(maxrow+1):
+        #     for c in range(maxcol+1):
+        #         print('X' if (r,c) in visited else grid[r,c], end='')
+        #     print()
+        # print()
+        # time.sleep(0.1)
+
+    return False
+
+a1 = part1()
+a2 = sum([loops(p) for p in visited_p1 if p != start])
+
+print('part1:', a1)
+print('part2:', a2)
+
+assert a1 == 5453
+assert a2 == 2188
