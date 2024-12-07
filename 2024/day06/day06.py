@@ -38,9 +38,9 @@ def run(grid):
 visited_p1, _ = run(grid)
 
 a1 = len(visited_p1)
-a2 = sum(run(grid | {p: '#'})[1] for p in visited_p1 if p != start)
-
 print('part1:', a1)
+
+a2 = sum(run(grid | {p: '#'})[1] for p in visited_p1 if p != start)
 print('part2:', a2)
 
 assert a1 == 5453
