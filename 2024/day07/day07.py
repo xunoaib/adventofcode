@@ -1,35 +1,36 @@
 #!/usr/bin/env python3
 
 import sys
-from itertools import product
 
 
-def canmake(tot, nums, operators):
-    allops = list(product(operators, repeat=len(nums)-1))
+def permute(nums, ops: str):
+    if len(nums) == 1:
+        yield nums[0]
+        return
 
-    for ops in allops:
-        a = nums[0]
-        for v,op in zip(nums[1:], ops):
-            if op == '+':
-                a += v
-            elif op == '*':
-                a *= v
-            elif op == '|':
-                a = int(f'{a}{v}')
-        if a == tot:
-            return tot
-    return 0
+    for op in ops:
+        a, b = nums[0:2]
+        if op == '+':
+            a += b
+        elif op == '*':
+            a *= b
+        elif op == '|':
+            a = int(f'{a}{b}')
+        yield from permute((a, *nums[2:]), ops)
+
+def find(tot, nums, operators):
+    return next((v for v in permute(nums, operators) if v == tot), 0)
 
 d = {}
 
 for line in sys.stdin:
     a, b = line.strip().split(':')
-    d[int(a)] = list(map(int, b.split()))
+    d[int(a)] = tuple(map(int, b.split()))
 
-a1 = sum(canmake(tot, nums, '+*') for tot, nums in d.items())
+a1 = sum(find(tot, nums, '+*') for tot, nums in d.items())
 print('part1:', a1)
 
-a2 = sum(canmake(tot, nums, '+*|') for tot, nums in d.items())
+a2 = sum(find(tot, nums, '+*|') for tot, nums in d.items())
 print('part2:', a2)
 
 assert a1 == 4998764814652
