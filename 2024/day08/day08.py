@@ -18,16 +18,11 @@ grid = {
 maxrow = max(r for r,c in grid.keys())
 maxcol = max(c for r,c in grid.keys())
 
-# grid  = {k: v for k,v in grid.items() if v != '.'}
-
 freqposs = defaultdict(set)
 for p, f in grid.items():
     if f != '.':
         freqposs[f].add(p)
 freqposs  = dict(freqposs)
-
-# __import__('pprint').pprint(freqposs)
-# exit(0)
 
 antinodes = set()
 
@@ -43,11 +38,22 @@ for f, positions in freqposs.items():
         rdiff = r2-r1
         cdiff = c2-c1
 
-        p3 = r1 - rdiff, c1 - cdiff
-        p4 = r2 + rdiff, c2 + cdiff
-        assert not {p3, p4} & {p1, p2}
+        q = r1, c1
+        while q in grid:
+            # if q not in (p1, p2):
+            antinodes.add(q)
+            q = q[0] - rdiff, q[1] - cdiff
 
-        antinodes |= {p3,p4}
+        q = r1, c1
+        while q in grid:
+            # if q not in (p1, p2):
+            antinodes.add(q)
+            q = q[0] + rdiff, q[1] + cdiff
+
+        # p4 = r2 + rdiff, c2 + cdiff
+        # assert not {q, p4} & {p1, p2}
+
+        # antinodes |= {q,p4}
 
 antinodes = {(r,c) for (r,c) in antinodes if r in range(maxrow+1) and c in range(maxcol+1)}
 
@@ -59,11 +65,9 @@ for r in range(maxrow+1):
         print(g[r,c], end='')
     print()
 
-a1 = a2 = 0
-a1 = len(antinodes)
+a2 = len(antinodes)
 
-print('part1:', a1)
-# print('part2:', a2)
+print('part2:', a2)
 
 # assert a1 == 0
 # assert a2 == 0
