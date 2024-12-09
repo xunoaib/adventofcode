@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import pickle
 import time
 
@@ -21,6 +22,8 @@ for i, size in enumerate(nums):
             blocks.append('.')
         items.append(('.', size, None))
 
+# part 1
+
 i = 0
 j = len(blocks) - 1
 while True:
@@ -31,23 +34,11 @@ while True:
     if i >= j:
         break
     blocks[i], blocks[j] = blocks[j], blocks[i]
+
 a1 = sum(i * int(n) for i, n in enumerate(blocks) if n != '.')
 print('part1:', a1)
 
-def disp():
-    lst = []
-    for a,b,c in items:
-        if a == '.':
-            lst.append('.'*b)
-        else:
-            lst += [c] * b
-    # print(lst)
-    ans = '|'.join(map(str, lst))
-
-    # print(ans)
-    # print()
-
-    return ans
+# part 2
 
 def calculate():
     last_time = time.time()
@@ -61,14 +52,12 @@ def calculate():
         if file_idx < free_idx:
             continue
 
-        # print(f'moving {file_id} from {file_idx} to {free_idx}')
-
         items[free_idx] = ('.', free_size - file_size, None)
         items[file_idx] = ('.', file_size, None)
         items.insert(free_idx, ('file', file_size, file_id))
 
         for idx in range(len(items)-1):
-            (t1, s1, id1), (t2, s2, id2) = items[idx:idx+2]
+            (t1, s1, fid1), (t2, s2, fid2) = items[idx:idx+2]
             if t1 == t2 == '.':
                 items[idx] = ('.', s1+s2, None)
                 del items[idx+1]
@@ -82,12 +71,16 @@ def calculate():
             last_time = time.time()
             print(file_id)
 
-    with open('items.pkl','wb') as f:
-        pickle.dump(items, f)
+    return items
 
-# calculate()
-with open('items.pkl','rb') as f:
-    items = pickle.load(f)
+# cache results to avoid a very slow recalculation
+fname = 'items.pkl'
+if os.path.isfile(fname):
+    items = pickle.load(open(fname, 'rb'))
+else:
+    items = calculate()
+    with open(fname, 'wb') as f:
+        pickle.dump(items, f)
 
 a2 = 0
 pos = 0
