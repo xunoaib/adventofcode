@@ -8,8 +8,13 @@ import sys
 import time
 from datetime import datetime
 
+import websocket
 from aoclib import AOC
 from private_leaderboard import PrivateLeaderboard
+
+# websocket server used to refresh the web browser
+WS_REFRESH_URI = "ws://localhost:8765"
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -46,12 +51,12 @@ def main(args=None):
 
     aoc = AOC.from_firefox(args.cookiefile)
     funcs = {
-        'submit':   lambda args: not submit(aoc, args.challenge),
+        'submit': lambda args: not submit_and_refresh(aoc, args.challenge),
         'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),
-        'auth':     lambda args: auth(aoc),
-        'stats':    lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
-        'pstats':   lambda args: handle_private_leaderboard(aoc, args) and 0,  # suppress output
-        'mkdir':    lambda args: make_next_dir(aoc, args.dir_only),
+        'auth': lambda args: auth(aoc),
+        'stats': lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
+        'pstats': lambda args: handle_private_leaderboard(aoc, args) and 0,  # suppress output
+        'mkdir': lambda args: make_next_dir(aoc, args.dir_only),
     }
 
     if func := funcs.get(args.cmd):
@@ -179,6 +184,18 @@ def submit(aoc, challenge_path):
     message = aoc.submit_answer(year, day, level, answer)
     print(message)
     return "That's the right answer!" in message
+
+def submit_and_refresh(aoc, challenge_path):
+    if result := submit(aoc, challenge_path):
+        try:
+            ws = websocket.create_connection(WS_REFRESH_URI)
+            ws.send("refresh")
+            print("Refreshing page...")
+            ws.close()
+        except Exception as e:
+            print(f"Failed to refresh the web page: {e}")
+
+    return result
 
 def handle_private_leaderboard(aoc, args):
     if args.year is None:
