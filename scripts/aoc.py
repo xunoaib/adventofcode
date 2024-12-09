@@ -15,6 +15,21 @@ from private_leaderboard import PrivateLeaderboard
 # websocket server used to refresh the web browser
 WS_REFRESH_URI = "ws://localhost:8765"
 
+def on_successful_submit(challenge_path, aoc):
+    # refresh the web page
+    try:
+        ws = websocket.create_connection(WS_REFRESH_URI)
+        ws.send("refresh")
+        print("\nRefreshing page...")
+        ws.close()
+    except Exception as e:
+        print(f"Failed to refresh the web page: {e}")
+
+    # print leaderboard stats
+    year, day = AOC.parse_date(challenge_path)
+    print(f'Leaderboard (Day {day}):\n')
+    aoc.personal_stats(year)
+    print()
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -50,8 +65,12 @@ def main(args=None):
     args = parser.parse_args(args)
 
     aoc = AOC.from_firefox(args.cookiefile)
+
+    def success_callback(challenge_path, aoc=aoc):
+        on_successful_submit(challenge_path, aoc)
+
     funcs = {
-        'submit': lambda args: not submit_and_refresh(aoc, args.challenge),
+        'submit': lambda args: not submit(aoc, args.challenge, success_callback),
         'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),
         'auth': lambda args: auth(aoc),
         'stats': lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
@@ -164,7 +183,8 @@ def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
                 print('download failed')
                 break
 
-def submit(aoc, challenge_path):
+def submit(aoc, challenge_path, success_callback=None):
+
     year, day = AOC.parse_date(challenge_path)
 
     # parse level/answer from last line matching "partN: answer"
@@ -183,19 +203,14 @@ def submit(aoc, challenge_path):
 
     message = aoc.submit_answer(year, day, level, answer)
     print(message)
-    return "That's the right answer!" in message
 
-def submit_and_refresh(aoc, challenge_path):
-    if result := submit(aoc, challenge_path):
-        try:
-            ws = websocket.create_connection(WS_REFRESH_URI)
-            ws.send("refresh")
-            print("Refreshing page...")
-            ws.close()
-        except Exception as e:
-            print(f"Failed to refresh the web page: {e}")
+    if "That's the right answer!" not in message:
+        return False
 
-    return result
+    if success_callback:
+        success_callback(challenge_path)
+
+    return True
 
 def handle_private_leaderboard(aoc, args):
     if args.year is None:
