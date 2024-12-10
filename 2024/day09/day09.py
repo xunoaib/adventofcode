@@ -3,24 +3,35 @@
 import os
 import pickle
 import time
+from dataclasses import dataclass
+
+
+@dataclass
+class File:
+    size: int
+    id: int
+
+@dataclass
+class Free:
+    size: int
 
 nums = map(int, input())
 
 num_files = 0
-blocks = []
-items = []
+blocks: list[int | str] = []
+items: list[File | Free] = []
 
 for i, size in enumerate(nums):
     isfile = not (i % 2)
     if isfile:
         for _ in range(size):
             blocks.append(num_files)
-        items.append(('file', size, num_files))
+        items.append(File(size, num_files))
         num_files += 1
     else:
         for _ in range(size):
             blocks.append('.')
-        items.append(('.', size, None))
+        items.append(Free(size))
 
 # part 1
 
@@ -44,27 +55,27 @@ def calculate():
     last_time = time.time()
     for file_id in range(num_files)[::-1]:
         try:
-            file_idx, file_size = next((idx, item[1]) for idx, item in enumerate(items) if item[0] == 'file' and item[2] == file_id)
-            free_idx, free_size = next((idx, item[1]) for idx, item in enumerate(items) if item[0] == '.' and item[1] >= file_size)
+            file_idx, file = next((i,t) for (i,t) in enumerate(items) if isinstance(t, File) and t.id == file_id)
+            free_idx, free = next((i,t) for (i,t) in enumerate(items) if isinstance(t, Free) and t.size >= file.size)
         except StopIteration:
             continue
 
         if file_idx < free_idx:
             continue
 
-        items[free_idx] = ('.', free_size - file_size, None)
-        items[file_idx] = ('.', file_size, None)
-        items.insert(free_idx, ('file', file_size, file_id))
+        free.size -= file.size
+        items[file_idx] = Free(file.size)
+        items.insert(free_idx, file)
 
         for idx in range(len(items)-1):
-            (t1, s1, fid1), (t2, s2, fid2) = items[idx:idx+2]
-            if t1 == t2 == '.':
-                items[idx] = ('.', s1+s2, None)
+            a, b = items[idx:idx+2]
+            if isinstance(a, Free) and isinstance(b, Free):
+                items[idx].size += b.size
                 del items[idx+1]
                 break
 
         for i in range(len(items))[::-1]:
-            if items[i][1] == 0:
+            if items[i].size == 0:
                 del items[i]
 
         if time.time() - last_time > 1:
@@ -85,13 +96,13 @@ else:
 a2 = 0
 pos = 0
 
-for idx, (t, sz, fid) in enumerate(items):
-    if t == '.':
-        pos += sz
-    else:
-        for _ in range(sz):
-            a2 += pos * fid
+for idx, item in enumerate(items):
+    if isinstance(item, File):
+        for _ in range(item.size):
+            a2 += pos * item.id
             pos += 1
+    else:
+        pos += item.size
 
 print('part2:', a2)
 
