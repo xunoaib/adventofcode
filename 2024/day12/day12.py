@@ -15,8 +15,7 @@ def find_pool(pos):
     pool = {pos}
     q = [pos]
     while q:
-        pos = q.pop()
-        for n in neighbors4(*pos):
+        for n in neighbors4(*q.pop()):
             if n not in pool and grid.get(n) == ch:
                 pool.add(n)
                 q.append(n)
@@ -24,21 +23,12 @@ def find_pool(pos):
 
 def find_pools():
     pools = []
-    pooled = set()
-    for p in grid:
-        if p not in pooled:
-            pool = find_pool(p)
-            pools.append(pool)
-            pooled |= pool
+    unused = set(grid)
+    while unused:
+        pool = find_pool(unused.pop())
+        pools.append(pool)
+        unused -= pool
     return pools
-
-def find_border_vectors(pool):
-    borders = set()
-    for p in pool:
-        for n in neighbors4(*p):
-            if n not in pool:
-                borders.add((p, sub(n,p)))
-    return borders
 
 def sub(a,b):
     return b[0]-a[0], b[1]-a[1]
@@ -55,10 +45,10 @@ a1 = sum(len(pool) * sum(n not in pool for p in pool for n in neighbors4(*p)) fo
 a2 = 0
 
 for pool in pools:
-    borders = find_border_vectors(pool)
-
+    fence_vecs = {(p, sub(n,p)) for p in pool for n in neighbors4(*p) if n not in pool}
     vec_tiles = defaultdict(set)
-    for p, vec in borders:
+
+    for p, vec in fence_vecs:
         vec_tiles[vec].add(p)
 
     sides = 0
