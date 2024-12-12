@@ -2,6 +2,7 @@
 
 import sys
 from collections import defaultdict
+from itertools import pairwise
 
 DIRS = U, D, L, R = (-1, 0), (1, 0), (0, -1), (0, 1)
 
@@ -48,22 +49,59 @@ for p, ch in grid.items():
         pool = find_pool(*p)
         pools.append(pool)
         pooled |= pool
-        # print('new pool', ch, 'at', p, pool)
-        # print('new pool', ch)
-
-# groups = defaultdict(set)
-# for (r,c), ch in grid.items():
-#     groups[ch].add((r,c))
 
 a1 = 0
 for pool in pools:
     perim = find_perim(pool)
     area = len(pool)
-    # print(ch, p, a, perim*are)
     a1 += perim * area
-
 print('part1:', a1)
-# print('part2:', a2)
 
-# assert a1 == 0
-# assert a2 == 0
+def sub(a,b):
+    return b[0]-a[0], b[1]-a[1]
+
+def find_borders(pool):
+    borders = set()
+    for p in pool:
+        for n in neighbors4(*p):
+            if n not in pool:
+                borders.add((p, sub(n,p)))
+    return borders
+
+a2 = 0
+for pool in pools:
+    borders = find_borders(pool)
+
+    sided = defaultdict(set)
+    for p, diff in borders:
+        sided[diff].add(p)
+
+    ch = grid[list(pool)[0]]
+
+    # if ch not in 'V':
+    #     continue
+
+    sides = 0
+    for diff, poss in sided.items():
+        coff, roff = diff
+        poss = sorted(poss) if coff else sorted(poss, key=lambda v: v[::-1])
+
+        # print(diff, '=>', poss)
+
+        sides += 1  # at least one side
+        for a,b in pairwise(poss):
+            if tuple(map(abs, sub(b, a))) == (abs(roff), abs(coff)):
+                # print('    adjacent    ', a, b, diff)
+                sides += 0  # same side
+            else:
+                sides += 1  # new side
+                # print('    not adjacent', a, b, diff)
+
+    # print(ch, len(pool), '*', sides, '=', len(pool)  * sides)
+    a2 += len(pool)  * sides
+
+
+print('part2:', a2)
+
+assert a1 == 1424006
+assert a2 == 858684
