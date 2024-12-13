@@ -10,28 +10,25 @@ lines = [line for line in sys.stdin.read().splitlines() if line.strip()]
 def solve(prize_offset):
     tot = 0
     for a,b,c in batched(lines, 3):
-        a_x = a_y = b_x = b_y = p_x = p_y = 0
-        if m := re.match(r'.*: X+(.*), Y+(.*)', a):
-            a_x, a_y = map(int, m.groups())
-        if m := re.match(r'.*: X+(.*), Y+(.*)', b):
-            b_x, b_y = map(int, m.groups())
-        if m := re.match(r'.*: X=(.*), Y=(.*)', c):
-            p_x, p_y = map(int, m.groups())
-            p_x += prize_offset
-            p_y += prize_offset
+        a_x, a_y = map(int, re.match(r'.*: X+(.*), Y+(.*)', a).groups())
+        b_x, b_y = map(int, re.match(r'.*: X+(.*), Y+(.*)', b).groups())
+        p_x, p_y = map(int, re.match(r'.*: X=(.*), Y=(.*)', c).groups())
+        p_x += prize_offset
+        p_y += prize_offset
 
-        zac, zac, zbc, zbc, tokens = Ints('zaxc zayc zbxc zbyc tokens')
+        a, b, tokens = Ints('a b tokens')
 
         s = Optimize()
-        s.add(p_x == zac * a_x + zbc * b_x)
-        s.add(p_y == zac * a_y + zbc * b_y)
-        s.add(zac >= 0)
-        s.add(zbc >= 0)
-        s.add(tokens == 3 * zac + 1 * zbc)
+        s.add(p_x == a * a_x + b * b_x)
+        s.add(p_y == a * a_y + b * b_y)
+        s.add(a >= 0)
+        s.add(b >= 0)
+        s.add(tokens == 3 * a + 1 * b)
         s.minimize(tokens)
 
         if s.check() == sat:
             tot += s.model()[tokens].as_long()
+
     return tot
 
 a1 = solve(0)
