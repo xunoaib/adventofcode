@@ -1,100 +1,61 @@
 #!/usr/bin/env python3
 
+import math
 import re
 import sys
-from collections import Counter, defaultdict
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
-
-import numpy as np
+from collections import Counter
 
 
-def print_grid(robots):
-    grid = Counter()
-    for p,v in robots:
-        grid[p] += 1
-    for r in range(h):
-        for c in range(w):
-            print(grid.get((r,c), '.'), end='')
-        print()
-    print()
+def part1(robots):
+    robots = step(robots, 100)
+    quads = Counter()
 
-def add(a,b):
-    return (a[0]+b[0]) % h, (a[1]+b[1]) % w
+    for (r,c),_ in robots:
+        mr = h // 2
+        mc = w // 2
+        if r != h // 2 and c != w // 2:
+            quads[r < mr, c < mc] += 1
+
+    return math.prod(quads.values())
+
+def part2(robots):
+    for i in range(sys.maxsize):
+        s = get_grid(robots)
+        if '11111111111111' in s:
+            return i
+        robots = step(robots)
 
 def step(robots, steps=1):
-    # res = []
-    # for (pr, pc), (vr, vc) in robots:
-    #     npr = (pr + vr * 100) % h
-    #     npc = (pc + vc * 100) % w
-    #     res.append(((npr, npc), (vr, vc)))
-
     res = []
-    for p,v in robots:
-        for _ in range(steps):
-            p = add(p, v)
-        res.append((p,v))
+    for p, v in robots:
+        npr = (p[0] + v[0] * steps) % h
+        npc = (p[1] + v[1] * steps) % w
+        res.append(((npr, npc), v))
     return res
 
-w,h = 101,103
-# w,h = 11,7
+def get_grid(robots):
+    grid = Counter(p for p,_ in robots)
+    out = ''
+    for r in range(h):
+        for c in range(w):
+            out += str(grid.get((r,c), '.'))
+        out += '\n'
+    return out
+
 
 robots = []
-
 for line in sys.stdin.read().splitlines():
     m = re.match(r'p=(.*) v=(.*)', line)
-    (pc, pr), (vc, vr) = [tuple(map(int, t.split(','))) for t in m.groups()]
-    p = (pr, pc)
-    v = (vr, vc)
+    p, v = [tuple(map(int, t.split(',')))[::-1] for t in m.groups()]
     robots.append((p,v))
 
-__import__('pprint').pprint(robots)
+w,h = 101,103
 
-# robots = [((4,2), (-3,2))]
-# print_grid(robots)
-# for i in range(5):
-#     print(i+1)
-#     robots = step(robots)
-#     print_grid(robots)
-# exit(0)
-# print_grid(robots)
-
-robots = step(robots, 100)
-
-print_grid(robots)
-
-# # count quads
-quads = Counter()
-for (r,c),v in robots:
-    mr = h // 2
-    mc = w // 2
-    if r == h // 2 or c == w // 2:
-        continue
-    quads[(r < mr, c < mc)] += 1
-
-__import__('pprint').pprint(quads)
-
-grid = Counter()
-for p,v in robots:
-    grid[p] += 1
-for r in range(h):
-    for c in range(w):
-        if r == h // 2 or c == w // 2:
-            print('X', end='')
-        else:
-            print(grid.get((r,c), '.'), end='')
-    print()
-print()
-
-a1 = 1
-for c in quads.values():
-    a1 *= c
-
+a1 = part1(robots)
 print('part1:', a1)
-# print('part2:', a2)
 
-# 7464683520
-# 83017935
+a2 = part2(robots)
+print('part2:', a2)
 
-# assert a1 == 0
-# assert a2 == 0
+assert a1 == 216772608
+assert a2 == 6888
