@@ -134,16 +134,80 @@ def part2():
             return set()
         return boxes
 
+    def ident(p):
+        if p == pos:
+            return '@'
+        elif p in walls:
+            return '#'
+        elif p in lboxes:
+            return '['
+        elif p in rboxes:
+            return ']'
+        else:
+            return '.'
+
     # def vert_pushable(cur, direction):
-    #     while cur in lboxes | rboxes:
-    #         cur = cur[0]+direction[0], cur[1]+direction[1]
     #     if cur in walls:
-    #         return set()
-    #     return cur
+    #         return None
+    #     npos = cur[0]+direction[0], cur[1]+direction[1]
+    #     if npos in rboxes:
+    #
+    #     elif npos in lboxes:
+    #         r_pos = npos[0], npos[1]+1
+    #         l_pos = npos[0], npos[1]
+    #     else:
+    #         return {cur}
+    #     lspots = vert_pushable_inner(l_pos, direction)
+    #     rspots = vert_pushable_inner(r_pos, direction)
 
     def vert_pushable(cur, direction):
-        print('unimplemented')
-        exit(0)
+        if cur in walls:
+            return None
+        if cur in lboxes:
+            lpos = cur
+            rpos = cur[0], cur[1]+1
+        elif cur in rboxes:
+            lpos = cur[0], cur[1]-1
+            rpos = cur
+        else:
+            return {cur}
+
+        lspots = vert_pushable_inner(lpos, direction)
+        rspots = vert_pushable_inner(rpos, direction)
+
+        if lspots and rspots:
+            return {lpos, rpos} | lspots | rspots
+
+        return None
+
+    def vert_pushable_inner(cur, direction):
+        print(cur, ident(cur))
+
+        if cur in walls:
+            return None
+
+        npos = cur[0]+direction[0], cur[1]+direction[1]
+
+        if npos in walls:
+            return None  # cant push
+
+        # pushing into another block
+        if npos in rboxes:
+            r_pos = npos[0], npos[1]
+            l_pos = npos[0], npos[1]-1
+        elif npos in lboxes:
+            r_pos = npos[0], npos[1]+1
+            l_pos = npos[0], npos[1]
+        else:
+            return {cur}  # can push current block into empty space
+
+        lspots = vert_pushable_inner(l_pos, direction)
+        rspots = vert_pushable_inner(r_pos, direction)
+
+        if lspots and rspots:
+            return lspots | rspots
+
+        return None
 
     def apply(move):
         nonlocal pos, lboxes, rboxes
@@ -156,28 +220,29 @@ def part2():
         if npos in lboxes | rboxes:
             func = horiz_pushable if move in '<>' else vert_pushable
             if spots := func(npos, direction):
+                # print(spots)
                 old_lboxes = lboxes.copy()
                 old_rboxes = rboxes.copy()
                 lboxes -= spots
                 rboxes -= spots
-                print(spots)
-                for br, bc in spots:
-                    lboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_lboxes}
-                    rboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_rboxes}
-                    pass
+                lboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_lboxes}
+                rboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_rboxes}
             else:
                 return  # not pushable
         pos = npos
 
     for i,m in enumerate(moves):
-        print(f'Move {m}:')
-        print_grid()
+        if i > 4:
+            print(f'{i}. Move {m}:')
+            print_grid()
         apply(m)
 
-    a1 = 0
-    for r,c in boxes:
-        a1 += 100 * r + c
-    return a1
+    print_grid()
+
+    # a1 = 0
+    # for r,c in boxes:
+    #     a1 += 100 * r + c
+    # return a1
 
 a1 = part1()
 a2 = part2()
@@ -185,5 +250,5 @@ a2 = part2()
 print('part1:', a1)
 print('part2:', a2)
 
-assert a1 == 1436690
+# assert a1 == 1436690
 # assert a2 == 0
