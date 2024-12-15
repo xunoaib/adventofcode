@@ -43,30 +43,40 @@ boxes = {p for p, ch in grid.items() if ch == 'O'}
 walls = {p for p, ch in grid.items() if ch == '#'}
 pos = next(p for p, ch in grid.items() if ch == '@')
 
+def nextboxpos(cur, direction):
+    while cur in boxes:
+        cur = cur[0]+direction[0], cur[1]+direction[1]
+    if cur in walls:
+        return False
+    return cur
+
 def apply(move):
     global pos
     r, c = pos
-    roff, coff = dirs[move]
-    npos = nr, nc = r+roff, c+coff
-    npos2 = nr2, nc2 = nr+roff, nc+coff
+    direction = roff, coff = dirs[move]
+    npos = r+roff, c+coff
 
     if npos in walls:
         return
 
     if npos in boxes:
-        if npos2 in walls | boxes:
+        # if box can be pushed
+        if npos2 := nextboxpos(npos, direction):
+            if npos2 in walls | boxes:
+                return
+            boxes.remove(npos)
+            boxes.add(npos2)
+            pos = npos
+        else:
             return
-        boxes.remove(npos)
-        boxes.add(npos2)
-        pos = npos
 
     pos = npos
 
-print_grid()
+# print_grid()
 for i,m in enumerate(moves):
-    print(f'Move {i}: {m}')
+    # print(f'Move {i}: {m}')
     apply(m)
-    print_grid()
+    # print_grid()
 
 a1 = a2 = 0
 
