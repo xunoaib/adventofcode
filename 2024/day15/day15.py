@@ -125,26 +125,53 @@ def part2():
             return False
         return cur
 
+    def horiz_pushable(cur, direction):
+        boxes = set()
+        while cur in lboxes | rboxes:
+            boxes.add(cur)
+            cur = cur[0]+direction[0], cur[1]+direction[1]
+        if cur in walls:
+            return set()
+        return boxes
+
+    # def vert_pushable(cur, direction):
+    #     while cur in lboxes | rboxes:
+    #         cur = cur[0]+direction[0], cur[1]+direction[1]
+    #     if cur in walls:
+    #         return set()
+    #     return cur
+
+    def vert_pushable(cur, direction):
+        print('unimplemented')
+        exit(0)
+
     def apply(move):
-        nonlocal pos
+        nonlocal pos, lboxes, rboxes
         r, c = pos
         direction = roff, coff = dirs[move]
         npos = r+roff, c+coff
         if npos in walls:
             return
-        if npos in boxes:
-            # if box can be pushed
-            if npos2 := nextboxpos(npos, direction):
-                if npos2 in walls | boxes:
-                    return
-                boxes.remove(npos)
-                boxes.add(npos2)
-                pos = npos
+
+        if npos in lboxes | rboxes:
+            func = horiz_pushable if move in '<>' else vert_pushable
+            if spots := func(npos, direction):
+                old_lboxes = lboxes.copy()
+                old_rboxes = rboxes.copy()
+                lboxes -= spots
+                rboxes -= spots
+                print(spots)
+                for br, bc in spots:
+                    lboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_lboxes}
+                    rboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_rboxes}
+                    pass
             else:
-                return
+                return  # not pushable
         pos = npos
 
     for i,m in enumerate(moves):
+        print(f'Move {m}:')
+        print_grid()
         apply(m)
 
     a1 = 0
