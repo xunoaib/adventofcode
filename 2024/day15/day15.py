@@ -13,6 +13,7 @@ data,moves = sys.stdin.read().strip().split('\n\n')
 lines = data.split('\n')
 moves = moves.replace('\n', '')
 
+flag = False
 
 def part1():
 
@@ -79,6 +80,7 @@ def part1():
     return a1
 
 def part2():
+    global flag
 
     def print_grid():
         maxr = max(r for r,c in walls)
@@ -87,7 +89,7 @@ def part2():
             for c in range(maxc+1):
                 p = r,c
                 if p == pos:
-                    print('@', end='')
+                    print('\033[91m@\033[0m', end='')
                 elif p in walls:
                     print('#', end='')
                 elif p in lboxes:
@@ -146,20 +148,6 @@ def part2():
         else:
             return '.'
 
-    # def vert_pushable(cur, direction):
-    #     if cur in walls:
-    #         return None
-    #     npos = cur[0]+direction[0], cur[1]+direction[1]
-    #     if npos in rboxes:
-    #
-    #     elif npos in lboxes:
-    #         r_pos = npos[0], npos[1]+1
-    #         l_pos = npos[0], npos[1]
-    #     else:
-    #         return {cur}
-    #     lspots = vert_pushable_inner(l_pos, direction)
-    #     rspots = vert_pushable_inner(r_pos, direction)
-
     def vert_pushable(cur, direction):
         if cur in walls:
             return None
@@ -181,7 +169,8 @@ def part2():
         return None
 
     def vert_pushable_inner(cur, direction):
-        print(cur, ident(cur))
+        # if flag:
+        #     print(cur, ident(cur))
 
         if cur in walls:
             return None
@@ -205,12 +194,13 @@ def part2():
         rspots = vert_pushable_inner(r_pos, direction)
 
         if lspots and rspots:
-            return lspots | rspots
+            return lspots | rspots | {cur}
 
         return None
 
     def apply(move):
         nonlocal pos, lboxes, rboxes
+        global flag
         r, c = pos
         direction = roff, coff = dirs[move]
         npos = r+roff, c+coff
@@ -220,29 +210,44 @@ def part2():
         if npos in lboxes | rboxes:
             func = horiz_pushable if move in '<>' else vert_pushable
             if spots := func(npos, direction):
-                # print(spots)
-                old_lboxes = lboxes.copy()
-                old_rboxes = rboxes.copy()
+                add_lboxes = {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in lboxes}
+                add_rboxes = {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in rboxes}
+
+                if flag:
+                    print(spots)
+                    print('addl:', add_lboxes)
+                    print('addr:', add_rboxes)
+
                 lboxes -= spots
                 rboxes -= spots
-                lboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_lboxes}
-                rboxes |= {(br+direction[0],bc+direction[1]) for br, bc in spots if (br,bc) in old_rboxes}
+                lboxes |= add_lboxes
+                rboxes |= add_rboxes
             else:
                 return  # not pushable
         pos = npos
 
     for i,m in enumerate(moves):
-        if i > 4:
-            print(f'{i}. Move {m}:')
-            print_grid()
+        # if i > 189:
+        #     flag = True
+        #     print(f'{i}. Move {m}:')
+        #     print_grid()
         apply(m)
 
     print_grid()
 
-    # a1 = 0
-    # for r,c in boxes:
-    #     a1 += 100 * r + c
-    # return a1
+    maxr = max(r for r,c in walls)
+    maxc = max(c for r,c in walls)
+
+    print(maxr, maxc)
+
+    ans = 0
+    for r,c in lboxes:
+        nr = min(r, maxr + 1 - r)
+        nc = min(c, maxc - (c + 1))
+        print((r,c), (nr,nc))
+        ans += 100 * nr + nc
+
+    return ans
 
 a1 = part1()
 a2 = part2()
