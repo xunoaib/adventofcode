@@ -82,22 +82,20 @@ def part1():
 def part2():
     global flag
 
-    def print_grid():
+    def print_grid(highlight=None):
         maxr = max(r for r,c in walls)
         maxc = max(c for r,c in walls)
         for r in range(maxr+1):
             for c in range(maxc+1):
                 p = r,c
+                ch = ident(p)
+
                 if p == pos:
-                    print('\033[91m@\033[0m', end='')
-                elif p in walls:
-                    print('#', end='')
-                elif p in lboxes:
-                    print('[', end='')
-                elif p in rboxes:
-                    print(']', end='')
-                else:
-                    print('.', end='')
+                    ch = f'\033[91m{ch}\033[0m'
+                elif highlight and p in highlight:
+                    ch = f'\033[93m{ch}\033[0m'
+
+                print(ch, end='')
             print()
         print()
 
@@ -227,33 +225,23 @@ def part2():
         pos = npos
 
     for i,m in enumerate(moves):
-        # if i > 189:
-        #     flag = True
-        #     print(f'{i}. Move {m}:')
-        #     print_grid()
         apply(m)
-
-    print_grid()
 
     maxr = max(r for r,c in walls)
     maxc = max(c for r,c in walls)
 
-    print(maxr, maxc)
-
     ans = 0
     for r,c in lboxes:
-        nr = min(r, maxr + 1 - r)
-        nc = min(c, maxc - (c + 1))
-        print((r,c), (nr,nc))
-        ans += 100 * nr + nc
+        _, nc = min((c, c), (maxc - (c + 1), c))
+        ans += 100 * r + nc
 
     return ans
 
 a1 = part1()
-a2 = part2()
-
 print('part1:', a1)
+
+a2 = part2()
 print('part2:', a2)
 
-# assert a1 == 1436690
-# assert a2 == 0
+assert a1 == 1436690
+assert a2 == 1482350
