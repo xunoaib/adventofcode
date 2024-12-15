@@ -99,6 +99,25 @@ def part2():
             print()
         print()
 
+    d = data
+    d = d.replace('#','##')
+    d = d.replace('O','[]')
+    d = d.replace('.','..')
+    d = d.replace('@','@.')
+    lines = d.split('\n')
+
+    grid = {
+        (r, c): ch
+        for r, line in enumerate(lines)
+        for c, ch in enumerate(line)
+        if ch != '.'
+    }
+
+    lboxes = {p for p, ch in grid.items() if ch == '['}
+    rboxes = {p for p, ch in grid.items() if ch == ']'}
+    walls = {p for p, ch in grid.items() if ch == '#'}
+    pos = next(p for p, ch in grid.items() if ch == '@')
+
     def nextboxpos(cur, direction):
         while cur in boxes:
             cur = cur[0]+direction[0], cur[1]+direction[1]
@@ -124,25 +143,6 @@ def part2():
             else:
                 return
         pos = npos
-
-    d = data
-    d = d.replace('#','##')
-    d = d.replace('O','[]')
-    d = d.replace('.','..')
-    d = d.replace('@','@.')
-    lines = d.split('\n')
-
-    grid = {
-        (r, c): ch
-        for r, line in enumerate(lines)
-        for c, ch in enumerate(line)
-        if ch != '.'
-    }
-
-    lboxes = {p for p, ch in grid.items() if ch == '['}
-    rboxes = {p for p, ch in grid.items() if ch == ']'}
-    walls = {p for p, ch in grid.items() if ch == '#'}
-    pos = next(p for p, ch in grid.items() if ch == '@')
 
     for i,m in enumerate(moves):
         apply(m)
