@@ -42,7 +42,6 @@ def turn_cost(d, e):
 def part1(d):
     q = [(0, start, d)]
     seen = {start: 0}
-    parents = {}
 
     while q:
         cost, pos, d = heappop(q)
@@ -52,7 +51,6 @@ def part1(d):
             newcost = cost + 1 + turn_cost(d, nd)
             if n not in walls and seen.get(n, sys.maxsize) > newcost:
                 heappush(q, (newcost, n, nd))
-                parents[n] = pos
                 seen[n] = newcost
 
     return -1
@@ -60,7 +58,6 @@ def part1(d):
 def part2(d, best_cost):
     q = [(0, start, d, {start})]
     seen = {(start, d): 0}
-    parents = {}
     visited = set()
 
     while q:
@@ -75,7 +72,6 @@ def part2(d, best_cost):
                 continue
             if n not in walls and n not in path and ((n,nd) not in seen or seen.get((n,nd)) == newcost):
                 heappush(q, (newcost, n, nd, path | {n}))
-                parents[n] = pos
                 seen[(n,nd)] = newcost
     return len(visited)
 
