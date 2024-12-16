@@ -43,40 +43,72 @@ def turn_cost(d, e):
         dist -= 2
     return 1000 * dist
 
-# print(turn_cost(0,1))
-# print(turn_cost(1,2))
-# print(turn_cost(1,1))
-# print(turn_cost(1,3))
-# print(turn_cost(4,1))
-# exit(0)
+def part1(d):
+    q = [(0, start, d)]
+    seen = {start: 0}
+    parents = {}
 
-q = [(0, pos, d)]
-seen = {pos: 0}
+    while q:
+        cost, pos, d = heappop(q)
+        if pos == end:
+            return cost
+        for n, nd in neighbors4(*pos):
+            newcost = cost + 1 + turn_cost(d, nd)
+            if n not in walls and seen.get(n, sys.maxsize) > newcost:
+                heappush(q, (newcost, n, nd))
+                parents[n] = pos
+                seen[n] = newcost
+    return -1
 
-parents = {}
+def part2(d, best_cost):
+    q = [(0, start, d, {start})]
+    seen = {start: 0}
+    parents = {}
+    visited = set()
 
-# for n, nd in neighbors4(*pos):
-#     if n in walls:
-#         continue
-#     print(n, nd, turn_cost(d,nd))
-# exit(0)
+    while q:
+        cost, pos, d, path = heappop(q)
+        if pos == end:
+            assert cost == best_cost
+            visited |= path
+            continue
+        for n, nd in neighbors4(*pos):
+            newcost = cost + 1 + turn_cost(d, nd)
+            if newcost > best_cost:
+                continue
+            # if n not in walls and seen.get(n, sys.maxsize) > newcost:
+            if n not in walls and n not in path:
+                heappush(q, (newcost, n, nd, path | {n}))
+                parents[n] = pos
+                seen[n] = newcost
+    return len(visited)
 
-while q:
-    cost, pos, d = heappop(q)
-    print('>>> AT', pos, d, cost)
-    if pos == end:
-        print('part1:', cost)
-        break
-    for n, nd in neighbors4(*pos):
-        newcost = cost + 1 + turn_cost(d, nd)
-        if n not in walls and seen.get(n, sys.maxsize) > newcost:
-            parents[n] = pos
-            print('>>> NX', n, nd, newcost)
-            heappush(q, (newcost, n, nd))
-            seen[n] = newcost
+# def part2(d, best_cost):
+#     q = [(0, start, d)]
+#     seen = {start: 0}
+#     parents = {}
+#
+#     while q:
+#         cost, pos, d = heappop(q)
+#         if pos == end:
+#             print('part1:', cost)
+#             break
+#         for n, nd in neighbors4(*pos):
+#             newcost = cost + 1 + turn_cost(d, nd)
+#             if n not in walls:
+#                 if seen.get(n, sys.maxsize) > newcost:
+#                     parents[n] = pos
+#                     heappush(q, (newcost, n, nd))
+#                     seen[n] = newcost
+#
+#     # g = grid.copy()
+#     # n = end
+#     # while n := parents.get(n):
+#     #     g[n] = '\033[91mX\033[0m'
+#     # print_grid(g)
 
-g = grid.copy()
-n = end
-while n := parents.get(n):
-    g[n] = '\033[91mX\033[0m'
-print_grid(g)
+a1 = best_cost = part1(d)
+print('part1:', a1)
+
+a2 = part2(d, best_cost)
+print('part2:', a2)
