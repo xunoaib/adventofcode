@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
-from collections import Counter, defaultdict
 from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
 
-DIRS = U, D, L, R = (-1, 0), (1, 0), (0, -1), (0, 1)
-DIRS = U, R, D, L
-
+DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 def neighbors4(r, c):
     for roff, coff in DIRS:
@@ -58,11 +54,12 @@ def part1(d):
                 heappush(q, (newcost, n, nd))
                 parents[n] = pos
                 seen[n] = newcost
+
     return -1
 
 def part2(d, best_cost):
     q = [(0, start, d, {start})]
-    seen = {start: 0}
+    seen = {(start, d): 0}
     parents = {}
     visited = set()
 
@@ -76,39 +73,17 @@ def part2(d, best_cost):
             newcost = cost + 1 + turn_cost(d, nd)
             if newcost > best_cost:
                 continue
-            # if n not in walls and seen.get(n, sys.maxsize) > newcost:
-            if n not in walls and n not in path:
+            if n not in walls and n not in path and ((n,nd) not in seen or seen.get((n,nd)) == newcost):
                 heappush(q, (newcost, n, nd, path | {n}))
                 parents[n] = pos
-                seen[n] = newcost
+                seen[(n,nd)] = newcost
     return len(visited)
-
-# def part2(d, best_cost):
-#     q = [(0, start, d)]
-#     seen = {start: 0}
-#     parents = {}
-#
-#     while q:
-#         cost, pos, d = heappop(q)
-#         if pos == end:
-#             print('part1:', cost)
-#             break
-#         for n, nd in neighbors4(*pos):
-#             newcost = cost + 1 + turn_cost(d, nd)
-#             if n not in walls:
-#                 if seen.get(n, sys.maxsize) > newcost:
-#                     parents[n] = pos
-#                     heappush(q, (newcost, n, nd))
-#                     seen[n] = newcost
-#
-#     # g = grid.copy()
-#     # n = end
-#     # while n := parents.get(n):
-#     #     g[n] = '\033[91mX\033[0m'
-#     # print_grid(g)
 
 a1 = best_cost = part1(d)
 print('part1:', a1)
 
 a2 = part2(d, best_cost)
 print('part2:', a2)
+
+assert a1 == 102460
+assert a2 == 527
