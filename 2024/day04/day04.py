@@ -1,47 +1,45 @@
 #!/usr/bin/env python3
 
 import sys
-from itertools import product
 
-dirs = [(r,c) for r,c in product([-1,0,1], [-1,0,1]) if r or c]
+DIRS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 def count(r_start, c_start):
     total = 0
-    for roff, coff in dirs:
+    for roff, coff in DIRS:
         r, c = r_start, c_start
         for ch in 'MAS':
             r += roff
             c += coff
-            if d.get((r,c)) != ch:
+            if g.get((r,c)) != ch:
                 break
         else:
             total += 1
     return total
 
-d = {}
-for r, row in enumerate(sys.stdin):
-    for c, ch in enumerate(row.strip()):
-        d[r,c] = ch
+g = {
+    (r,c): ch
+    for r, row in enumerate(sys.stdin)
+    for c, ch in enumerate(row.strip())
+}
 
-p1 = sum(count(*p) for p, ch in d.items() if ch == 'X')
+a1 = sum(count(*p) for p, ch in g.items() if ch == 'X')
+a2 = 0
 
-print('part1:', p1)
-
-p2 = 0
-for (r,c), ch in d.items():
+for (r,c), ch in g.items():
     if ch == 'A':
-
         diag1 = {
-            d.get((r-1, c-1)),
-            d.get((r+1, c+1))
+            g.get((r-1, c-1)),
+            g.get((r+1, c+1))
         }
-
         diag2 = {
-            d.get((r+1, c-1)),
-            d.get((r-1, c+1))
+            g.get((r+1, c-1)),
+            g.get((r-1, c+1))
         }
+        a2 += diag1 == diag2 == set('MS')
 
-        if diag1 == diag2 == set('MS'):
-            p2 += 1
+print('part1:', a1)
+print('part2:', a2)
 
-print('part2:', p2)
+assert a1 == 2560
+assert a2 == 1910
