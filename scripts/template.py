@@ -5,12 +5,6 @@ from collections import Counter, defaultdict
 from heapq import heappop, heappush
 from itertools import pairwise, permutations, product
 
-import numpy as np
-
-for line in sys.stdin.read().splitlines():
-    print(line)
-
-
 DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 
@@ -27,14 +21,14 @@ def neighbors4(r, c):
 
 lines = sys.stdin.read().strip().split('\n')
 
+for line in lines:
+    print(line)
+
 grid = {
     (r, c): ch
     for r, line in enumerate(lines)
     for c, ch in enumerate(line)
 }
-
-for line in lines:
-    print(line)
 
 a1 = a2 = 0
 
