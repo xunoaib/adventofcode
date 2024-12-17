@@ -11,7 +11,7 @@ for line in sys.stdin.read().splitlines():
     print(line)
 
 
-DIRS = U, D, L, R = (-1, 0), (1, 0), (0, -1), (0, 1)
+DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 
 def neighbors8(r, c):
