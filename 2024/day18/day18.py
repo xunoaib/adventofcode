@@ -18,60 +18,108 @@ def neighbors4(r, c):
         if not (roff and coff):
             yield r + roff, c + coff
 
-def print_state(state, height=7, width=7):
-    for r in range(height):
-        for c in range(width):
-            ch = '#' if (r,c) in state else '.'
+def print_state(corrupted, path=tuple()):
+    for r in range(HEIGHT):
+        for c in range(WIDTH):
+            if (r,c) in path:
+                ch = 'O'
+            else:
+                ch = '#' if (r,c) in corrupted else '.'
             print(ch, end='')
         print()
     print()
 
-# WIDTH = HEIGHT = 70
-WIDTH = HEIGHT = 7
+def shortest(corrupted):
+    start = (0,0)
+    goal = (WIDTH-1, HEIGHT-1)
 
-def shortest(start_step, start=(0,0), goal=(WIDTH-1, HEIGHT-1)):
-    q = [(start_step, start)]
-    seen = set()
+    q = [(0, start)]
+    seen = {start}
+    parents = {}
     while q:
-        step, pos = q.pop()
+        step, pos = heappop(q)
         if pos == goal:
+
+            path = {pos}
+            while pos := parents.get(pos):
+                path.add(pos)
+
+            print_state(corrupted, path)
             return step
 
-        if step not in history:
-            print('stepping new:', step)
-            history[step] = simulate(*history[step-1])
+        # if step not in history:
+        #     print('stepping new:', step)
+        #     history[step] = simulate(*history[step-1])
 
         for r,c in neighbors4(*pos):
             if all([
-                   c in range(WIDTH),
-                   r in range(HEIGHT),
-                   (r,c) not in history[step],
-                   (r,c,step+1) not in seen
-                   ]):
+                r in range(HEIGHT),
+                c in range(WIDTH),
+                # (r,c) not in history[step],
+                (r,c) not in corrupted,
+                (r,c) not in seen
+            ]):
                 heappush(q, (step + 1, (r,c)))
-                seen.add((r,c,step))
+                seen.add((r,c))
+                parents[r,c] = pos
 
 def simulate(bites, corrupted):
-    bites = {(r+1,c) for r,c in bites if r < 70}
+    bites = {(r+1,c) for r,c in bites if r < HEIGHT}
     return bites, corrupted | bites
 
 lines = sys.stdin.read().strip().split('\n')
 
+SAMPLE = False
+
+if SAMPLE:
+    lines = lines[:12] # sample
+    WIDTH = HEIGHT = 7
+else:
+    lines = lines[:1024] # part 1
+    WIDTH = HEIGHT = 71
+
 bites = set()
-for line in lines[:12]:
+for line in lines:
     c,r = map(int, line.split(','))
     bites.add((r,c))
 
+# 138 not right
+# 140
+
+
 corrupted = bites.copy()
-history = {0: (bites, corrupted)}
 
+# # sample
+# # bites, corrupted = simulate(bites, corrupted)
+# print_state(corrupted)
+# print('sample:', shortest(corrupted))
+# exit(0)
+
+# print_state(corrupted)
+# exit(0)
+
+# for step in range(1024):
+#     bites, corrupted = simulate(bites, corrupted)
+
+print_state(corrupted)
+
+print('part1:', shortest(corrupted))
+exit(0)
+
+# history = {0: (bites, corrupted)}
+history = {}
 step = 0
-for step in range(1024):
-    history[step+1] = bites, corrupted = simulate(bites, corrupted)
 
-a1 = shortest(step)
+# for step in range(1024):
+#     history[step+1] = bites, corrupted = simulate(bites, corrupted)
+
+bites, corrupted = simulate(bites, corrupted)
+
+print_state(corrupted)
+a1 = shortest(corrupted)
+
+# a1 = shortest(history[1024])
 print('part1:', a1)
-
 
 a1 = a2 = 0
 
