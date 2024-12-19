@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from collections import Counter, defaultdict
 from functools import cache
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
 
 a,b = sys.stdin.read().strip().split('\n\n')
 
@@ -12,13 +9,22 @@ avails = set(a.split(', '))
 designs = b.split('\n')
 
 @cache
-def is_possible(s):
+def count_ways(s):
     if s == '':
-        return True
+        return 1
+    tot = 0
     for a in avails:
         if s.startswith(a):
-            if is_possible(s[len(a):]):
-                return True
-    return False
+            tot += count_ways(s[len(a):])
+    return tot
 
-print('part1:', sum(map(is_possible, designs)))
+counts = list(map(count_ways, designs))
+
+a1 = sum([c > 0 for c in counts])
+a2 = sum(counts)
+
+print('part1:', a1)
+print('part2:', a2)
+
+assert a1 == 363
+assert a2 == 642535800868438
