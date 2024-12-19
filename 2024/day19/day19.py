@@ -3,24 +3,18 @@
 import sys
 from functools import cache
 
-a,b = sys.stdin.read().strip().split('\n\n')
-
-avails = set(a.split(', '))
-designs = b.split('\n')
 
 @cache
 def count_ways(s):
-    if s == '':
-        return 1
-    tot = 0
-    for a in avails:
-        if s.startswith(a):
-            tot += count_ways(s[len(a):])
-    return tot
+    return sum(count_ways(s[len(a):]) for a in avail if s.startswith(a)) if s else 1
+
+a,b = sys.stdin.read().strip().split('\n\n')
+avail = set(a.split(', '))
+designs = b.split('\n')
 
 counts = list(map(count_ways, designs))
 
-a1 = sum([c > 0 for c in counts])
+a1 = sum(c > 0 for c in counts)
 a2 = sum(counts)
 
 print('part1:', a1)
