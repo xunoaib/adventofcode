@@ -23,17 +23,25 @@ def cheat_neighbors(r, c):
             neighbors.add(p)
     return neighbors
 
-def sub(a,b):
-    return b[0]-a[0], b[1]-a[1]
-
-def add(a,b):
-    return b[0]+a[0], b[1]+a[1]
+@cache
+def cheat_neighbors_length(r, c, length=20):
+    neighbors = {(r,c)}
+    q = [(length, (r,c))]
+    while q:
+        l, p = q.pop(0)
+        if l <= 0:
+            continue
+        for n in neighbors4(*p):
+            if n not in neighbors:
+                neighbors.add(n)
+                q.append((l-1, n))
+    return neighbors
 
 def print_grid(path):
     rows = 1 + max(r for r,c in grid)
     cols = 1 + max(c for r,c in grid)
     for r in range(rows):
-        for c in range(rows):
+        for c in range(cols):
             ch = '\033[91mX\033[0m' if (r,c) in path else grid[r,c]
             print(ch, end='')
         print()
@@ -80,17 +88,50 @@ p = start
 while p := all_children.get(p):
     path.append(p)
 
-savings = {}
-for cost, src in enumerate(path):
-    for tar in cheat_neighbors(*src):
-        if tar in track and tar != src:
-            savings[src,tar] = fastest_times[src] - fastest_times[tar] - 2
+def part1():
+    savings = {}
+    for src in path:
+        for tar in cheat_neighbors_length(*src, 2):
+            if tar in track and tar != src:
+                dist = abs(src[0]-tar[0]) + abs(src[1]-tar[1])
+                savings[src,tar] = fastest_times[src] - fastest_times[tar] - dist
 
-counts = Counter(savings.values())
+    counts = Counter(savings.values())
 
-a1 = 0
-for t, freq in sorted(counts.items(), reverse=True):
-    if t >= 100:
-        a1 += freq
+    a1 = 0
+    for t, freq in sorted(counts.items()):
+        if t <= 0:
+            continue
+        print(f'There are {freq} cheats that save {t} picoseconds.')
+        if t >= 100:
+            a1 += freq
 
-print('part1:', a1)
+    # print(fastest_times[start])
+    # print(fastest_times[end])
+
+    print('part1:', a1)
+
+def part2():
+
+    savings = {}
+    for src in path:
+        for tar in cheat_neighbors_length(*src, 20):
+            if tar in track and tar != src:
+                dist = abs(src[0]-tar[0]) + abs(src[1]-tar[1])
+                saved_old = savings.get((src,tar), 0)
+                saved_new = fastest_times[src] - fastest_times[tar] - dist
+                savings[src,tar] = max(saved_new, saved_old)
+
+    counts = Counter(savings.values())
+
+    a2 = 0
+    for t, freq in sorted(counts.items()):
+        if t >= 50:
+            print(f'There are {freq} cheats that save {t} picoseconds.')
+        if t >= 100:
+            a2 += freq
+
+    print('part2:', a2)
+
+part1()
+part2()
