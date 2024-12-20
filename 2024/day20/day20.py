@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
 
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from functools import cache
 from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
 
 DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
-
-def neighbors8(r, c):
-    for roff, coff in product([-1, 0, 1], repeat=2):
-        if not (roff and coff):
-            yield r + roff, c + coff
 
 def neighbors4(r, c):
     for roff, coff in DIRS:
@@ -63,51 +57,40 @@ grid[end] = '.'
 a1 = a2 = 0
 
 def shortest_nocheat():
-    q = [(0, start)]
-    visited = {start}
+    q = [(0, end)]
+    children = {}
+    costs = {end: 0}
 
     while q:
         cost, p = heappop(q)
-        if p == end:
-            return cost
-
         for n in neighbors4(*p):
-            if n in track and n not in visited:
-                newcost = cost + 1
-                visited.add(n)
-                heappush(q, (newcost, n))
+            if n in track and n not in costs:
+                children[n] = p
+                costs[n] = cost + 1
+                heappush(q, (cost + 1, n))
 
-fastest_time = shortest_nocheat()
+    assert len(costs) == len(track)
+    return costs, children
 
-q = [(0, start, False)]
-best = {(start, False): 0}
-parent = {}
+fastest_times, all_children = shortest_nocheat()
+fastest_time = fastest_times[start]
 
-while q:
-    cost, p, cheated = heappop(q)
-    if p == end:
-        print('yay', fastest_time - cost, (p, cheated))
+path = [start]
+p = start
+while p := all_children.get(p):
+    path.append(p)
 
-        path = [p]
-        while res := parent.get((p, cheated)):
-            p, cheated = res
-            path.append(p)
-            # print((p,cheated))
-        print_grid(path)
-        break
+savings = {}
+for cost, src in enumerate(path):
+    for tar in cheat_neighbors(*src):
+        if tar in track and tar != src:
+            savings[src,tar] = fastest_times[src] - fastest_times[tar] - 2
 
-    for n in neighbors4(*p):
-        if n in track:
-            newcost = cost + 1
-            if best.get((n, cheated), sys.maxsize) > newcost:
-                best[(n, cheated)] = newcost
-                parent[(n, cheated)] = p, cheated
-                heappush(q, (newcost, n, cheated))
-        elif n in walls and not cheated:
-            newcost = cost + 2
-            for n in cheat_neighbors(*p):
-                if n in track:
-                    if best.get((n, True), sys.maxsize) > newcost:
-                        parent[(n, True)] = p, cheated
-                        best[(n, True)] = newcost
-                        heappush(q, (newcost, n, True))
+counts = Counter(savings.values())
+
+a1 = 0
+for t, freq in sorted(counts.items(), reverse=True):
+    if t >= 100:
+        a1 += freq
+
+print('part1:', a1)
