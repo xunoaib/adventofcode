@@ -55,6 +55,9 @@ class Keypad:
             raise IndexError('Out of bounds:', pos)
         return self.grid[pos]
 
+    def activate(self, pos):
+        return self.grid[pos]
+
 class NumericKeypad(Keypad):
     def __init__(self):
         super().__init__(numeric_grid)
@@ -73,8 +76,8 @@ class WrappedKeypad():
     def grid(self):
         return self.outer.grid
 
-    # def push(self, pos):
-    #     button = self.
+    def activate(self):
+        button = self.outer.activate()
 
 kp_num = NumericKeypad()
 kp_dir1 = WrappedKeypad(kp_num, DirectionalKeypad())
@@ -85,6 +88,9 @@ kp_dir3 = WrappedKeypad(kp_dir2, DirectionalKeypad())
 print(kp_dir1.inner_pos)
 print(kp_dir2.inner_pos)
 print(kp_dir3.inner_pos)
+
+
+exit(0)
 
 @dataclass
 class Simulation:
