@@ -49,15 +49,23 @@ class Keypad:
         self.pos = pos
         self.child = child
 
-    def push(self):
-        button = self.grid[self.pos]
+    def push_char(self, ch):
+        pos = next(p for p,c in self.grid.items() if c == ch)
+        return self.push_at(pos)
 
+    def push(self):
+        return self.push_at(self.pos)
+
+    def push_at(self, pos):
+        return self.push_button(self.grid[pos])
+
+    def push_button(self, button):
         if not self.child:
             return button
 
         if button in '<>^v':
-            self.pos = add(self.pos, DIR_OFFSETS[button])
-            assert self.pos in self.grid
+            self.child.pos = add(self.child.pos, DIR_OFFSETS[button])
+            assert self.child.pos in self.child.grid
         elif button == 'A':
             if self.child:
                 return self.child.push()
@@ -82,7 +90,15 @@ kp_dir1 = DirectionalKeypad(kp_num)
 kp_dir2 = DirectionalKeypad(kp_dir1)
 kp_dir3 = DirectionalKeypad(kp_dir2)
 
-print(kp_dir3.chain())
+k = kp_dir3
+
+print(k.chain())
+k.push_char('<')
+print(k.chain())
+k.push_char('v')
+print(k.chain())
+k.push_char('<')
+print(k.chain())
 
 # def dist_to(src, tar):
 #     a, b = sub(src, tar)
