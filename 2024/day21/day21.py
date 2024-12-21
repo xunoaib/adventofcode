@@ -3,6 +3,9 @@ import sys
 from dataclasses import dataclass
 from itertools import pairwise
 
+
+class MyException(Exception): ...
+
 DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 DIR_OFFSETS = {
@@ -71,10 +74,9 @@ class Keypad:
             self.child.pos = add(self.child.pos, DIR_OFFSETS[button])
             if self.child.pos not in self.child.grid:
                 print()
-                raise Exception(f'Out of bounds! {button} {self.child.pos} {self}')
+                raise MyException(f'Out of bounds! {button} {self.child.pos} {self}')
         elif button == 'A':
-            if self.child:
-                return self.child.push()
+            return self.child.push()
         return ''
 
     def chain(self):
@@ -100,7 +102,7 @@ def dist_to(grid, src_ch, tar_ch):
     return sub(src, tar)
 
 def Setup():
-    kp_num = NumericKeypad(3)
+    kp_num = NumericKeypad(name=3)
     kp_dir1 = DirectionalKeypad(kp_num, 2)
     kp_dir2 = DirectionalKeypad(kp_dir1, 1)
     kp_dir3 = DirectionalKeypad(kp_dir2, 0)
@@ -139,7 +141,12 @@ def find_dist(grid, src, tar, must_travel=False):
     else:
         travel = 0
 
-    seq = abs(coff) * horiz_ch + abs(roff) * vert_ch + 'A'
+    # swap order to avoid going out of bounds
+    seq = abs(roff) * vert_ch + abs(coff) * horiz_ch
+    if find_ch(grid, src)[1] == 0:
+        seq = seq[::-1]
+    seq += 'A'
+
     return presses, travel, (roff, coff), seq
 
 def find_dists(grid, code, must_travel=False):
@@ -182,21 +189,15 @@ def simulate(seq):
 def run(code):
     keys1 = find_ndists(code, True)
     keys2 = find_ddists(keys1, True)
-    keys3 = find_ddists(keys2, True)
+    keys3 = find_ddists(keys2, False)
     # keys4 = find_ddists(keys3, False)
     return keys3
 
 codes = sys.stdin.read().strip().split('\n')
+a1 = 0
 for code in codes:
     seq = run(code)
     print(code, len(seq), seq)
-    try:
-        simulate(seq)
-    except Exception as exc:
-        print(exc)
-        exit(0)
+    a1 += len(seq) * int(code[:3])
 
-# # returns which buttons to press on kp_dir3 which will press 'keys' on kp_dir2
-# # (teleporting)
-# keys = 'v<<A'
-# find_ddists(keys, True)
+print('part1:', a1)
