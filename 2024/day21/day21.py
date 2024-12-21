@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import sys
-from dataclasses import dataclass
 from itertools import pairwise
 
 
@@ -152,13 +151,6 @@ def find_ndists(code, must_travel=False):
 
 def find_ddists(code, must_travel=False):
     return find_dists(dgrid, code, must_travel)
-
-# <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-# v<<A>>^A<A>AvA<^AA>A<vAAA>^A
-# <A^A>^^AvvvA
-# 029A
-
-DEBUG = False
 
 def simulate(seq):
     k = Setup()
