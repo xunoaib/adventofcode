@@ -91,8 +91,7 @@ def find_ch(grid, ch):
 def dist_to(grid, src_ch, tar_ch):
     src = find_ch(grid, src_ch)
     tar = find_ch(grid, tar_ch)
-    rdiff, cdiff = sub(src, tar)
-    return abs(rdiff), abs(cdiff)
+    return sub(src, tar)
 
 def Setup():
     kp_num = NumericKeypad()
@@ -112,28 +111,50 @@ def test():
     for expected, seq in seqs:
         k = Setup()
         actual = ''.join(k.push_char(ch) for ch in seq)
-        print(actual)
         assert actual == expected
 
-test()
+def find_dists(code, must_travel=False):
+    print()
+    print(code)
+    print()
 
-# def dist_to(src, tar):
-#     a, b = sub(src, tar)
-#     return abs(a) + abs(b)
-#
-# def pos_of_char(grid, search_ch):
-#     return next(p for p, ch in grid.items() if ch == search_ch)
-#
-# def numeric_dists(code, start_pos):
-#     positions = [start_pos] + [pos_of_char(numeric_grid, ch) for ch in code]
-#     dists = [dist_to(a, b) for a,b in pairwise(positions)]
-#
-# codes = sys.stdin.read().strip().split('\n')
-#
-# for code in codes:
-#     print(code)
-#
-#     numeric_pos = numeric_start
-#     dists = numeric_dists(code, numeric_pos)
-#
-#     exit(0)
+    DIST_FROM_A = { '<': 3, 'v': 2, '^': 1, '>': 1, 'A': 0, }
+
+    tot = 0
+    code = 'A'+code
+    for a,b in pairwise(code):
+        roff, coff = dist_to(ngrid, a, b)
+
+        vert_ch = '^' if roff < 0 else 'v'
+        horiz_ch = '<' if coff < 0 else '>'
+
+        if roff == coff == 0:
+            vert_ch = horiz_ch = 'A'
+
+        # find cost to travel to farthest target and press all buttons
+        bpresses = abs(roff) + abs(coff)
+        travel = must_travel * max(DIST_FROM_A[horiz_ch], DIST_FROM_A[vert_ch])
+        presses = (bpresses + 1) + 2 * travel  # presses + A_to_dst + dst_to_A
+
+        print(b,'=', presses, '/', bpresses, travel,(roff,coff))
+        tot += presses
+
+    return tot
+
+"""
+<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+<A^A>^^AvvvA
+029A
+"""
+
+
+# test()
+# k = Setup()
+# print(dist_to(ngrid, '1', 'A'))
+
+codes = sys.stdin.read().strip().split('\n')
+
+for code in codes:
+    t = find_dists(code, False)
+    print(t)
