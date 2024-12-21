@@ -189,9 +189,21 @@ def run(code):
     keys3 = find_ddists(keys2, False)
     return keys3
 
-k = Setup()
-print_kp_recursive(k)
-exit(0)
+def stepwise_render(seq):
+    k = Setup()
+    for i, ch in enumerate(seq):
+        print(i, seq[:i] + f'\033[91m[{ch}]\033[0m' + seq[i+1:])
+        print()
+        print_kp_recursive(k)
+        k.push_char(ch)
+
+# k = Setup()
+# print_kp_recursive(k)
+# exit(0)
+
+# seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
+# stepwise_render(seq)
+# exit(0)
 
 codes = sys.stdin.read().strip().split('\n')
 a1 = 0
