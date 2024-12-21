@@ -21,14 +21,14 @@ def sub(a, b):
 numeric_chars = '789\n456\n123\n.0A'
 directional_chars = '.^A\n<v>'
 
-numeric_grid = {
+ngrid = numeric_grid = {
     (r, c): ch
     for r, line in enumerate(numeric_chars.split('\n'))
     for c, ch in enumerate(line)
     if ch != '.'
 }
 
-directional_grid = {
+dgrid = directional_grid = {
     (r, c): ch
     for r, line in enumerate(directional_chars.split('\n'))
     for c, ch in enumerate(line)
@@ -69,13 +69,13 @@ class Keypad:
         elif button == 'A':
             if self.child:
                 return self.child.push()
+        return ''
 
     def chain(self):
         ret = [(self.pos, self.grid[self.pos])]
         if self.child:
             ret += self.child.chain()
         return ret
-
 
 class NumericKeypad(Keypad):
     def __init__(self, child=None):
@@ -85,20 +85,37 @@ class DirectionalKeypad(Keypad):
     def __init__(self, child=None):
         super().__init__(directional_grid, directional_start, child)
 
-kp_num = NumericKeypad()
-kp_dir1 = DirectionalKeypad(kp_num)
-kp_dir2 = DirectionalKeypad(kp_dir1)
-kp_dir3 = DirectionalKeypad(kp_dir2)
+def find_ch(grid, ch):
+    return next(p for p, c in grid.items() if c == ch)
 
-k = kp_dir3
+def dist_to(grid, src_ch, tar_ch):
+    src = find_ch(grid, src_ch)
+    tar = find_ch(grid, tar_ch)
+    rdiff, cdiff = sub(src, tar)
+    return abs(rdiff), abs(cdiff)
 
-print(k.chain())
-k.push_char('<')
-print(k.chain())
-k.push_char('v')
-print(k.chain())
-k.push_char('<')
-print(k.chain())
+def Setup():
+    kp_num = NumericKeypad()
+    kp_dir1 = DirectionalKeypad(kp_num)
+    kp_dir2 = DirectionalKeypad(kp_dir1)
+    kp_dir3 = DirectionalKeypad(kp_dir2)
+    return kp_dir3
+
+def test():
+    seqs = [
+        ('029A', '<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A'),
+        ('980A', '<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A'),
+        ('179A', '<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'),
+        ('456A', '<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A'),
+        ('379A', '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'),
+    ]
+    for expected, seq in seqs:
+        k = Setup()
+        actual = ''.join(k.push_char(ch) for ch in seq)
+        print(actual)
+        assert actual == expected
+
+test()
 
 # def dist_to(src, tar):
 #     a, b = sub(src, tar)
