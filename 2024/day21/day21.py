@@ -44,10 +44,14 @@ def neighbors4(r, c):
             yield r + roff, c + coff
 
 class Keypad:
-    def __init__(self, grid, pos, child: 'Keypad | None'):
+    def __init__(self, grid, pos, child: 'Keypad | None', name=None):
         self.grid = grid
         self.pos = pos
         self.child = child
+        self.name = name
+
+    def __repr__(self):
+        return f'{type(self).__name__}({self.name})'
 
     def push_char(self, ch):
         pos = next(p for p,c in self.grid.items() if c == ch)
@@ -65,7 +69,9 @@ class Keypad:
 
         if button in '<>^v':
             self.child.pos = add(self.child.pos, DIR_OFFSETS[button])
-            # assert self.child.pos in self.child.grid
+            if self.child.pos not in self.child.grid:
+                print()
+                raise Exception(f'Out of bounds! {button} {self.child.pos} {self}')
         elif button == 'A':
             if self.child:
                 return self.child.push()
@@ -78,12 +84,12 @@ class Keypad:
         return ret
 
 class NumericKeypad(Keypad):
-    def __init__(self, child=None):
-        super().__init__(numeric_grid, numeric_start, child)
+    def __init__(self, child=None, name=None):
+        super().__init__(numeric_grid, numeric_start, child, name)
 
 class DirectionalKeypad(Keypad):
-    def __init__(self, child=None):
-        super().__init__(directional_grid, directional_start, child)
+    def __init__(self, child=None, name=None):
+        super().__init__(directional_grid, directional_start, child, name)
 
 def find_ch(grid, ch):
     return next(p for p, c in grid.items() if c == ch)
@@ -94,10 +100,10 @@ def dist_to(grid, src_ch, tar_ch):
     return sub(src, tar)
 
 def Setup():
-    kp_num = NumericKeypad()
-    kp_dir1 = DirectionalKeypad(kp_num)
-    kp_dir2 = DirectionalKeypad(kp_dir1)
-    kp_dir3 = DirectionalKeypad(kp_dir2)
+    kp_num = NumericKeypad(3)
+    kp_dir1 = DirectionalKeypad(kp_num, 2)
+    kp_dir2 = DirectionalKeypad(kp_dir1, 1)
+    kp_dir3 = DirectionalKeypad(kp_dir2, 0)
     return kp_dir3
 
 def test():
@@ -143,12 +149,10 @@ def find_dists(grid, code, must_travel=False):
         print()
 
     totseq = ''
-    tot = 0
     for src, tar in pairwise('A'+code):
         presses, travel, (roff, coff), seq = find_dist(grid, src, tar, must_travel)
         if DEBUG:
             print(f'{src} to {tar} = {presses} + {travel} = {presses + travel} | {seq:>5} {(roff,coff)}')
-        tot += presses + travel
         totseq += seq
 
     return totseq
@@ -168,9 +172,9 @@ DEBUG = False
 
 def simulate(seq):
     k = Setup()
-
     s = ''
-    for c in seq:
+    for i, c in enumerate(seq):
+        print(c, s)
         s += k.push_char(c)
 
     print(s)
@@ -186,8 +190,11 @@ codes = sys.stdin.read().strip().split('\n')
 for code in codes:
     seq = run(code)
     print(code, len(seq), seq)
-
-    simulate(seq)
+    try:
+        simulate(seq)
+    except Exception as exc:
+        print(exc)
+        exit(0)
 
 # # returns which buttons to press on kp_dir3 which will press 'keys' on kp_dir2
 # # (teleporting)
