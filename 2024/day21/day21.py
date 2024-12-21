@@ -113,7 +113,7 @@ def test():
         actual = ''.join(k.push_char(ch) for ch in seq)
         assert actual == expected
 
-def find_dists(code, must_travel=False):
+def find_dists(grid, code, must_travel=False):
     print()
     print(code)
     print()
@@ -123,7 +123,7 @@ def find_dists(code, must_travel=False):
     tot = 0
     code = 'A'+code
     for a,b in pairwise(code):
-        roff, coff = dist_to(ngrid, a, b)
+        roff, coff = dist_to(grid, a, b)
 
         vert_ch = '^' if roff < 0 else 'v'
         horiz_ch = '<' if coff < 0 else '>'
@@ -148,7 +148,6 @@ v<<A>>^A<A>AvA<^AA>A<vAAA>^A
 029A
 """
 
-
 # test()
 # k = Setup()
 # print(dist_to(ngrid, '1', 'A'))
@@ -156,5 +155,6 @@ v<<A>>^A<A>AvA<^AA>A<vAAA>^A
 codes = sys.stdin.read().strip().split('\n')
 
 for code in codes:
-    t = find_dists(code, False)
+    t = find_dists(ngrid, code, False)
     print(t)
+    break
