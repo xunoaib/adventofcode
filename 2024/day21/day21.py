@@ -132,36 +132,19 @@ def find_dist(grid, src, tar, must_travel=False):
         vert_ch = '^' if roff < 0 else 'v'
         horiz_ch = '<' if coff < 0 else '>'
 
-    # movement keys + A press
-    presses = abs(roff) + abs(coff) + 1
-
-    # travel cost to reach buttons from A (and return to A)
-    if must_travel:
-        travel = 2 * max(DIST_FROM_A[horiz_ch], DIST_FROM_A[vert_ch])
-    else:
-        travel = 0
-
     # swap order to avoid going out of bounds
     seq = abs(roff) * vert_ch + abs(coff) * horiz_ch
     if find_ch(grid, src)[1] == 0:
         seq = seq[::-1]
     seq += 'A'
 
-    return presses, travel, (roff, coff), seq
+    return (roff, coff), seq
 
 def find_dists(grid, code, must_travel=False):
-
-    if DEBUG:
-        print(code)
-        print()
-
     totseq = ''
     for src, tar in pairwise('A'+code):
-        presses, travel, (roff, coff), seq = find_dist(grid, src, tar, must_travel)
-        if DEBUG:
-            print(f'{src} to {tar} = {presses} + {travel} = {presses + travel} | {seq:>5} {(roff,coff)}')
+        (roff, coff), seq = find_dist(grid, src, tar, must_travel)
         totseq += seq
-
     return totseq
 
 def find_ndists(code, must_travel=False):
