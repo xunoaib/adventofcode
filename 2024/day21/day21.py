@@ -84,6 +84,28 @@ class Keypad:
             ret += self.child.chain()
         return ret
 
+def print_kp(keypad: Keypad):
+    maxr = max(r for r,c in keypad.grid)
+    maxc = max(c for r,c in keypad.grid)
+    rows = ['+---+---+---+']
+    for r in range(maxr+1):
+        cols = []
+        for c in range(maxc+1):
+            ch = (' ' + keypad.grid.get((r,c), ' ') + ' ')
+            if (r,c) == keypad.pos:
+                ch = f'\033[91;1m[{ch.strip()}]\033[0m'
+            cols.append(ch)
+        rows.append('|' + '|'.join(cols) + '|')
+        rows.append('+---+---+---+')
+
+    print('\n'.join(rows))
+
+def print_kp_recursive(k: Keypad):
+    if k.child:
+        print_kp_recursive(k.child)
+    print_kp(k)
+    print()
+
 class NumericKeypad(Keypad):
     def __init__(self, child=None, name=None):
         super().__init__(numeric_grid, numeric_start, child, name)
@@ -165,8 +187,11 @@ def run(code):
     keys1 = find_ndists(code, True)
     keys2 = find_ddists(keys1, True)
     keys3 = find_ddists(keys2, False)
-    # keys4 = find_ddists(keys3, False)
     return keys3
+
+k = Setup()
+print_kp_recursive(k)
+exit(0)
 
 codes = sys.stdin.read().strip().split('\n')
 a1 = 0
