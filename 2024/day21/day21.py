@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 import sys
-from collections import Counter, defaultdict
 from dataclasses import dataclass
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
-from typing import Any
+from itertools import pairwise
 
 DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
-char_dirs = {
-    '>': (0, 1),
-    '<': (0, -1),
-    '^': (-1, 0),
-    'v': (1, 0),
+DIR_OFFSETS = {
+    '>': R,
+    '<': L,
+    '^': U,
+    'v': D,
 }
 
 def add(a, b):
@@ -47,74 +44,63 @@ def neighbors4(r, c):
             yield r + roff, c + coff
 
 class Keypad:
-    def __init__(self, grid):
+    def __init__(self, grid, pos, child: 'Keypad | None'):
         self.grid = grid
+        self.pos = pos
+        self.child = child
 
-    def push(self, pos):
-        if pos not in self.grid:
-            raise IndexError('Out of bounds:', pos)
-        return self.grid[pos]
+    def push(self):
+        button = self.grid[self.pos]
 
-    def activate(self, pos):
-        return self.grid[pos]
+        if not self.child:
+            return button
+
+        if button in '<>^v':
+            self.pos = add(self.pos, DIR_OFFSETS[button])
+            assert self.pos in self.grid
+        elif button == 'A':
+            if self.child:
+                return self.child.push()
+
+    def chain(self):
+        ret = [(self.pos, self.grid[self.pos])]
+        if self.child:
+            ret += self.child.chain()
+        return ret
+
 
 class NumericKeypad(Keypad):
-    def __init__(self):
-        super().__init__(numeric_grid)
+    def __init__(self, child=None):
+        super().__init__(numeric_grid, numeric_start, child)
 
 class DirectionalKeypad(Keypad):
-    def __init__(self):
-        super().__init__(directional_grid)
-
-class WrappedKeypad():
-    def __init__(self, inner: 'Keypad | WrappedKeypad', outer: Keypad):
-        self.outer = outer
-        self.inner = inner
-        self.inner_pos = next(p for p, ch in self.inner.grid.items() if ch == 'A')
-
-    @property
-    def grid(self):
-        return self.outer.grid
-
-    def activate(self):
-        button = self.outer.activate()
+    def __init__(self, child=None):
+        super().__init__(directional_grid, directional_start, child)
 
 kp_num = NumericKeypad()
-kp_dir1 = WrappedKeypad(kp_num, DirectionalKeypad())
-kp_dir2 = WrappedKeypad(kp_dir1, DirectionalKeypad())
-kp_dir3 = WrappedKeypad(kp_dir2, DirectionalKeypad())
+kp_dir1 = DirectionalKeypad(kp_num)
+kp_dir2 = DirectionalKeypad(kp_dir1)
+kp_dir3 = DirectionalKeypad(kp_dir2)
 
-# print(kp_num.inner_pos)
-print(kp_dir1.inner_pos)
-print(kp_dir2.inner_pos)
-print(kp_dir3.inner_pos)
+print(kp_dir3.chain())
 
-
-exit(0)
-
-@dataclass
-class Simulation:
-    def push(self, ch):
-        pass
-
-
-def dist_to(src, tar):
-    a, b = sub(src, tar)
-    return abs(a) + abs(b)
-
-def pos_of_char(grid, search_ch):
-    return next(p for p, ch in grid.items() if ch == search_ch)
-
-def numeric_dists(code, start_pos):
-    positions = [start_pos] + [pos_of_char(numeric_grid, ch) for ch in code]
-    dists = [dist_to(a, b) for a,b in pairwise(positions)]
-
-codes = sys.stdin.read().strip().split('\n')
-
-for code in codes:
-    print(code)
-
-    numeric_pos = numeric_start
-    dists = numeric_dists(code, numeric_pos)
-
-    exit(0)
+# def dist_to(src, tar):
+#     a, b = sub(src, tar)
+#     return abs(a) + abs(b)
+#
+# def pos_of_char(grid, search_ch):
+#     return next(p for p, ch in grid.items() if ch == search_ch)
+#
+# def numeric_dists(code, start_pos):
+#     positions = [start_pos] + [pos_of_char(numeric_grid, ch) for ch in code]
+#     dists = [dist_to(a, b) for a,b in pairwise(positions)]
+#
+# codes = sys.stdin.read().strip().split('\n')
+#
+# for code in codes:
+#     print(code)
+#
+#     numeric_pos = numeric_start
+#     dists = numeric_dists(code, numeric_pos)
+#
+#     exit(0)
