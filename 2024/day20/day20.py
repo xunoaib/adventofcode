@@ -15,16 +15,7 @@ def neighbors4(r, c):
 
 
 @cache
-def cheat_neighbors(r, c):
-    neighbors = set()
-    for n in neighbors4(r, c):
-        neighbors.add(n)
-        for p in neighbors4(*n):
-            neighbors.add(p)
-    return neighbors
-
-@cache
-def cheat_neighbors_length(r, c, length=20):
+def cheat_neighbors(r, c, length=20):
     neighbors = {(r,c)}
     q = [(length, (r,c))]
     while q:
@@ -36,15 +27,6 @@ def cheat_neighbors_length(r, c, length=20):
                 neighbors.add(n)
                 q.append((l-1, n))
     return neighbors
-
-def print_grid(path):
-    rows = 1 + max(r for r,c in grid)
-    cols = 1 + max(c for r,c in grid)
-    for r in range(rows):
-        for c in range(cols):
-            ch = '\033[91mX\033[0m' if (r,c) in path else grid[r,c]
-            print(ch, end='')
-        print()
 
 lines = sys.stdin.read().strip().split('\n')
 
@@ -61,8 +43,6 @@ track = {p for p, ch in grid.items() if ch != '#'}
 
 grid[start] = '.'
 grid[end] = '.'
-
-a1 = a2 = 0
 
 def shortest_nocheat():
     q = [(0, end)]
@@ -88,50 +68,23 @@ p = start
 while p := all_children.get(p):
     path.append(p)
 
-def part1():
+def solve(length):
     savings = {}
     for src in path:
-        for tar in cheat_neighbors_length(*src, 2):
+        for tar in cheat_neighbors(*src, length):
             if tar in track and tar != src:
                 dist = abs(src[0]-tar[0]) + abs(src[1]-tar[1])
                 savings[src,tar] = fastest_times[src] - fastest_times[tar] - dist
 
     counts = Counter(savings.values())
+    return sum(freq for t, freq in counts.items() if t >= 100)
 
-    a1 = 0
-    for t, freq in sorted(counts.items()):
-        if t <= 0:
-            continue
-        print(f'There are {freq} cheats that save {t} picoseconds.')
-        if t >= 100:
-            a1 += freq
 
-    # print(fastest_times[start])
-    # print(fastest_times[end])
+a1 = solve(2)
+print('part1:', a1)
 
-    print('part1:', a1)
+a2 = solve(20)
+print('part2:', a2)
 
-def part2():
-
-    savings = {}
-    for src in path:
-        for tar in cheat_neighbors_length(*src, 20):
-            if tar in track and tar != src:
-                dist = abs(src[0]-tar[0]) + abs(src[1]-tar[1])
-                saved_old = savings.get((src,tar), 0)
-                saved_new = fastest_times[src] - fastest_times[tar] - dist
-                savings[src,tar] = max(saved_new, saved_old)
-
-    counts = Counter(savings.values())
-
-    a2 = 0
-    for t, freq in sorted(counts.items()):
-        if t >= 50:
-            print(f'There are {freq} cheats that save {t} picoseconds.')
-        if t >= 100:
-            a2 += freq
-
-    print('part2:', a2)
-
-part1()
-part2()
+assert a1 == 1372
+assert a2 == 979014
