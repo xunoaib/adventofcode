@@ -65,7 +65,7 @@ class Keypad:
 
         if button in '<>^v':
             self.child.pos = add(self.child.pos, DIR_OFFSETS[button])
-            assert self.child.pos in self.child.grid
+            # assert self.child.pos in self.child.grid
         elif button == 'A':
             if self.child:
                 return self.child.push()
@@ -113,48 +113,83 @@ def test():
         actual = ''.join(k.push_char(ch) for ch in seq)
         assert actual == expected
 
-def find_dists(grid, code, must_travel=False):
-    print()
-    print(code)
-    print()
+DIST_FROM_A = { '<': 3, 'v': 2, '^': 1, '>': 1, 'A': 0}
 
-    DIST_FROM_A = { '<': 3, 'v': 2, '^': 1, '>': 1, 'A': 0, }
+def find_dist(grid, src, tar, must_travel=False):
+    roff, coff = dist_to(grid, src, tar)
 
-    tot = 0
-    code = 'A'+code
-    for a,b in pairwise(code):
-        roff, coff = dist_to(grid, a, b)
-
+    if roff == coff == 0:
+        vert_ch = horiz_ch = 'A'
+    else:
         vert_ch = '^' if roff < 0 else 'v'
         horiz_ch = '<' if coff < 0 else '>'
 
-        if roff == coff == 0:
-            vert_ch = horiz_ch = 'A'
+    # movement keys + A press
+    presses = abs(roff) + abs(coff) + 1
 
-        # find cost to travel to farthest target and press all buttons
-        bpresses = abs(roff) + abs(coff)
-        travel = must_travel * max(DIST_FROM_A[horiz_ch], DIST_FROM_A[vert_ch])
-        presses = (bpresses + 1) + 2 * travel  # presses + A_to_dst + dst_to_A
+    # travel cost to reach buttons from A (and return to A)
+    if must_travel:
+        travel = 2 * max(DIST_FROM_A[horiz_ch], DIST_FROM_A[vert_ch])
+    else:
+        travel = 0
 
-        print(b,'=', presses, '/', bpresses, travel,(roff,coff))
-        tot += presses
+    seq = abs(coff) * horiz_ch + abs(roff) * vert_ch + 'A'
+    return presses, travel, (roff, coff), seq
 
-    return tot
+def find_dists(grid, code, must_travel=False):
 
-"""
-<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-v<<A>>^A<A>AvA<^AA>A<vAAA>^A
-<A^A>^^AvvvA
-029A
-"""
+    if DEBUG:
+        print(code)
+        print()
 
-# test()
-# k = Setup()
-# print(dist_to(ngrid, '1', 'A'))
+    totseq = ''
+    tot = 0
+    for src, tar in pairwise('A'+code):
+        presses, travel, (roff, coff), seq = find_dist(grid, src, tar, must_travel)
+        if DEBUG:
+            print(f'{src} to {tar} = {presses} + {travel} = {presses + travel} | {seq:>5} {(roff,coff)}')
+        tot += presses + travel
+        totseq += seq
+
+    return totseq
+
+def find_ndists(code, must_travel=False):
+    return find_dists(ngrid, code, must_travel)
+
+def find_ddists(code, must_travel=False):
+    return find_dists(dgrid, code, must_travel)
+
+# <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+# v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+# <A^A>^^AvvvA
+# 029A
+
+DEBUG = False
+
+def simulate(seq):
+    k = Setup()
+
+    s = ''
+    for c in seq:
+        s += k.push_char(c)
+
+    print(s)
+
+def run(code):
+    keys1 = find_ndists(code, True)
+    keys2 = find_ddists(keys1, True)
+    keys3 = find_ddists(keys2, True)
+    # keys4 = find_ddists(keys3, False)
+    return keys3
 
 codes = sys.stdin.read().strip().split('\n')
-
 for code in codes:
-    t = find_dists(ngrid, code, False)
-    print(t)
-    break
+    seq = run(code)
+    print(code, len(seq), seq)
+
+    simulate(seq)
+
+# # returns which buttons to press on kp_dir3 which will press 'keys' on kp_dir2
+# # (teleporting)
+# keys = 'v<<A'
+# find_ddists(keys, True)
