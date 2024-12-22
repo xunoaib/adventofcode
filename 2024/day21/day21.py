@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import sys
-from functools import partial
 from itertools import pairwise, permutations, product
 
 
@@ -135,7 +134,8 @@ def dist_to(grid, src_ch, tar_ch):
     tar = find_ch(grid, tar_ch)
     return sub(src, tar)
 
-def Setup():
+def construct():
+    '''Constructs a series of keypads for Part 1'''
     kp_num = NumericKeypad(name=3)
     kp_dir1 = DirectionalKeypad(kp_num, 2)
     kp_dir2 = DirectionalKeypad(kp_dir1, 1)
@@ -151,13 +151,17 @@ def test():
         ('379A', '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'),
     ]
     for expected, seq in seqs:
-        k = Setup()
+        k = construct()
         actual = ''.join(k.push_char(ch) for ch in seq)
         assert actual == expected
 
-DIST_FROM_A = { '<': 3, 'v': 2, '^': 1, '>': 1, 'A': 0}
+def find_seq_to(grid, src, tar):
+    '''
+    Returns one of the shortest sequences of moves from src to tar which
+    activates tar. However, this sequence is not guaranteed to be optimal when
+    expanded at a higher level
+    '''
 
-def find_dist(grid, src, tar):
     roff, coff = dist_to(grid, src, tar)
 
     if roff == coff == 0:
@@ -166,94 +170,87 @@ def find_dist(grid, src, tar):
         vert_ch = '^' if roff < 0 else 'v'
         horiz_ch = '<' if coff < 0 else '>'
 
-    # swap order to avoid going out of bounds
+    # swap order to avoid potentially going out of bounds
     seq = abs(roff) * vert_ch + abs(coff) * horiz_ch
     if find_ch(grid, src)[1] == 0:
         seq = seq[::-1]
-    seq += 'A'
 
-    return (roff, coff), seq
+    return seq
 
-def find_dists(grid, code):
+def find_seq_through(grid, code):
+    '''
+    Finds a sequence of moves passing through and activating each character in
+    'code', starting at position 'A'
+    '''
+
     totseq = ''
     for src, tar in pairwise('A'+code):
-        (roff, coff), seq = find_dist(grid, src, tar)
+        seq = find_seq_to(grid, src, tar) + 'A'
         totseq += seq
     return totseq
 
-def find_ndists(code):
-    return find_dists(ngrid, code)
+def find_seq_through_nums(code):
+    return find_seq_through(ngrid, code)
 
-def find_ddists(code):
-    return find_dists(dgrid, code)
-
-def simulate(seq):
-    k = Setup()
-    s = ''
-    for i, c in enumerate(seq):
-        print(c, s)
-        s += k.push_char(c)
-    print(s)
+def find_seq_through_dirs(code):
+    return find_seq_through(dgrid, code)
 
 def run(code):
-    keys1 = find_ndists(code)
-    keys2 = find_ddists(keys1)
-    keys3 = find_ddists(keys2)
-    print(keys1)
-    print(code)
-    print(keys2)
-    print(keys3)
-    print()
-    exit(0)
+    '''
+    FAST, original, but non-working code which WOULD work if we can ensure each
+    generated subsequence is optimal when implemented at higher layers
+    '''
+
+    keys1 = find_seq_through_nums(code)
+    keys2 = find_seq_through_dirs(keys1)
+    keys3 = find_seq_through_dirs(keys2)
     return keys3
 
 def permute_subsequence(seq, find_func):
+    '''
+    Permutes every sequence of directional moves (delimited by "A" presses)
+    '''
+
     options = []
     for g in seq.split('A'):
         options.append([''.join(u) + 'A' for u in set(permutations(g))])
 
-    # best = (sys.maxsize, None)
-    # for p in product(*options):
-    #     newseq = find_func(''.join(p))[:-1]
-    #     best = min(best, (len(newseq), newseq))
-    # return best[1]
-
     seen = set()
     for p in product(*options):
-        yield find_func(''.join(p))[:-1]
+        if p not in seen:
+            seen.add(p)
+            yield find_func(''.join(p))[:-1]
 
 
 def run_brute(code):
+    '''
+    Generates every possible sequence of top-level moves to spell out the given code (inefficient)
+    '''
 
     best = (sys.maxsize, None)
-    for keys1 in permute_subsequence(code, find_ndists):
-        for keys2 in permute_subsequence(keys1, find_ddists):
-            for keys3 in permute_subsequence(keys2, find_ddists):
+    for keys1 in permute_subsequence(code, find_seq_through_nums):
+        for keys2 in permute_subsequence(keys1, find_seq_through_dirs):
+            for keys3 in permute_subsequence(keys2, find_seq_through_dirs):
                 if len(keys3) >= best[0]:
                     continue
 
-                k = Setup()
+                # experimentally verify the validity of each sequence,
+                # since our moves might be invalid
+                k = construct()
                 try:
                     k.execute_sequence(keys3)
                     assert k.child.child.child.history == code
-                    item = (len(keys3), keys3)
-                    best = min(best, item)
+                    best = min(best, (len(keys3), keys3))
                 except (MyException, AssertionError):
                     continue
     return best[1]
 
-    # print()
-    # keys1 = permute_subsequence(code, find_ndists)
-    # print(keys1)
-    # keys2 = permute_subsequence(keys1, find_ddists)
-    # print(keys2)
-    # keys3 = permute_subsequence(keys2, find_ddists)
-    # return keys3
-
 def stepwise_render(seq):
-    k = Setup()
+    ''' Visualize keypresses and the state of each keypad over time '''
+
+    k = construct()
     outputs = [k.push_char(ch) or ' ' for i, ch in enumerate(seq)]
-    k = Setup()
+    k = construct()
     for i, ch in enumerate(seq):
         print(f'{i:>2}', seq[:i] + f'\033[91m[{ch}]\033[0m' + seq[i+1:])
         print('  ', ''.join(f'[{o}]' if i == j else o for j, o in enumerate(outputs)))
@@ -298,3 +295,4 @@ if __name__ == "__main__":
         a1 += len(seq) * int(code[:3])
 
     print('part1:', a1)
+    # assert a1 == 213536
