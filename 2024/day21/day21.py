@@ -51,12 +51,24 @@ class Keypad:
         self.pos = pos
         self.child = child
         self.name = name
+        self.history = ''
+
+    def execute_sequence(self, seq):
+        for ch in seq:
+            self.push_char(ch)
+
+    def tree(self):
+        tree = [self]
+        cur = self
+        while cur := cur.child:
+            tree.append(cur)
+        return tree
 
     def __repr__(self):
         return f'{type(self).__name__}({self.name})'
 
     def push_char(self, ch):
-        pos = next(p for p,c in self.grid.items() if c == ch)
+        self.pos = pos = next(p for p,c in self.grid.items() if c == ch)
         return self.push_at(pos)
 
     def push(self):
@@ -66,6 +78,7 @@ class Keypad:
         return self.push_button(self.grid[pos])
 
     def push_button(self, button):
+        self.history += button
         if not self.child:
             return button
 
@@ -187,29 +200,48 @@ def run(code):
     keys1 = find_ndists(code, True)
     keys2 = find_ddists(keys1, True)
     keys3 = find_ddists(keys2, False)
+    keys2 = '\n' + keys2.replace('A', 'A\n')
+    # keys3 = keys3.replace('A', 'A , ')
+    print(code)
+    print(keys1)
+    print(keys2)
+    print(keys3)
+    print()
+    exit(0)
     return keys3
 
 def stepwise_render(seq):
     k = Setup()
+    outputs = [k.push_char(ch) or ' ' for i, ch in enumerate(seq)]
+
+    k = Setup()
+
     for i, ch in enumerate(seq):
-        print(i, seq[:i] + f'\033[91m[{ch}]\033[0m' + seq[i+1:])
+        print(f'{i:>2}', seq[:i] + f'\033[91m[{ch}]\033[0m' + seq[i+1:])
+        print('  ', ''.join(f'[{o}]' if i == j else o for j, o in enumerate(outputs)))
         print()
         print_kp_recursive(k)
         k.push_char(ch)
 
-# k = Setup()
-# print_kp_recursive(k)
-# exit(0)
+if __name__ == "__main__":
 
-# seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
-# stepwise_render(seq)
-# exit(0)
+    seq = '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'
+    k = Setup()
+    k.execute_sequence(seq)
+    for n in k.tree():
+        print(n.history)
 
-codes = sys.stdin.read().strip().split('\n')
-a1 = 0
-for code in codes:
-    seq = run(code)
-    print(code, len(seq), seq)
-    a1 += len(seq) * int(code[:3])
+    exit(0)
 
-print('part1:', a1)
+    # seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
+    # stepwise_render(seq)
+    # exit(0)
+
+    codes = sys.stdin.read().strip().split('\n')
+    a1 = 0
+    for code in codes:
+        seq = run(code)
+        print(code, len(seq), seq)
+        a1 += len(seq) * int(code[:3])
+
+    print('part1:', a1)
