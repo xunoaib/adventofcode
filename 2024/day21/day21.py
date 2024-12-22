@@ -225,12 +225,16 @@ def stepwise_render(seq):
 
 if __name__ == "__main__":
 
-    seq = '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'
-    k = Setup()
-    k.execute_sequence(seq)
-    for n in k.tree():
-        print(n.history)
-
+    seqs = [
+        '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
+        'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
+    ]
+    for seq in seqs:
+        print()
+        k = Setup()
+        k.execute_sequence(seq)
+        for n in k.tree():
+            print(n.history)
     exit(0)
 
     # seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
