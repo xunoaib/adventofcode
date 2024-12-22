@@ -86,7 +86,6 @@ class Keypad:
         if button in '<>^v':
             self.child.pos = add(self.child.pos, DIR_OFFSETS[button])
             if self.child.pos not in self.child.grid:
-                print()
                 raise MyException(f'Out of bounds! {button} {self.child.pos} {self}')
         elif button == 'A':
             return self.child.push()
@@ -194,7 +193,6 @@ def simulate(seq):
     for i, c in enumerate(seq):
         print(c, s)
         s += k.push_char(c)
-
     print(s)
 
 def run(code):
@@ -214,28 +212,48 @@ def permute_subsequence(seq, find_func):
     for g in seq.split('A'):
         options.append([''.join(u) + 'A' for u in set(permutations(g))])
 
-    best = (sys.maxsize, None)
+    # best = (sys.maxsize, None)
+    # for p in product(*options):
+    #     newseq = find_func(''.join(p))[:-1]
+    #     best = min(best, (len(newseq), newseq))
+    # return best[1]
+
+    seen = set()
     for p in product(*options):
-        newseq = find_func(''.join(p))[:-1]
-        best = min(best, (len(newseq), newseq))
-    return best[1]
+        yield find_func(''.join(p))[:-1]
 
 
 def run_brute(code):
-    print()
-    keys1 = find_ndists(code)
-    print(keys1)
-    keys2 = permute_subsequence(keys1, find_ddists)
-    print(keys2)
-    keys3 = permute_subsequence(keys2, find_ddists)
-    return keys3
+
+    best = (sys.maxsize, None)
+    for keys1 in permute_subsequence(code, find_ndists):
+        for keys2 in permute_subsequence(keys1, find_ddists):
+            for keys3 in permute_subsequence(keys2, find_ddists):
+                if len(keys3) >= best[0]:
+                    continue
+
+                k = Setup()
+                try:
+                    k.execute_sequence(keys3)
+                    assert k.child.child.child.history == code
+                    item = (len(keys3), keys3)
+                    best = min(best, item)
+                except (MyException, AssertionError):
+                    continue
+    return best[1]
+
+    # print()
+    # keys1 = permute_subsequence(code, find_ndists)
+    # print(keys1)
+    # keys2 = permute_subsequence(keys1, find_ddists)
+    # print(keys2)
+    # keys3 = permute_subsequence(keys2, find_ddists)
+    # return keys3
 
 def stepwise_render(seq):
     k = Setup()
     outputs = [k.push_char(ch) or ' ' for i, ch in enumerate(seq)]
-
     k = Setup()
-
     for i, ch in enumerate(seq):
         print(f'{i:>2}', seq[:i] + f'\033[91m[{ch}]\033[0m' + seq[i+1:])
         print('  ', ''.join(f'[{o}]' if i == j else o for j, o in enumerate(outputs)))
@@ -245,14 +263,25 @@ def stepwise_render(seq):
 
 if __name__ == "__main__":
 
+    # k = Setup()
+    # k.execute_sequence('v<<A>>^AAAvA^Av<A<AA>>^AvA^AA<Av>A^Av<<A>A^>A<Av>A^Av<A^>A<A>A')
+    # for n in k.tree():
+    #     print(n.history)
+    # exit(0)
+
     # seqs = [
-    #     '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
-    #     'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
+    #     # '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
+    #     # 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
+    #     '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A', # correct 379A
+    #     'v<<A>>^AvA^Av<<A>>^AAv<<A>A^>AA<Av>AA^Av<A^>AA<A>Av<<A>A^>AAA<Av>A^A' # incorrect 379A
     # ]
     # for seq in seqs:
     #     print()
     #     k = Setup()
-    #     k.execute_sequence(seq)
+    #     try:
+    #         k.execute_sequence(seq)
+    #     except MyException as exc:
+    #         print(exc)
     #     for n in k.tree():
     #         print(n.history)
     # exit(0)
