@@ -4,7 +4,6 @@ import sys
 from collections import Counter, defaultdict
 from itertools import pairwise
 
-secrets = list(map(int, sys.stdin))
 
 def mix(value, secret):
     return value ^ secret
@@ -18,22 +17,24 @@ def next_secret(secret):
     secret = prune(mix(secret * 2048, secret))
     return secret
 
+secrets = list(map(int, sys.stdin))
 
 a1 = 0
-sequences = {}
+secret_prices = {}
 for secret in secrets:
     orig = secret
-    sequences[orig] = [secret % 10]
+    secret_prices[orig] = [secret % 10]
     for _ in range(2000):
         secret = next_secret(secret)
-        sequences[orig].append(secret % 10)
+        secret_prices[orig].append(secret % 10)
     a1 += secret
 
 print('part1:', a1)
 
 secret_diffs = defaultdict(list)
-for secret, seq in sequences.items():
-    for a,b in pairwise(seq):
+
+for secret, prices in secret_prices.items():
+    for a,b in pairwise(prices):
         secret_diffs[secret].append(b - a)
 
 combined = Counter()
@@ -44,9 +45,9 @@ for secret, diffs in secret_diffs.items():
         s = tuple(diffs[i:i+4])
         if s not in seen:
             seen.add(s)
-            combined[s] += sequences[secret][i+4]
+            combined[s] += secret_prices[secret][i+4]
 
-_, a2 = combined.most_common(1)[0]
+a2 = max(combined.values())
 
 print('part2:', a2)
 
