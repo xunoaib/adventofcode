@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from itertools import pairwise
+from itertools import pairwise, permutations, product
 
 
 class MyException(Exception): ...
@@ -200,15 +200,34 @@ def run(code):
     keys1 = find_ndists(code, True)
     keys2 = find_ddists(keys1, True)
     keys3 = find_ddists(keys2, False)
-    keys2 = '\n' + keys2.replace('A', 'A\n')
-    # keys3 = keys3.replace('A', 'A , ')
-    print(code)
     print(keys1)
+    print(code)
     print(keys2)
     print(keys3)
     print()
     exit(0)
     return keys3
+
+def run_brute(code):
+    keys1 = find_ndists(code, True)
+    keys2 = find_ddists(keys1, True)
+
+    groups2 = keys2.split('A')
+    options = []
+
+    for g in groups2:
+        unique = set()
+        for perm in permutations(g):
+            if perm not in unique:
+                unique.add(perm)
+        options.append([''.join(u) + 'A' for u in unique])
+
+    best = (sys.maxsize, None)
+    for p in product(*options):
+        keys3 = find_ddists(''.join(p), False)[:-1]
+        best = min(best, (len(keys3), keys3))
+
+    return best
 
 def stepwise_render(seq):
     k = Setup()
@@ -225,17 +244,17 @@ def stepwise_render(seq):
 
 if __name__ == "__main__":
 
-    seqs = [
-        '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
-        'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
-    ]
-    for seq in seqs:
-        print()
-        k = Setup()
-        k.execute_sequence(seq)
-        for n in k.tree():
-            print(n.history)
-    exit(0)
+    # seqs = [
+    #     '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
+    #     'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
+    # ]
+    # for seq in seqs:
+    #     print()
+    #     k = Setup()
+    #     k.execute_sequence(seq)
+    #     for n in k.tree():
+    #         print(n.history)
+    # exit(0)
 
     # seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
     # stepwise_render(seq)
@@ -244,7 +263,7 @@ if __name__ == "__main__":
     codes = sys.stdin.read().strip().split('\n')
     a1 = 0
     for code in codes:
-        seq = run(code)
+        seq = run_brute(code)
         print(code, len(seq), seq)
         a1 += len(seq) * int(code[:3])
 
