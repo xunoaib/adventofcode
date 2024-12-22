@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+from functools import partial
 from itertools import pairwise, permutations, product
 
 
@@ -157,7 +158,7 @@ def test():
 
 DIST_FROM_A = { '<': 3, 'v': 2, '^': 1, '>': 1, 'A': 0}
 
-def find_dist(grid, src, tar, must_travel=False):
+def find_dist(grid, src, tar):
     roff, coff = dist_to(grid, src, tar)
 
     if roff == coff == 0:
@@ -174,18 +175,18 @@ def find_dist(grid, src, tar, must_travel=False):
 
     return (roff, coff), seq
 
-def find_dists(grid, code, must_travel=False):
+def find_dists(grid, code):
     totseq = ''
     for src, tar in pairwise('A'+code):
-        (roff, coff), seq = find_dist(grid, src, tar, must_travel)
+        (roff, coff), seq = find_dist(grid, src, tar)
         totseq += seq
     return totseq
 
-def find_ndists(code, must_travel=False):
-    return find_dists(ngrid, code, must_travel)
+def find_ndists(code):
+    return find_dists(ngrid, code)
 
-def find_ddists(code, must_travel=False):
-    return find_dists(dgrid, code, must_travel)
+def find_ddists(code):
+    return find_dists(dgrid, code)
 
 def simulate(seq):
     k = Setup()
@@ -197,9 +198,9 @@ def simulate(seq):
     print(s)
 
 def run(code):
-    keys1 = find_ndists(code, True)
-    keys2 = find_ddists(keys1, True)
-    keys3 = find_ddists(keys2, False)
+    keys1 = find_ndists(code)
+    keys2 = find_ddists(keys1)
+    keys3 = find_ddists(keys2)
     print(keys1)
     print(code)
     print(keys2)
@@ -208,26 +209,26 @@ def run(code):
     exit(0)
     return keys3
 
-def run_brute(code):
-    keys1 = find_ndists(code, True)
-    keys2 = find_ddists(keys1, True)
-
-    groups2 = keys2.split('A')
+def permute_subsequence(seq, find_func):
     options = []
-
-    for g in groups2:
-        unique = set()
-        for perm in permutations(g):
-            if perm not in unique:
-                unique.add(perm)
-        options.append([''.join(u) + 'A' for u in unique])
+    for g in seq.split('A'):
+        options.append([''.join(u) + 'A' for u in set(permutations(g))])
 
     best = (sys.maxsize, None)
     for p in product(*options):
-        keys3 = find_ddists(''.join(p), False)[:-1]
-        best = min(best, (len(keys3), keys3))
+        newseq = find_func(''.join(p))[:-1]
+        best = min(best, (len(newseq), newseq))
+    return best[1]
 
-    return best
+
+def run_brute(code):
+    print()
+    keys1 = find_ndists(code)
+    print(keys1)
+    keys2 = permute_subsequence(keys1, find_ddists)
+    print(keys2)
+    keys3 = permute_subsequence(keys2, find_ddists)
+    return keys3
 
 def stepwise_render(seq):
     k = Setup()
