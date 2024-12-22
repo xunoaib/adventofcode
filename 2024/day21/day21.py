@@ -14,6 +14,14 @@ DIR_OFFSETS = {
     'v': D,
 }
 
+SAMPLE_SEQ_ANSWERS = {
+    '029A': '<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A',
+    '980A': '<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A',
+    '179A': '<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',
+    '456A': '<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A',
+    '379A': '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',
+}
+
 def add(a, b):
     return a[0]+b[0], a[1]+b[1]
 
@@ -56,6 +64,7 @@ class Keypad:
     def execute_sequence(self, seq):
         for ch in seq:
             self.push_char(ch)
+        return self
 
     def tree(self):
         tree = [self]
@@ -63,6 +72,10 @@ class Keypad:
         while cur := cur.child:
             tree.append(cur)
         return tree
+
+    @property
+    def output(self):
+        return self.child.output if self.child else self.history
 
     def __repr__(self):
         return f'{type(self).__name__}({self.name})'
@@ -142,17 +155,12 @@ def construct():
     kp_dir3 = DirectionalKeypad(kp_dir2, 0)
     return kp_dir3
 
-def test():
-    seqs = [
-        ('029A', '<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A'),
-        ('980A', '<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A'),
-        ('179A', '<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'),
-        ('456A', '<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A'),
-        ('379A', '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'),
-    ]
-    for expected, seq in seqs:
+def test_correct_simulation():
+    '''Confirm that the sample button presses produce the expected sample output'''
+    for expected, seq in SAMPLE_SEQ_ANSWERS.items():
         k = construct()
-        actual = ''.join(k.push_char(ch) for ch in seq)
+        k.execute_sequence(seq)
+        actual = k.tree()[-1].history
         assert actual == expected
 
 def find_seq_to(grid, src, tar):
@@ -258,8 +266,7 @@ def stepwise_render(seq):
         print_kp_recursive(k)
         k.push_char(ch)
 
-if __name__ == "__main__":
-
+def debug():
     # k = Setup()
     # k.execute_sequence('v<<A>>^AAAvA^Av<A<AA>>^AvA^AA<Av>A^Av<<A>A^>A<Av>A^Av<A^>A<A>A')
     # for n in k.tree():
@@ -286,13 +293,33 @@ if __name__ == "__main__":
     # seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
     # stepwise_render(seq)
     # exit(0)
+    debug2()
 
+def debug2():
+
+    a1 = 0
+    for code, sample_seq in SAMPLE_SEQ_ANSWERS.items():
+        seq = run(code)
+        assert code == construct().execute_sequence(seq).output
+        print(code, len(seq), seq)
+        a1 += len(seq) * int(code[:3])
+    print('part1:', a1)
+
+    pass
+
+def part1():
     codes = sys.stdin.read().strip().split('\n')
     a1 = 0
     for code in codes:
-        seq = run_brute(code)
+        seq = run(code)
         print(code, len(seq), seq)
         a1 += len(seq) * int(code[:3])
 
     print('part1:', a1)
     # assert a1 == 213536
+
+if __name__ == "__main__":
+
+    debug()
+    # test_correct_simulation()
+    # part1()
