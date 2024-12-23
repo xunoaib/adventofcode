@@ -13,21 +13,55 @@ for line in lines:
     g[a].add(b)
     g[b].add(a)
 
-a1 = 0
-for p in combinations(g, r=3):
-    if not any(c.startswith('t') for c in p):
-        continue
+def part1():
 
-    a,b,c = p
-    sa = {a} | g[a]
-    sb = {b} | g[b]
-    sc = {c} | g[c]
+    ans = 0
+    for p in combinations(g, r=3):
+        if not any(c.startswith('t') for c in p):
+            continue
 
-    if set(p).issubset(sa & sb & sc):
-        a1 += 1
+        a,b,c = p
+        sa = {a} | g[a]
+        sb = {b} | g[b]
+        sc = {c} | g[c]
 
-print('part1:', a1)
-# print('part2:', a2)
+        if set(p).issubset(sa & sb & sc):
+            ans += 1
+    return ans
 
-# assert a1 == 0
-# assert a2 == 0
+results = set()
+
+def all_shared(nodes):
+    return all(set(nodes).issubset(g[n]) for n in nodes)
+
+def find_pools(c, seq=tuple()):
+    if not seq:
+        seq = (c,)
+
+    for n in g[c]:
+        if n <= c: # avoid exploring the same route twice
+            continue
+        newseq = seq + (n,)
+        if all_shared(newseq):
+            results.add(tuple(sorted(newseq)))
+            find_pools(n, newseq)
+
+def part2():
+    for c in g:
+        g[c].add(c)
+
+    for c in g:
+        find_pools(c)
+
+    ans = sorted(max(results, key=len))
+    return ','.join(ans)
+
+
+# a1 = part1()
+# print('part1:', a1)
+
+a2 = part2()
+print('part2:', a2)
+
+# assert a1 == 1062
+assert a2 == 'bz,cs,fx,ms,oz,po,sy,uh,uv,vw,xu,zj,zm'
