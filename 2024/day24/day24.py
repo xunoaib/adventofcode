@@ -68,11 +68,11 @@ class Gate:
         v1 = wires[self.in1]
         v2 = wires[self.in2]
 
-        if isinstance(self.in1, Gate):
-            v1 = self.in1.evaluate(wires)
+        if isinstance(v1, Gate):
+            v1 = v1.evaluate(wires)
 
-        if isinstance(self.in2, Gate):
-            v2 = self.in2.evaluate(wires)
+        if isinstance(v2, Gate):
+            v2 = v2.evaluate(wires)
 
         match self.op:
             case 'XOR':
