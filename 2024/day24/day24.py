@@ -129,8 +129,10 @@ def part2():
     def find_invalid():
         for i, z in enumerate(z_vs[::-1]):
             g = wires[z]
+            actual = g.evaluate(wires)
             expected = (z_value >> i) & 1
-            print(z, expected, g.evaluate(wires), g)
+            color = '\033[92m' if actual == expected else '\033[91m'
+            print(f'{color}{z} {expected} {actual} {g}\033[0m')
 
     print(f'{x_value:>7b}')
     print(f'{y_value:>7b}')
