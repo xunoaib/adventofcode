@@ -57,5 +57,31 @@ def part1():
         vals  = [bool(m[z]) for z in zs][::-1]
         return int(''.join(['1' if v else '0' for v in vals]), 2)
 
-a1 = part1()
-print('part1:', a1)
+@dataclass
+class Gate:
+    op: str
+    in1: str
+    in2: str
+    out: str
+
+def part2():
+    wires = {}
+    gates = []
+
+    for v in a:
+        name, val = v.split(': ')
+        wires[name] = bool(int(val))
+
+    for line in b:
+        vin1, op, vin2, _, vout = line.split()
+        wires[vout] = gate = Gate(op, vin1, vin2, vout)
+        gates.append(gate)
+
+    for g, v in sorted(wires.items()):
+        print(g, v)
+
+# a1 = part1()
+# print('part1:', a1)
+
+a2 = part2()
+print('part2:', a2)
