@@ -109,6 +109,16 @@ class Keypad:
             ret += self.child.chain()
         return ret
 
+    def clear_histories(self):
+        self.history = ''
+        if self.child:
+            self.child.clear_histories()
+
+    def print_histories(self):
+        print(self.history)
+        if self.child:
+            self.child.print_histories()
+
 def print_kp(keypad: Keypad):
     maxr = max(r for r,c in keypad.grid)
     maxc = max(c for r,c in keypad.grid)
@@ -267,28 +277,64 @@ def stepwise_render(seq):
         k.push_char(ch)
 
 def debug():
-    # k = Setup()
-    # k.execute_sequence('v<<A>>^AAAvA^Av<A<AA>>^AvA^AA<Av>A^Av<<A>A^>A<Av>A^Av<A^>A<A>A')
-    # for n in k.tree():
-    #     print(n.history)
-    # exit(0)
-
     # seqs = [
     #     # '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
     #     # 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
     #     '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A', # correct 379A
     #     'v<<A>>^AvA^Av<<A>>^AAv<<A>A^>AA<Av>AA^Av<A^>AA<A>Av<<A>A^>AAA<Av>A^A' # incorrect 379A
     # ]
-    # for seq in seqs:
-    #     print()
-    #     k = Setup()
-    #     try:
-    #         k.execute_sequence(seq)
-    #     except MyException as exc:
-    #         print(exc)
-    #     for n in k.tree():
-    #         print(n.history)
+
+    code = '379A'
+
+    # # compare histories at each level
+    # ans = SAMPLE_SEQ_ANSWERS[code]
+    # k = construct().execute_sequence(ans)
+    # k.print_histories()
+    # print()
+    # ans = run(code)
+    # k = construct().execute_sequence(ans)
+    # k.print_histories()
     # exit(0)
+
+    seqs = SAMPLE_SEQ_ANSWERS.values()
+    seqs = [SAMPLE_SEQ_ANSWERS[code]]
+
+    def print_seq(seq):
+        # print out sequence for each output character
+        correct = {}
+        buf = ''
+        k = construct()
+        for ch in seq:
+            buf += ch
+            if res := k.push_char(ch):
+                correct[res] = buf
+                print(res, buf)
+                buf = ''
+                # if res == '7':
+                #     break
+
+    print_seq(seqs[0])
+    print()
+    print_seq(run(code[:4]))
+
+    exit(0)
+
+    for seq in seqs:
+        print()
+        k = construct()
+        try:
+            k.execute_sequence(seq)
+        except MyException as exc:
+            print(exc)
+        k.print_histories()
+
+    print()
+    k = construct()
+    k.execute_sequence(run(code))
+
+    k.print_histories()
+
+    exit(0)
 
     # seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
     # stepwise_render(seq)
@@ -301,7 +347,12 @@ def debug2():
     for code, sample_seq in SAMPLE_SEQ_ANSWERS.items():
         seq = run(code)
         assert code == construct().execute_sequence(seq).output
-        print(code, len(seq), seq)
+        print(code, len(seq), len(sample_seq), seq)
+        if len(seq) != len(sample_seq):
+            print()
+            print(sample_seq)
+            print(seq)
+            print()
         a1 += len(seq) * int(code[:3])
     print('part1:', a1)
 
