@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+from functools import cache
 from itertools import pairwise, permutations, product
 
 
@@ -149,12 +150,24 @@ class DirectionalKeypad(Keypad):
     def __init__(self, child=None, name=None):
         super().__init__(directional_grid, directional_start, child, name)
 
-def find_ch(grid, ch):
-    return next(p for p, c in grid.items() if c == ch)
+@cache
+def find_nch(ch):
+    return next(p for p, c in ngrid.items() if c == ch)
 
-def dist_to(grid, src_ch, tar_ch):
-    src = find_ch(grid, src_ch)
-    tar = find_ch(grid, tar_ch)
+@cache
+def find_dch(ch):
+    return next(p for p, c in dgrid.items() if c == ch)
+
+@cache
+def dist_nto(src_ch, tar_ch):
+    src = find_nch(src_ch)
+    tar = find_nch(tar_ch)
+    return sub(src, tar)
+
+@cache
+def dist_dto(src_ch, tar_ch):
+    src = find_dch(src_ch)
+    tar = find_dch(tar_ch)
     return sub(src, tar)
 
 def construct():
@@ -173,13 +186,24 @@ def test_correct_simulation():
         actual = k.tree()[-1].history
         assert actual == expected
 
+@cache
+def find_nseq_to(src, tar):
+    return find_seq_to(ngrid, src, tar)
+
+@cache
+def find_dseq_to(src, tar):
+    return find_seq_to(dgrid, src, tar)
+
 def find_seq_to(grid, src, tar):
     '''
     Returns one of the shortest sequences of moves from src to tar which
     activates tar.
     '''
 
-    roff, coff = dist_to(grid, src, tar)
+    if grid == ngrid:
+        roff, coff = dist_nto(src, tar)
+    else:
+        roff, coff = dist_dto(src, tar)
 
     if roff == coff == 0:
         vert_ch = horiz_ch = 'A'
@@ -195,7 +219,11 @@ def find_seq_to(grid, src, tar):
     blank = (0,0) if grid == dgrid else (3,0)
 
     # check if blank space would be walked over
-    p = find_ch(grid, src)
+    if grid == dgrid:
+        p = find_dch(src)
+    else:
+        p = find_nch(src)
+
     for ch in seq:
         roff, coff = DIR_OFFSETS[ch]
         p = (p[0] + roff, p[1] + coff)
@@ -213,13 +241,16 @@ def find_seq_through(grid, code):
 
     totseq = ''
     for src, tar in pairwise('A'+code):
-        seq = find_seq_to(grid, src, tar) + 'A'
+        func = find_nseq_to if grid == ngrid else find_dseq_to
+        seq = func(src, tar) + 'A'
         totseq += seq
     return totseq
 
+@cache
 def find_seq_through_nums(code):
     return find_seq_through(ngrid, code)
 
+@cache
 def find_seq_through_dirs(code):
     return find_seq_through(dgrid, code)
 
@@ -230,10 +261,13 @@ def run_part1(code):
     return keys3
 
 def run_part2(code):
-    keys1 = find_seq_through_nums(code)
-    keys2 = find_seq_through_dirs(keys1)
-    keys3 = find_seq_through_dirs(keys2)
-    return keys3
+    keys = find_seq_through_nums(code)
+
+    for i in range(25):
+        keys = find_seq_through_dirs(keys)
+        print(i, len(keys))
+
+    return keys
 
 def permute_subsequence(seq, find_func):
     '''
@@ -381,8 +415,22 @@ def part1():
     print('part1:', a1)
     # assert a1 == 213536
 
+def part2():
+    codes = sys.stdin.read().strip().split('\n')
+    ans = 0
+    for code in codes:
+        # seq = run_brute(code)
+        print(code)
+        seq = run_part2(code)
+        print(code, len(seq), seq)
+        ans += len(seq) * int(code[:3])
+
+    print('part2:', ans)
+    # assert a1 == 213536
+
 if __name__ == "__main__":
 
+    # part1()
     # debug()
     # test_correct_simulation()
-    part1()
+    part2()
