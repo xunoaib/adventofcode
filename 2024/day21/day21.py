@@ -176,8 +176,7 @@ def test_correct_simulation():
 def find_seq_to(grid, src, tar):
     '''
     Returns one of the shortest sequences of moves from src to tar which
-    activates tar. However, this sequence is not guaranteed to be optimal when
-    expanded at a higher level
+    activates tar.
     '''
 
     roff, coff = dist_to(grid, src, tar)
@@ -190,7 +189,7 @@ def find_seq_to(grid, src, tar):
 
     seq = abs(roff) * vert_ch + abs(coff) * horiz_ch
 
-    # order moves by their distance from A
+    # order moves by their distance from A (important optimization step)
     seq = ''.join(sorted(seq, key=lambda c: '<v^>'.find(c)))
 
     blank = (0,0) if grid == dgrid else (3,0)
@@ -224,12 +223,13 @@ def find_seq_through_nums(code):
 def find_seq_through_dirs(code):
     return find_seq_through(dgrid, code)
 
-def run(code):
-    '''
-    FAST, original, but non-working code which WOULD work if we can ensure each
-    generated subsequence is optimal when implemented at higher layers
-    '''
+def run_part1(code):
+    keys1 = find_seq_through_nums(code)
+    keys2 = find_seq_through_dirs(keys1)
+    keys3 = find_seq_through_dirs(keys2)
+    return keys3
 
+def run_part2(code):
     keys1 = find_seq_through_nums(code)
     keys2 = find_seq_through_dirs(keys1)
     keys3 = find_seq_through_dirs(keys2)
@@ -326,7 +326,7 @@ def debug():
 
     print_seq(seqs[0])
     print()
-    print_seq(run(code[:4]))
+    print_seq(run_part1(code[:4]))
 
     exit(0)
 
@@ -341,7 +341,7 @@ def debug():
 
     print()
     k = construct()
-    k.execute_sequence(run(code))
+    k.execute_sequence(run_part1(code))
 
     k.print_histories()
 
@@ -356,7 +356,7 @@ def debug2():
 
     a1 = 0
     for code, sample_seq in SAMPLE_SEQ_ANSWERS.items():
-        seq = run(code)
+        seq = run_part1(code)
         assert code == construct().execute_sequence(seq).output
         print(code, len(seq), len(sample_seq), seq)
         if len(seq) != len(sample_seq):
@@ -374,7 +374,7 @@ def part1():
     a1 = 0
     for code in codes:
         # seq = run_brute(code)
-        seq = run(code)
+        seq = run_part1(code)
         print(code, len(seq), seq)
         a1 += len(seq) * int(code[:3])
 
