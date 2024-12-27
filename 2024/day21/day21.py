@@ -188,10 +188,21 @@ def find_seq_to(grid, src, tar):
         vert_ch = '^' if roff < 0 else 'v'
         horiz_ch = '<' if coff < 0 else '>'
 
-    # swap order to avoid potentially going out of bounds
     seq = abs(roff) * vert_ch + abs(coff) * horiz_ch
-    if find_ch(grid, src)[1] == 0:
-        seq = seq[::-1]
+
+    # order moves by their distance from A
+    seq = ''.join(sorted(seq, key=lambda c: '<v^>'.find(c)))
+
+    blank = (0,0) if grid == dgrid else (3,0)
+
+    # check if blank space would be walked over
+    p = find_ch(grid, src)
+    for ch in seq:
+        roff, coff = DIR_OFFSETS[ch]
+        p = (p[0] + roff, p[1] + coff)
+        if p == blank:
+            seq = seq[::-1]
+            break
 
     return seq
 
@@ -362,6 +373,7 @@ def part1():
     codes = sys.stdin.read().strip().split('\n')
     a1 = 0
     for code in codes:
+        # seq = run_brute(code)
         seq = run(code)
         print(code, len(seq), seq)
         a1 += len(seq) * int(code[:3])
@@ -371,6 +383,6 @@ def part1():
 
 if __name__ == "__main__":
 
-    debug()
+    # debug()
     # test_correct_simulation()
-    # part1()
+    part1()
