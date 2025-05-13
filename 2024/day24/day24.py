@@ -168,8 +168,22 @@ def part2():
         return sorted(bad, key=len)
 
     gs = find_invalid()
-    for i,g in enumerate(gs):
-        print(i,g)
+    # for i,g in enumerate(gs):
+    #     print(i,g)
+
+    gates = list(set(g for gates in gs for g in gates))
+    for selected in combinations(gates, r=8):
+        possible_pairs = list(combinations(selected, 2))
+        for swap_pairs in combinations(possible_pairs, 4):
+            print(swap_pairs)
+            x,y = swap_pairs
+            wires[x], wires[y] = wires[y], wires[x]
+            if res := find_invalid():
+                print(res)
+            else:
+                print('wooooo')
+                exit(0)
+            wires[x], wires[y] = wires[y], wires[x]
 
     print(gs)
     # for x,y in combinations(gs, r=2):
