@@ -215,12 +215,12 @@ def next_states(state):
     moves = sorted(game.get_moves(), key=lambda v: v[-1])
     for src, tar, g in moves:
         ng = game.move_new(src, tar)
-        h = game.cost_to_solve()
-        states.append((h, g, ng.signature()))
+        states.append((g, ng.signature()))
     return states
 
 
 def bfs(state):
+
     game = Game(state)
     q = [(game.cost_to_solve(), 0, state)]
     visited = {state: 0}
@@ -235,8 +235,10 @@ def bfs(state):
                 best = (g, state)
             return state, g
 
-        for h, g_rel, nstate in next_states(state):
+        new_states = list(next_states(state))
+        for g_rel, nstate in new_states:
             g_new = g + g_rel
+            h = Game(nstate).cost_to_solve()
             f = g_new + h
             entry = (f, g_new, nstate)
             if nstate not in visited:
@@ -369,8 +371,10 @@ def main():
     data = sys.stdin.read()
     sig = re.findall(r'[A-Z\.]', data)
 
-    # solved_sig = '.......ABCDABCDABCDABCD'
+    solved_sig = '.......ABCDABCDABCDABCD'
+
     # g = Game(solved_sig)
+    # print(g.visualize())
     # print(list(g.get_moves()))
     # print(g.cost_to_solve())
     # return
