@@ -125,6 +125,10 @@ class Game:
             if self.board[tar] != '.':
                 continue
 
+            # prevent moving from hallway to hallway
+            if 0 <= src <= 6 and 0 <= tar <= 6:
+                continue
+
             # enforce rules when moving in room
             if tar >= 7:
                 correct_room = (tar - 7) % 4 == 'ABCD'.index(pod)
@@ -308,6 +312,10 @@ def accessible(state, pos):
 
         for neighbor, addcost in links[pos].items():
             if neighbor in visited:
+                continue
+
+            # prevent moving within hallway
+            if 0 <= pos <= 6 and 0 <= neighbor <= 6:
                 continue
 
             # enforce blocking rules
