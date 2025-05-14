@@ -227,7 +227,7 @@ def bfs(state):
     last = time()
     best = (sys.maxsize, state)
     while q:
-        h, g, state = heappop(q)
+        _, g, state = heappop(q)
         if state.endswith('ABCD' * 4):
             print(state, g, 'solved', file=sys.stderr)
             if g > best[0]:
@@ -235,15 +235,17 @@ def bfs(state):
                 best = (g, state)
             return state, g
 
-        for h, g, nstate in next_states(state):
-            entry = (h + g, g, nstate)
+        for h, g_rel, nstate in next_states(state):
+            g_new = g + g_rel
+            f = g_new + h
+            entry = (f, g_new, nstate)
             if nstate not in visited:
                 heappush(q, entry)
-                visited[nstate] = g
-            # elif ncost < visited.get(nstate, sys.maxsize):
-            #     # print('adding extra')
-            #     heappush(frontier, entry)
-            #     visited[nstate] = ncost
+                visited[nstate] = g_new
+            elif g_new < visited.get(nstate, sys.maxsize):
+                # print('adding extra')
+                heappush(q, entry)
+                visited[nstate] = g_new
 
         if time() - last > 1:
             print('frontier', len(q), 'visited', len(visited), 'estcost', h, g,
