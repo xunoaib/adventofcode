@@ -125,9 +125,9 @@ class Game:
             if self.board[tar] != '.':
                 continue
 
-            # prevent moving from hallway to hallway
-            if 0 <= src <= 6 and 0 <= tar <= 6:
-                continue
+            # # prevent moving from hallway to hallway
+            # if 0 <= src <= 6 and 0 <= tar <= 6:
+            #     continue
 
             # enforce rules when moving in room
             if tar >= 7:
