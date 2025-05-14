@@ -234,7 +234,7 @@ def bfs(state):
             if cost > best[0]:
                 print(state, cost, 'new best', file=sys.stderr)
                 best = (cost, state)
-            # return state, cost
+            return state, cost
 
         for nestcost, ncost, nstate in next_states(state):
             entry = (nestcost + cost, cost + ncost, nstate)
@@ -250,7 +250,9 @@ def bfs(state):
             print('frontier', len(frontier), 'visited', len(visited),
                   'estcost', estcost, cost, state)
             last = time()
-    print(frontier, best)
+
+    print('no solution')
+    # print(frontier, best)
 
 
 # def state_tup_fromstring(s):
