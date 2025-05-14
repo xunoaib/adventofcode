@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
+
+# NOTE: This code is oriented towards Part 2, and solves it very slowly
+
 import random
 import re
 import sys
 from collections import defaultdict
 from heapq import heappop, heappush
 from time import time
-
-# incorrect:
-# 41089
-# 43515
-# 65661
 
 # state = ('.......', 'AAAA', 'BBBB', 'CCCC', 'DDDD')
 
@@ -347,72 +345,70 @@ def correct_room(pod, pos):
     return 'ABCD'.index(pod) == get_room(pos)
 
 
-def has_strangers(state, pos):
-    roomstart = get_room(pos) + 7
-    return bool(set(state[roomstart:roomstart + 4]) - {'.', 'ABCD'[room]})
+# def has_strangers(state, pos):
+#     roomstart = get_room(pos) + 7
+#     return bool(set(state[roomstart:roomstart + 4]) - {'.', 'ABCD'[room]})
 
 
 def is_room(pos):
     return pos > 6
 
 
-def next_states_pos(state, pos):
-    pod = state[pos]
+# def next_states_pos(state, pos):
+#     pod = state[pos]
+#
+#     if pos < 7:  # in hallway
+#         pass
+#     elif correct_room(pod, pos):  # in correct room
+#         if not has_strangers(state,
+#                              pos):  # in correct romom, no further moves needed
+#             return []
+#     else:  # in incorrect room
+#         pass
 
-    if pos < 7:  # in hallway
-        pass
-    elif correct_room(pod, pos):  # in correct room
-        if not has_strangers(state,
-                             pos):  # in correct romom, no further moves needed
-            return []
-    else:  # in incorrect room
-        pass
-
-
-def accessible(state, pos):
-    """Find all positions accessible from the current one"""
-    pod = state[pos]
-    assert pod != '.'
-
-    targets = []
-    visited = set()
-    frontier = [(0, pos)]
-    while frontier:
-        cost, pos = heappop(frontier)
-        visited.add(pos)
-
-        for neighbor, addcost in links[pos].items():
-            if neighbor in visited:
-                continue
-
-            # prevent moving within hallway
-            if 0 <= pos <= 6 and 0 <= neighbor <= 6:
-                continue
-
-            # enforce blocking rules
-            if state[neighbor] != '.':
-                continue
-
-            entry = (cost + addcost * move_costs[pod], neighbor)
-
-            # moving into room
-            if is_room(neighbor):
-                # skip adding suboptimal moves (like moving 'B' @ 10 to 7-9)
-                # only allow moving into hallway
-                # todo: move all the way into target room
-                if correct_room(pod, pos):
-                    targets.append(entry)
-                # else: incorrect target room. skip adding a target, but add to
-                # frontier in case a hallway target is open
-
-            # moving into hallway
-            else:
-                targets.append(entry)
-
-            heappush(frontier, entry)
-            visited.add(neighbor)
-    return targets
-
+# def accessible(state, pos):
+#     """Find all positions accessible from the current one"""
+#     pod = state[pos]
+#     assert pod != '.'
+#
+#     targets = []
+#     visited = set()
+#     frontier = [(0, pos)]
+#     while frontier:
+#         cost, pos = heappop(frontier)
+#         visited.add(pos)
+#
+#         for neighbor, addcost in links[pos].items():
+#             if neighbor in visited:
+#                 continue
+#
+#             # prevent moving within hallway
+#             if 0 <= pos <= 6 and 0 <= neighbor <= 6:
+#                 continue
+#
+#             # enforce blocking rules
+#             if state[neighbor] != '.':
+#                 continue
+#
+#             entry = (cost + addcost * move_costs[pod], neighbor)
+#
+#             # moving into room
+#             if is_room(neighbor):
+#                 # skip adding suboptimal moves (like moving 'B' @ 10 to 7-9)
+#                 # only allow moving into hallway
+#                 # todo: move all the way into target room
+#                 if correct_room(pod, pos):
+#                     targets.append(entry)
+#                 # else: incorrect target room. skip adding a target, but add to
+#                 # frontier in case a hallway target is open
+#
+#             # moving into hallway
+#             else:
+#                 targets.append(entry)
+#
+#             heappush(frontier, entry)
+#             visited.add(neighbor)
+#     return targets
 
 # def room_to_hallway(state):
 #     """Find moves from each room to the hallway"""
@@ -428,7 +424,7 @@ def main():
     data = sys.stdin.read()
     sig = re.findall(r'[A-Z\.]', data)
 
-    solved_sig = '.......ABCDABCDABCDABCD'
+    # solved_sig = '.......ABCDABCDABCDABCD'
 
     # g = Game(solved_sig)
     # print(g.visualize())
@@ -453,7 +449,7 @@ def main():
     return
 
     # assert ans1 == 15237
-    # assert ans2 == 0
+    # assert ans2 == 47509
 
 
 if __name__ == '__main__':
