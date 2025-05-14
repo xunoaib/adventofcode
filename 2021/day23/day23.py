@@ -254,10 +254,10 @@ class Game:
 def next_states(state):
     game = Game(state)
     states = []
-    moves = sorted(game.get_adjacent_moves(), key=lambda v: v[-1])
-    for src, tar, g in moves:
+    moves = sorted(game.get_all_moves(), key=lambda v: v[-1])
+    for src, tar, cost in moves:
         ng = game.move_new(src, tar)
-        states.append((g, ng.signature()))
+        states.append((cost, ng.signature()))
     return states
 
 
@@ -280,7 +280,7 @@ def bfs(state):
             game = Game(state)
             print(game.visualize())
             print()
-            for m in game.get_adjacent_moves():
+            for m in game.get_all_moves():
                 src, tar, cost = m
                 s = game.signature()
                 print(s[src], s[tar], str(cost).rjust(4), (src, tar))
@@ -448,8 +448,6 @@ def main():
         src, tar, cost = m
         s = g.signature()
         print(s[src], s[tar], str(cost).rjust(4), (src, tar))
-
-    exit()
 
     bfs(g.signature())
     return
