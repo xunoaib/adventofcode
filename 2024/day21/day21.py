@@ -1,69 +1,42 @@
 #!/usr/bin/env python3
 import sys
 from functools import cache
-from itertools import pairwise, permutations, product
+from itertools import pairwise
 
 
-class MyException(Exception):
-    ...
+def find_path(v1: str, v2: str):
+    numpad = is_numpad(v1) or is_numpad(v2)
+    grid_pos = ngrid_pos if numpad else dgrid_pos
+    corner_pos = (3, 0) if numpad else (0, 0)
+    r1, c1 = grid_pos[v1]
+    r2, c2 = grid_pos[v2]
 
+    hchar = '>' if c2 > c1 else '<'
+    vchar = 'v' if r2 > r1 else '^'
 
-DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
+    path = hchar * abs(c2 - c1) + vchar * abs(r2 - r1)
 
-DIR_OFFSETS = {
-    '>': R,
-    '<': L,
-    '^': U,
-    'v': D,
-}
+    if corner_pos in [(r2, c1), (r1, c2)]:
+        path = path[::-1]
 
-SAMPLE_SEQ_ANSWERS = {
-    '029A':
-    '<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A',
-    '980A': '<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A',
-    '179A':
-    '<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',
-    '456A': '<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A',
-    '379A': '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'
-}
+    # print(f'{v1} to {v2} via {path}')
 
-
-def find_seq_through(grid, code):
-    '''
-    Finds a sequence of moves passing through and activating each character in
-    'code', starting at position 'A'
-    '''
-
-    totseq = ''
-    for src, tar in pairwise('A' + code):
-        func = find_nseq_to if grid == ngrid else find_dseq_to
-        seq = func(src, tar) + 'A'
-        totseq += seq
-    return totseq
-
-
-# find a path through the given tiles (by value)
-def find_path(spots):
-    pass
+    return path
 
 
 @cache
-def cost_to(seq, depth):
-    if depth == 0:
+def path_length(seq: str, depth: int):
+    if depth < 0:
         return len(seq) + 1
 
-    path = make_path()
+    t = 0
+    for v1, v2 in pairwise(f'A{seq}A'):
+        t += path_length(find_path(v1, v2), depth - 1)
+    return t
 
 
-# ------------------------
-
-
-def add(a, b):
-    return a[0] + b[0], a[1] + b[1]
-
-
-def sub(a, b):
-    return b[0] - a[0], b[1] - a[1]
+def is_numpad(char: str):
+    return char in '0123456789'
 
 
 numeric_chars = '789\n456\n123\n.0A'
@@ -81,428 +54,21 @@ dgrid = directional_grid = {
     for c, ch in enumerate(line) if ch != '.'
 }
 
-numeric_start = next(p for p, ch in numeric_grid.items() if ch == 'A')
-directional_start = next(p for p, ch in directional_grid.items() if ch == 'A')
+ngrid_pos = {ch: pos for pos, ch in ngrid.items()}
+dgrid_pos = {ch: pos for pos, ch in dgrid.items()}
 
 
-def neighbors4(r, c):
-    for roff, coff in DIRS:
-        if not (roff and coff):
-            yield r + roff, c + coff
-
-
-class Keypad:
-
-    def __init__(self, grid, pos, child: 'Keypad | None', name=None):
-        self.grid = grid
-        self.pos = pos
-        self.child = child
-        self.name = name
-        self.history = ''
-
-    def execute_sequence(self, seq):
-        for ch in seq:
-            self.push_char(ch)
-        return self
-
-    def tree(self):
-        tree = [self]
-        cur = self
-        while cur := cur.child:
-            tree.append(cur)
-        return tree
-
-    @property
-    def output(self):
-        return self.child.output if self.child else self.history
-
-    def __repr__(self):
-        return f'{type(self).__name__}({self.name})'
-
-    def push_char(self, ch):
-        self.pos = pos = next(p for p, c in self.grid.items() if c == ch)
-        return self.push_at(pos)
-
-    def push(self):
-        return self.push_at(self.pos)
-
-    def push_at(self, pos):
-        return self.push_button(self.grid[pos])
-
-    def push_button(self, button):
-        self.history += button
-        if not self.child:
-            return button
-
-        if button in '<>^v':
-            self.child.pos = add(self.child.pos, DIR_OFFSETS[button])
-            if self.child.pos not in self.child.grid:
-                raise MyException(
-                    f'Out of bounds! {button} {self.child.pos} {self}')
-        elif button == 'A':
-            return self.child.push()
-        return ''
-
-    def chain(self):
-        ret = [(self.pos, self.grid[self.pos])]
-        if self.child:
-            ret += self.child.chain()
-        return ret
-
-    def clear_histories(self):
-        self.history = ''
-        if self.child:
-            self.child.clear_histories()
-
-    def print_histories(self):
-        print(self.history)
-        if self.child:
-            self.child.print_histories()
-
-
-def print_kp(keypad: Keypad):
-    maxr = max(r for r, c in keypad.grid)
-    maxc = max(c for r, c in keypad.grid)
-    rows = ['+---+---+---+']
-    for r in range(maxr + 1):
-        cols = []
-        for c in range(maxc + 1):
-            ch = (' ' + keypad.grid.get((r, c), ' ') + ' ')
-            if (r, c) == keypad.pos:
-                ch = f'\033[91;1m[{ch.strip()}]\033[0m'
-            cols.append(ch)
-        rows.append('|' + '|'.join(cols) + '|')
-        rows.append('+---+---+---+')
-
-    print('\n'.join(rows))
-
-
-def print_kp_recursive(k: Keypad):
-    if k.child:
-        print_kp_recursive(k.child)
-    print_kp(k)
-    print()
-
-
-class NumericKeypad(Keypad):
-
-    def __init__(self, child=None, name=None):
-        super().__init__(numeric_grid, numeric_start, child, name)
-
-
-class DirectionalKeypad(Keypad):
-
-    def __init__(self, child=None, name=None):
-        super().__init__(directional_grid, directional_start, child, name)
-
-
-@cache
-def find_nch(ch):
-    return next(p for p, c in ngrid.items() if c == ch)
-
-
-@cache
-def find_dch(ch):
-    return next(p for p, c in dgrid.items() if c == ch)
-
-
-@cache
-def dist_nto(src_ch, tar_ch):
-    src = find_nch(src_ch)
-    tar = find_nch(tar_ch)
-    return sub(src, tar)
-
-
-@cache
-def dist_dto(src_ch, tar_ch):
-    src = find_dch(src_ch)
-    tar = find_dch(tar_ch)
-    return sub(src, tar)
-
-
-def construct():
-    '''Constructs a series of keypads for Part 1'''
-    kp_num = NumericKeypad(name=3)
-    kp_dir1 = DirectionalKeypad(kp_num, 2)
-    kp_dir2 = DirectionalKeypad(kp_dir1, 1)
-    kp_dir3 = DirectionalKeypad(kp_dir2, 0)
-    return kp_dir3
-
-
-def test_correct_simulation():
-    '''Confirm that the sample button presses produce the expected sample output'''
-    for expected, seq in SAMPLE_SEQ_ANSWERS.items():
-        k = construct()
-        k.execute_sequence(seq)
-        actual = k.tree()[-1].history
-        assert actual == expected
-
-
-@cache
-def find_nseq_to(src, tar):
-    return find_seq_to(ngrid, src, tar)
-
-
-# def count_moves(seq, depth=0):
-#     if
-
-
-@cache
-def find_dseq_to(src, tar):
-    return find_seq_to(dgrid, src, tar)
-
-
-def find_seq_to(grid, src, tar):
-    '''
-    Returns one of the shortest sequences of moves from src to tar which
-    activates tar.
-    '''
-
-    if grid == ngrid:
-        roff, coff = dist_nto(src, tar)
-    else:
-        roff, coff = dist_dto(src, tar)
-
-    if roff == coff == 0:
-        vert_ch = horiz_ch = 'A'
-    else:
-        vert_ch = '^' if roff < 0 else 'v'
-        horiz_ch = '<' if coff < 0 else '>'
-
-    seq = abs(roff) * vert_ch + abs(coff) * horiz_ch
-
-    # order moves by their distance from A (important optimization step)
-    seq = ''.join(sorted(seq, key=lambda c: '<v^>'.find(c)))
-
-    blank = (0, 0) if grid == dgrid else (3, 0)
-
-    # check if blank space would be walked over
-    if grid == dgrid:
-        p = find_dch(src)
-    else:
-        p = find_nch(src)
-
-    for ch in seq:
-        roff, coff = DIR_OFFSETS[ch]
-        p = (p[0] + roff, p[1] + coff)
-        if p == blank:
-            seq = seq[::-1]
-            break
-
-    return seq
-
-
-def find_seq_through(grid, code):
-    '''
-    Finds a sequence of moves passing through and activating each character in
-    'code', starting at position 'A'
-    '''
-
-    totseq = ''
-    for src, tar in pairwise('A' + code):
-        func = find_nseq_to if grid == ngrid else find_dseq_to
-        seq = func(src, tar) + 'A'
-        totseq += seq
-    return totseq
-
-
-@cache
-def find_seq_through_nums(code):
-    return find_seq_through(ngrid, code)
-
-
-@cache
-def find_seq_through_dirs(code):
-    return find_seq_through(dgrid, code)
-
-
-def run_part1(code):
-    keys1 = find_seq_through_nums(code)
-    keys2 = find_seq_through_dirs(keys1)
-    keys3 = find_seq_through_dirs(keys2)
-    return keys3
-
-
-def run_part2(code):
-    keys = find_seq_through_nums(code)
-
-    for i in range(25):
-        keys = find_seq_through_dirs(keys)
-        print(i, len(keys))
-
-    return keys
-
-
-def permute_subsequence(seq, find_func):
-    '''
-    Permutes every sequence of directional moves (delimited by "A" presses)
-    '''
-
-    options = []
-    for g in seq.split('A'):
-        options.append([''.join(u) + 'A' for u in set(permutations(g))])
-
-    seen = set()
-    for p in product(*options):
-        if p not in seen:
-            seen.add(p)
-            yield find_func(''.join(p))[:-1]
-
-
-def run_brute(code):
-    '''
-    Generates every possible sequence of top-level moves to spell out the given code (inefficient)
-    '''
-
-    best = (sys.maxsize, None)
-    for keys1 in permute_subsequence(code, find_seq_through_nums):
-        for keys2 in permute_subsequence(keys1, find_seq_through_dirs):
-            for keys3 in permute_subsequence(keys2, find_seq_through_dirs):
-                if len(keys3) >= best[0]:
-                    continue
-
-                # experimentally verify the validity of each sequence,
-                # since our moves might be invalid
-                k = construct()
-                try:
-                    k.execute_sequence(keys3)
-                    assert k.child.child.child.history == code
-                    best = min(best, (len(keys3), keys3))
-                except (MyException, AssertionError):
-                    continue
-    return best[1]
-
-
-def stepwise_render(seq):
-    ''' Visualize keypresses and the state of each keypad over time '''
-
-    k = construct()
-    outputs = [k.push_char(ch) or ' ' for i, ch in enumerate(seq)]
-    k = construct()
-    for i, ch in enumerate(seq):
-        print(f'{i:>2}', seq[:i] + f'\033[91m[{ch}]\033[0m' + seq[i + 1:])
-        print(
-            '  ',
-            ''.join(f'[{o}]' if i == j else o for j, o in enumerate(outputs)))
-        print()
-        print_kp_recursive(k)
-        k.push_char(ch)
-
-
-def debug():
-    # seqs = [
-    #     # '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A',    # correct
-    #     # 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A' # incorrect
-    #     '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A', # correct 379A
-    #     'v<<A>>^AvA^Av<<A>>^AAv<<A>A^>AA<Av>AA^Av<A^>AA<A>Av<<A>A^>AAA<Av>A^A' # incorrect 379A
-    # ]
-
-    code = '379A'
-
-    # # compare histories at each level
-    # ans = SAMPLE_SEQ_ANSWERS[code]
-    # k = construct().execute_sequence(ans)
-    # k.print_histories()
-    # print()
-    # ans = run(code)
-    # k = construct().execute_sequence(ans)
-    # k.print_histories()
-    # exit(0)
-
-    seqs = SAMPLE_SEQ_ANSWERS.values()
-    seqs = [SAMPLE_SEQ_ANSWERS[code]]
-
-    def print_seq(seq):
-        # print out sequence for each output character
-        correct = {}
-        buf = ''
-        k = construct()
-        for ch in seq:
-            buf += ch
-            if res := k.push_char(ch):
-                correct[res] = buf
-                print(res, buf)
-                buf = ''
-                # if res == '7':
-                #     break
-
-    print_seq(seqs[0])
-    print()
-    print_seq(run_part1(code[:4]))
-
-    exit(0)
-
-    for seq in seqs:
-        print()
-        k = construct()
-        try:
-            k.execute_sequence(seq)
-        except MyException as exc:
-            print(exc)
-        k.print_histories()
-
-    print()
-    k = construct()
-    k.execute_sequence(run_part1(code))
-
-    k.print_histories()
-
-    exit(0)
-
-    # seq = 'v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A'
-    # stepwise_render(seq)
-    # exit(0)
-    debug2()
-
-
-def debug2():
-
-    a1 = 0
-    for code, sample_seq in SAMPLE_SEQ_ANSWERS.items():
-        seq = run_part1(code)
-        assert code == construct().execute_sequence(seq).output
-        print(code, len(seq), len(sample_seq), seq)
-        if len(seq) != len(sample_seq):
-            print()
-            print(sample_seq)
-            print(seq)
-            print()
-        a1 += len(seq) * int(code[:3])
-    print('part1:', a1)
-
-    pass
-
-
-def part1():
+def part1_new():
     codes = sys.stdin.read().strip().split('\n')
     a1 = 0
     for code in codes:
-        # seq = run_brute(code)
-        seq = run_part1(code)
-        print(code, len(seq), seq)
-        a1 += len(seq) * int(code[:3])
-
-    print('part1:', a1)
-    # assert a1 == 213536
-
-
-def part2():
-    codes = sys.stdin.read().strip().split('\n')
-    ans = 0
-    for code in codes:
-        # seq = run_brute(code)
-        print(code)
-        seq = run_part2(code)
-        print(code, len(seq), seq)
-        ans += len(seq) * int(code[:3])
-
-    print('part2:', ans)
-    # assert a1 == 213536
+        a = path_length(code[:3], 2)
+        b = int(code[:3])
+        print(a, b)
+        print()
+        a1 += a * b
+    print(a1)
 
 
 if __name__ == "__main__":
-
-    part1()
-    # debug()
-    # test_correct_simulation()
-    # part2()
+    part1_new()
