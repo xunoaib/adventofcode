@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import random
 import re
 import sys
 from collections import defaultdict
@@ -110,13 +111,37 @@ class Game:
         cls.links[(a, b)] = cost
         cls.links[(b, a)] = cost
 
-    def get_moves(self):
+    def get_all_moves(self):
         for src, tile in self.board.items():
             if tile != '.':
-                for tar, cost in self.get_pos_moves(src):
+                for tar, cost in self.get_all_moves_from_pos(src):
                     yield src, tar, cost
 
-    def get_pos_moves(self, src):
+    def get_all_moves_from_pos(self, src):
+        '''Get all available moves (not just adjacent ones) from the current position'''
+        q = [(0, src, Game(self.signature()))]
+        visited = {src}
+        moves = []
+
+        while q:
+            tot_cost, src, game = heappop(q)
+            for tar, new_cost in game.get_adjacent_moves_from_pos(src):
+                if tar not in visited:
+                    new_tot_cost = tot_cost + new_cost
+                    newgame = game.move_new(src, tar)
+                    heappush(q, (new_tot_cost, tar, newgame))
+                    moves.append((tar, new_tot_cost))
+                    visited.add(tar)
+
+        return moves
+
+    def get_adjacent_moves(self):
+        for src, tile in self.board.items():
+            if tile != '.':
+                for tar, cost in self.get_adjacent_moves_from_pos(src):
+                    yield src, tar, cost
+
+    def get_adjacent_moves_from_pos(self, src) -> list[tuple[int, int]]:
         """Get available adjacent moves and their costs from the current pod's position"""
         pod = self.board[src]
         moves = []
@@ -212,7 +237,7 @@ class Game:
 def next_states(state):
     game = Game(state)
     states = []
-    moves = sorted(game.get_moves(), key=lambda v: v[-1])
+    moves = sorted(game.get_adjacent_moves(), key=lambda v: v[-1])
     for src, tar, g in moves:
         ng = game.move_new(src, tar)
         states.append((g, ng.signature()))
@@ -220,19 +245,33 @@ def next_states(state):
 
 
 def bfs(state):
+    stop_idx = random.randint(1, 13_000)
+    stop_idx = 3475
+    print(f'Stopping at iteration {stop_idx}')
 
     game = Game(state)
     q = [(game.cost_to_solve(), 0, state)]
     visited = {state: 0}
     last = time()
     best = (sys.maxsize, state)
+    i = 0
     while q:
-        _, g, state = heappop(q)
+        f_current, neg_g, state = heappop(q)
+        g = -neg_g
+
+        if i == stop_idx:
+            game = Game(state)
+            print(game.visualize())
+            print()
+            for m in game.get_adjacent_moves():
+                src, tar, cost = m
+                s = game.signature()
+                print(s[src], s[tar], str(cost).rjust(4), (src, tar))
+            print()
+        i += 1
+
         if state.endswith('ABCD' * 4):
             print(state, g, 'solved', file=sys.stderr)
-            if g > best[0]:
-                print(state, g, 'new best', file=sys.stderr)
-                best = (g, state)
             return state, g
 
         new_states = list(next_states(state))
@@ -240,7 +279,7 @@ def bfs(state):
             g_new = g + g_rel
             h = Game(nstate).cost_to_solve()
             f = g_new + h
-            entry = (f, g_new, nstate)
+            entry = (f, -g_new, nstate)
             if nstate not in visited:
                 heappush(q, entry)
                 visited[nstate] = g_new
@@ -250,8 +289,9 @@ def bfs(state):
                 visited[nstate] = g_new
 
         if time() - last > 1:
-            print('frontier', len(q), 'visited', len(visited), 'estcost', h, g,
-                  state)
+            print(
+                f'f: {f_current}, g: {g} q: {len(q)}, visited: {len(visited)}  {state}'
+            )
             last = time()
 
     print(f'no solution after {len(visited)} states')
@@ -386,6 +426,14 @@ def main():
 
     g = Game(sig)
     print(g.visualize())
+
+    for m in g.get_all_moves():
+        src, tar, cost = m
+        s = g.signature()
+        print(s[src], s[tar], str(cost).rjust(4), (src, tar))
+
+    exit()
+
     bfs(g.signature())
     return
 
