@@ -13,7 +13,8 @@ from time import time
 # state = ('.......', 'AAAA', 'BBBB', 'CCCC', 'DDDD')
 
 ROOM_SIZE = 4
-move_costs = dict(zip('ABCD', [1,10,100,1000]))
+move_costs = dict(zip('ABCD', [1, 10, 100, 1000]))
+
 
 def create_links():
     global links
@@ -22,28 +23,32 @@ def create_links():
     # link hallways
     link(0, 1, 1)
     link(5, 6, 1)
-    for h in range(1,5):
+    for h in range(1, 5):
         link(h, h + 1, 2)
 
     for r in range(4):
         rstart = r * ROOM_SIZE + 7
 
         # link rooms to hallways
-        link(rstart, r+1, 2)
-        link(rstart, r+2, 2)
+        link(rstart, r + 1, 2)
+        link(rstart, r + 2, 2)
 
         # link inner rooms
         for i in range(3):
             link(rstart + i, rstart + i + 1, 1)
+
 
 def link(src, tar, cost):
     global links
     links[src][tar] = cost
     links[tar][src] = cost
 
+
 create_links()
 
+
 class Game:
+
     def __init__(self, signature):
         self.board = dict(enumerate(signature))
 
@@ -54,14 +59,14 @@ class Game:
         cls.link(5, 6, cost=1)
 
         # link hallways
-        for c in range(1,5):
-            cls.link(c, c+1, cost=2)
+        for c in range(1, 5):
+            cls.link(c, c + 1, cost=2)
 
         # link homes
         for room in range(4):
             entry = room + 7
-            cls.link(entry, room+1, 2)  # link home to hallways
-            cls.link(entry, room+2, 2)
+            cls.link(entry, room + 1, 2)  # link home to hallways
+            cls.link(entry, room + 2, 2)
 
             # link homes together
             for r in range(1, roomsize):
@@ -73,7 +78,7 @@ class Game:
 
         # collect list of nodes accessible from each
         g = defaultdict(set)
-        for a,b in cls.links:
+        for a, b in cls.links:
             g[a].add(b)
             g[b].add(a)
         cls.connections = dict(g)
@@ -85,7 +90,7 @@ class Game:
         while q:
             ucost, u = heappop(q)
             for v in cls.connections[u]:
-                alt = ucost + cls.links[(u,v)]
+                alt = ucost + cls.links[(u, v)]
                 if alt < dist.get(v, sys.maxsize):
                     dist[v] = alt
                     heappush(q, (alt, v))
@@ -93,7 +98,8 @@ class Game:
 
     @classmethod
     def find_shortest_bfs_all(cls):
-        cls.shortest = defaultdict(dict)  # shortest distance between any two nodes
+        cls.shortest = defaultdict(
+            dict)  # shortest distance between any two nodes
         for src in cls.connections:
             for tar, moves in cls.find_shortest_bfs(src).items():
                 cls.shortest[src][tar] = moves
@@ -101,8 +107,8 @@ class Game:
 
     @classmethod
     def link(cls, a, b, cost):
-        cls.links[(a,b)] = cost
-        cls.links[(b,a)] = cost
+        cls.links[(a, b)] = cost
+        cls.links[(b, a)] = cost
 
     def get_moves(self):
         for src, tile in self.board.items():
@@ -134,7 +140,7 @@ class Game:
                     if set(res) - {pod, '.'}:
                         continue
 
-            cost = self.links[(src,tar)] * move_costs[pod]
+            cost = self.links[(src, tar)] * move_costs[pod]
             moves.append((tar, cost))
         return moves
 
@@ -164,12 +170,12 @@ class Game:
         """Estimate the total minimum energy to solve the puzzle, ex: h(x)"""
         # identify target room locations
         targets = defaultdict(set)
-        for i,ch in enumerate('ABCD'):
+        for i, ch in enumerate('ABCD'):
             for m in range(4):  # 4 rows
-                targets[ch].add(7+i+m*4)
+                targets[ch].add(7 + i + m * 4)
 
         # group pod positions by letter
-        pods = defaultdict(set) # pods['A'] = [posA1, posA2, ...]
+        pods = defaultdict(set)  # pods['A'] = [posA1, posA2, ...]
         for pos, ch in self.board.items():
             if ch != '.':
                 pods[ch].add(pos)
@@ -187,6 +193,7 @@ class Game:
                 # print(f'cost {src} -> {tar} = {cost}')
         return total_cost
 
+
 visited = {}
 
 # def next_states(state):
@@ -199,6 +206,7 @@ visited = {}
 #         states.append((estcost, new_cost, ng.signature()))
 #     return states
 
+
 def bfs(state):
     game = Game(state)
     # (cost_heuristic + incurred_cost, incurred_cost, state)
@@ -208,7 +216,7 @@ def bfs(state):
     best = (sys.maxsize, state)
     while frontier:
         estcost, cost, state = heappop(frontier)
-        if state.endswith('ABCD'*4):
+        if state.endswith('ABCD' * 4):
             print(state, cost, 'solved', file=sys.stderr)
             if cost > best[0]:
                 print(state, cost, 'new best', file=sys.stderr)
@@ -226,9 +234,11 @@ def bfs(state):
             #     visited[nstate] = ncost
 
         if time() - last > 1:
-            print('frontier', len(frontier), 'visited', len(visited), 'estcost', estcost, cost, state)
+            print('frontier', len(frontier), 'visited', len(visited),
+                  'estcost', estcost, cost, state)
             last = time()
     print(frontier, best)
+
 
 # def state_tup_fromstring(s):
 #     return (s[:7],) + tuple(s[i+7::ROOM_SIZE] for i in range(4))
@@ -239,40 +249,50 @@ def bfs(state):
 # def state_fromstring(s):
 #     return {i: ch for i, ch in enumerate(s) if ch in 'ABCD'}
 
+
 def state_fromstring(s):
-    return s[:7] + ''.join(s[i+7::ROOM_SIZE] for i in range(4))
+    return s[:7] + ''.join(s[i + 7::ROOM_SIZE] for i in range(4))
+
 
 def solved(state):
     return state.endswith('AAAABBBBCCCCDDDD')
 
+
 def find_pods(state):
     return {i: ch for i, ch in enumerate(state) if ch != '.'}
+
 
 def get_room(pos):
     if pos < 7:
         raise IndexError(f'Invalid room position: {pos}')
     return (pos - 7) // 4
 
+
 def correct_room(pod, pos):
     return 'ABCD'.index(pod) == get_room(pos)
 
+
 def has_strangers(state, pos):
     roomstart = get_room(pos) + 7
-    return bool(set(state[roomstart:roomstart+4]) - {'.', 'ABCD'[room]})
+    return bool(set(state[roomstart:roomstart + 4]) - {'.', 'ABCD'[room]})
+
 
 def is_room(pos):
     return pos > 6
+
 
 def next_states_pos(state, pos):
     pod = state[pos]
 
     if pos < 7:  # in hallway
         pass
-    elif correct_room(pod, pos):   # in correct room
-        if not has_strangers(state, pos):  # in correct romom, no further moves needed
+    elif correct_room(pod, pos):  # in correct room
+        if not has_strangers(state,
+                             pos):  # in correct romom, no further moves needed
             return []
     else:  # in incorrect room
         pass
+
 
 def accessible(state, pos):
     """Find all positions accessible from the current one"""
@@ -314,6 +334,7 @@ def accessible(state, pos):
             visited.add(neighbor)
     return targets
 
+
 def next_states(state):
     pods = find_pods(state)
     # __import__('pprint').pprint(links)
@@ -352,15 +373,17 @@ def next_states(state):
                     if set(res) - {pod, '.'}:
                         continue
 
-            cost = self.links[(src,tar)] * move_costs[pod]
+            cost = self.links[(src, tar)] * move_costs[pod]
             moves.append((tar, cost))
         return moves
+
 
 # def room_to_hallway(state):
 #     """Find moves from each room to the hallway"""
 #     for r in range(4):
 #         if tup := next((i, ch for ch in enumerate(s[7+r*ROOM_SIZE:]) if ch != '.'), None):
 #             pass
+
 
 def main():
     # s = '.......ABCDABCDABCDABCD'
@@ -384,7 +407,7 @@ def main():
 
     # remove hallway tiles immediately outside rooms
     for i in [8, 6, 4, 2]:
-        sig = sig[:i] + sig[i+1:]
+        sig = sig[:i] + sig[i + 1:]
     sig = ''.join(sig)
     # print(pods)
     # sig = '.......BAADDCBC'
@@ -412,6 +435,7 @@ def main():
 
     # assert ans1 == 15237
     # assert ans2 == 0
+
 
 if __name__ == '__main__':
     main()
