@@ -275,10 +275,11 @@ def bfs(state):
             if nstate not in visited:
                 heappush(q, entry)
                 visited[nstate] = g_new
-            elif g_new < visited.get(nstate, sys.maxsize):
-                # print('adding extra')
-                heappush(q, entry)
-                visited[nstate] = g_new
+            # NOTE: This shouldn't be necessary
+            # elif g_new < visited.get(nstate, sys.maxsize):
+            #     # print('adding extra')
+            #     heappush(q, entry)
+            #     visited[nstate] = g_new
 
         if time() - last > 1:
             print(
