@@ -9,7 +9,9 @@ from itertools import combinations, pairwise, permutations, product
 from z3 import Bool, Solver, sat
 
 
-class LoopError(Exception): ...
+class LoopError(Exception):
+    ...
+
 
 # @dataclass
 # class Gate:
@@ -17,11 +19,11 @@ class LoopError(Exception): ...
 #     left: 'Gate | '
 #     right: 'Gate | '
 
-
-a,b = sys.stdin.read().strip().split('\n\n')
+a, b = sys.stdin.read().strip().split('\n\n')
 
 a = a.split('\n')
 b = b.split('\n')
+
 
 def part1():
     s = Solver()
@@ -29,7 +31,7 @@ def part1():
     wires = {}
 
     for v in a:
-        x,y = v.split(': ')
+        x, y = v.split(': ')
         wires[x] = vout = Bool(f'{v}')
         s.add(vout == bool(int(y)))
 
@@ -56,9 +58,10 @@ def part1():
 
     if s.check() == sat:
         m = s.model()
-        zs = [z for w,z in sorted(wires.items()) if w.startswith('z')]
-        vals  = [bool(m[z]) for z in zs][::-1]
+        zs = [z for w, z in sorted(wires.items()) if w.startswith('z')]
+        vals = [bool(m[z]) for z in zs][::-1]
         return int(''.join(['1' if v else '0' for v in vals]), 2)
+
 
 @dataclass(order=True)
 class Gate:
@@ -84,7 +87,7 @@ class Gate:
         if self in seen:
             raise LoopError()
 
-        seen += (self,)
+        seen += (self, )
 
         v1 = wires[self.in1]
         v2 = wires[self.in2]
@@ -104,18 +107,19 @@ class Gate:
                 return v1 & v2
         raise NotImplementedError('arst')
 
+
 def part2():
     global wires
 
     def print_trace(name, indent=0):
         var = wires[name]
         if not isinstance(var, Gate):
-            print(' '*indent + f'{name} = {var}')
+            print(' ' * indent + f'{name} = {var}')
             return var
 
-        print(' '*indent + f'{var}')
-        print_trace(var.in1, indent+1)
-        print_trace(var.in2, indent+1)
+        print(' ' * indent + f'{var}')
+        print_trace(var.in1, indent + 1)
+        print_trace(var.in2, indent + 1)
 
     def trace(name):
         var = wires[name]
@@ -133,11 +137,11 @@ def part2():
         vin1, op, vin2, _, vout = line.split()
         wires[vout] = Gate(vout, op, vin1, vin2)
 
-    x_vs = [v for w,v in sorted(wires.items()) if w.startswith('x')][::-1]
+    x_vs = [v for w, v in sorted(wires.items()) if w.startswith('x')][::-1]
     x_bstr = ''.join('1' if v else '0' for v in x_vs)
     x_value = int(x_bstr, 2)
 
-    y_vs = [v for w,v in sorted(wires.items()) if w.startswith('y')][::-1]
+    y_vs = [v for w, v in sorted(wires.items()) if w.startswith('y')][::-1]
     y_bstr = ''.join('1' if v else '0' for v in y_vs)
     y_value = int(y_bstr, 2)
 
@@ -176,7 +180,7 @@ def part2():
         possible_pairs = list(combinations(selected, 2))
         for swap_pairs in combinations(possible_pairs, 4):
             print(swap_pairs)
-            x,y = swap_pairs
+            x, y = swap_pairs
             wires[x], wires[y] = wires[y], wires[x]
             if res := find_invalid():
                 print(res)
@@ -209,18 +213,18 @@ def part2():
         for a, b in combinations(gates, r=2):
 
             wires[a], wires[b] = wires[b], wires[a]
-            used |= {a,b}
+            used |= {a, b}
 
             try:
                 newbad = find_invalid()
-                if dfs(newbad, left-1, seq + (a,b)):
+                if dfs(newbad, left - 1, seq + (a, b)):
                     return True
                 # print(newbad)
             except LoopError:
                 pass
 
             wires[a], wires[b] = wires[b], wires[a]
-            used -= {a,b}
+            used -= {a, b}
 
     # print(f'{x_value:>7b}')
     # print(f'{y_value:>7b}')
@@ -239,6 +243,7 @@ def part2():
         print(success)
     except RecursionError as exc:
         print('recursion error', exc)
+
 
 # a1 = part1()
 # print('part1:', a1)
