@@ -208,17 +208,16 @@ class Game:
   #########
 '''.format(*self.signature())
 
-visited = {}
 
-# def next_states(state):
-#     game = Game(state)
-#     states = []
-#     moves = sorted(game.get_moves(), key=lambda v: v[-1])
-#     for src, tar, new_cost in moves:
-#         ng = game.move_new(src, tar)
-#         estcost = game.cost_to_solve()
-#         states.append((estcost, new_cost, ng.signature()))
-#     return states
+def next_states(state):
+    game = Game(state)
+    states = []
+    moves = sorted(game.get_moves(), key=lambda v: v[-1])
+    for src, tar, new_cost in moves:
+        ng = game.move_new(src, tar)
+        estcost = game.cost_to_solve()
+        states.append((estcost, new_cost, ng.signature()))
+    return states
 
 
 def bfs(state):
@@ -351,49 +350,6 @@ def accessible(state, pos):
             heappush(frontier, entry)
             visited.add(neighbor)
     return targets
-
-
-def next_states(state):
-    pods = find_pods(state)
-    # __import__('pprint').pprint(links)
-
-    states = []
-    for pos, pod in pods.items():
-        print(pos, pod)
-        moves = accessible(state, pos)
-        for m in moves:
-            print(m)
-        exit()
-
-    exit()
-
-    def get_pos_moves(self, src):
-        """Get available adjacent moves and their costs from the current pod's position"""
-        pod = self.board[src]
-        moves = []
-        for tar in self.connections[src]:
-            # check if target is free
-            if self.board[tar] != '.':
-                continue
-
-            # enforce rules when moving in room
-            if tar >= 7:
-                correct_room = (tar - 7) % 4 == 'ABCD'.index(pod)
-                moving_inwards = tar > src
-
-                # prevent incorrect creatures from moving inwards
-                if moving_inwards and not correct_room:
-                    continue
-
-                # prevent moving into room until all unwanted visitors have left
-                if moving_inwards and correct_room:
-                    res = self.get_residents(tar)
-                    if set(res) - {pod, '.'}:
-                        continue
-
-            cost = self.links[(src, tar)] * move_costs[pod]
-            moves.append((tar, cost))
-        return moves
 
 
 # def room_to_hallway(state):
