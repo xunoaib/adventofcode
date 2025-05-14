@@ -213,10 +213,10 @@ def next_states(state):
     game = Game(state)
     states = []
     moves = sorted(game.get_moves(), key=lambda v: v[-1])
-    for src, tar, new_cost in moves:
+    for src, tar, g in moves:
         ng = game.move_new(src, tar)
-        estcost = game.cost_to_solve()
-        states.append((estcost, new_cost, ng.signature()))
+        h = game.cost_to_solve()
+        states.append((h, g, ng.signature()))
     return states
 
 
@@ -227,7 +227,7 @@ def bfs(state):
     last = time()
     best = (sys.maxsize, state)
     while q:
-        f, g, state = heappop(q)
+        h, g, state = heappop(q)
         if state.endswith('ABCD' * 4):
             print(state, g, 'solved', file=sys.stderr)
             if g > best[0]:
@@ -235,22 +235,22 @@ def bfs(state):
                 best = (g, state)
             return state, g
 
-        for nestcost, ncost, nstate in next_states(state):
-            entry = (nestcost + g, g + ncost, nstate)
+        for h, g, nstate in next_states(state):
+            entry = (h + g, g, nstate)
             if nstate not in visited:
                 heappush(q, entry)
-                visited[nstate] = ncost
+                visited[nstate] = g
             # elif ncost < visited.get(nstate, sys.maxsize):
             #     # print('adding extra')
             #     heappush(frontier, entry)
             #     visited[nstate] = ncost
 
         if time() - last > 1:
-            print('frontier', len(q), 'visited', len(visited), 'estcost', f, g,
+            print('frontier', len(q), 'visited', len(visited), 'estcost', h, g,
                   state)
             last = time()
 
-    print('no solution')
+    print(f'no solution after {len(visited)} states')
     # print(frontier, best)
 
 
