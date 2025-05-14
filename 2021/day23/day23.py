@@ -117,21 +117,24 @@ class Game:
 
     def get_all_moves(self):
         '''Get all possible moves, enforcing constraints'''
-        for src, tile in self.board.items():
-            if tile != '.':
-                for tar, cost in self.get_all_moves_from_pos(src):
-                    if inhallway(src) and inhallway(tar):
-                        continue
-                    yield src, tar, cost
+        for src, tar, cost in self.get_all_moves_unfiltered():
+            # Avoid moving within hallway
+            if inhallway(src) and inhallway(tar):
+                continue
+            # Avoid moving within room
+            if not inhallway(src) and not inhallway(tar) and get_room(
+                    src) == get_room(tar):
+                continue
+            yield src, tar, cost
 
     def get_all_moves_unfiltered(self):
         '''Get all technically possible moves without enforcing constraints'''
         for src, tile in self.board.items():
             if tile != '.':
-                for tar, cost in self.get_all_moves_from_pos(src):
+                for tar, cost in self.get_all_moves_from_pos_unfiltered(src):
                     yield src, tar, cost
 
-    def get_all_moves_from_pos(self, src):
+    def get_all_moves_from_pos_unfiltered(self, src):
         '''Get all available moves (not just adjacent ones) from the current position'''
         q = [(0, src, Game(self.signature()))]
         visited = {src}
