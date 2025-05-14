@@ -197,6 +197,16 @@ class Game:
                 # print(f'cost {src} -> {tar} = {cost}')
         return total_cost
 
+    def visualize(self):
+        return '''
+#############
+#{}{}.{}.{}.{}.{}{}#
+###{}#{}#{}#{}###
+  #{}#{}#{}#{}#
+  #{}#{}#{}#{}#
+  #{}#{}#{}#{}#
+  #########
+'''.format(*self.signature())
 
 visited = {}
 
