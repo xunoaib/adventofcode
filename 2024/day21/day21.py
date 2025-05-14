@@ -57,17 +57,17 @@ ngrid_pos = {ch: pos for pos, ch in ngrid.items()}
 dgrid_pos = {ch: pos for pos, ch in dgrid.items()}
 
 
-def part1_new():
-    codes = sys.stdin.read().strip().split('\n')
-    a1 = 0
-    for code in codes:
-        a = path_length(code[:3], 2)
-        b = int(code[:3])
-        print(a, b)
-        print()
-        a1 += a * b
-    print(a1)
+def solve(length: int):
+    return sum(path_length(code[:3], length) * int(code[:3]) for code in codes)
 
 
-if __name__ == "__main__":
-    part1_new()
+codes = sys.stdin.read().strip().split('\n')
+
+a1 = solve(2)
+a2 = solve(25)
+
+print('part1:', a1)
+print('part2:', a2)
+
+assert a1 == 213536
+assert a2 == 258369757013802
