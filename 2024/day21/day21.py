@@ -15,11 +15,10 @@ def find_path(v1: str, v2: str):
     vchar = 'v' if r2 > r1 else '^'
 
     path = hchar * abs(c2 - c1) + vchar * abs(r2 - r1)
+    path = ''.join(sorted(path, key=lambda c: '>v^<'.index(c)))
 
-    if corner_pos in [(r2, c1), (r1, c2)]:
+    if corner_pos not in [(r2, c1), (r1, c2)]:
         path = path[::-1]
-
-    # print(f'{v1} to {v2} via {path}')
 
     return path
 
