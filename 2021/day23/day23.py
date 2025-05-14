@@ -17,6 +17,10 @@ ROOM_SIZE = 4
 move_costs = dict(zip('ABCD', [1, 10, 100, 1000]))
 
 
+def inhallway(pos: int):
+    return 0 <= pos <= 6
+
+
 def create_links():
     global links
     links = defaultdict(dict)
@@ -112,6 +116,16 @@ class Game:
         cls.links[(b, a)] = cost
 
     def get_all_moves(self):
+        '''Get all possible moves, enforcing constraints'''
+        for src, tile in self.board.items():
+            if tile != '.':
+                for tar, cost in self.get_all_moves_from_pos(src):
+                    if inhallway(src) and inhallway(tar):
+                        continue
+                    yield src, tar, cost
+
+    def get_all_moves_unfiltered(self):
+        '''Get all technically possible moves without enforcing constraints'''
         for src, tile in self.board.items():
             if tile != '.':
                 for tar, cost in self.get_all_moves_from_pos(src):
