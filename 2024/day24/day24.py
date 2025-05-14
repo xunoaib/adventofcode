@@ -21,8 +21,8 @@ class LoopError(Exception):
 
 a, b = sys.stdin.read().strip().split('\n\n')
 
-a = a.split('\n')
-b = b.split('\n')
+a = a.split('\n')  # initial wire values
+b = b.split('\n')  # gate outputs
 
 
 def part1():
