@@ -222,24 +222,23 @@ def next_states(state):
 
 def bfs(state):
     game = Game(state)
-    # (cost_heuristic + incurred_cost, incurred_cost, state)
-    frontier = [(game.cost_to_solve(), 0, state)]
+    q = [(game.cost_to_solve(), 0, state)]
     visited = {state: 0}
     last = time()
     best = (sys.maxsize, state)
-    while frontier:
-        estcost, cost, state = heappop(frontier)
+    while q:
+        f, g, state = heappop(q)
         if state.endswith('ABCD' * 4):
-            print(state, cost, 'solved', file=sys.stderr)
-            if cost > best[0]:
-                print(state, cost, 'new best', file=sys.stderr)
-                best = (cost, state)
-            return state, cost
+            print(state, g, 'solved', file=sys.stderr)
+            if g > best[0]:
+                print(state, g, 'new best', file=sys.stderr)
+                best = (g, state)
+            return state, g
 
         for nestcost, ncost, nstate in next_states(state):
-            entry = (nestcost + cost, cost + ncost, nstate)
+            entry = (nestcost + g, g + ncost, nstate)
             if nstate not in visited:
-                heappush(frontier, entry)
+                heappush(q, entry)
                 visited[nstate] = ncost
             # elif ncost < visited.get(nstate, sys.maxsize):
             #     # print('adding extra')
@@ -247,8 +246,8 @@ def bfs(state):
             #     visited[nstate] = ncost
 
         if time() - last > 1:
-            print('frontier', len(frontier), 'visited', len(visited),
-                  'estcost', estcost, cost, state)
+            print('frontier', len(q), 'visited', len(visited), 'estcost', f, g,
+                  state)
             last = time()
 
     print('no solution')
