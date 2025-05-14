@@ -360,22 +360,15 @@ def accessible(state, pos):
 
 
 def main():
-    # s = '.......ABCDABCDABCDABCD'
-    # state = state_fromstring(s)
-    # print(state)
-    # # print(solved(state))
-    # print(next_states(state))
-    # return
-
     Game.create_graph()
     Game.find_shortest_bfs_all()
 
     data = sys.stdin.read()
     sig = re.findall(r'[A-Z\.]', data)
 
-    # sig = '.......ABCDABCDABCDABCD'
-    # g = Game(sig)
-    # # print(list(g.get_moves()))
+    # solved_sig = '.......ABCDABCDABCDABCD'
+    # g = Game(solved_sig)
+    # print(list(g.get_moves()))
     # print(g.cost_to_solve())
     # return
 
@@ -383,29 +376,11 @@ def main():
     for i in [8, 6, 4, 2]:
         sig = sig[:i] + sig[i + 1:]
     sig = ''.join(sig)
-    # print(pods)
-    # sig = '.......BAADDCBC'
-    # sig = '.......BAADDCBADBACDCBC'
-    # sig = '.......BAADDCBADBACDCBC'
-    # print(sig)
-    # return
 
     g = Game(sig)
-    # print(sig)
-    # print(g.connections)
+    print(g.visualize())
     bfs(g.signature())
     return
-
-    try:
-        ans = solve(g.signature())
-        print(ans)
-    # except RecursionError:
-    except KeyboardInterrupt:
-        print(solve.cache_info())
-    # g.get_moves(8)
-    # print(g.signature())
-    # for r in range(7,14):
-    #     print(g.get_residents(r))
 
     # assert ans1 == 15237
     # assert ans2 == 0
