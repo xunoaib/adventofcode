@@ -245,8 +245,10 @@ def part2():
         print('recursion error', exc)
 
 
-# a1 = part1()
-# print('part1:', a1)
+a1 = part1()
+print('part1:', a1)
 
-a2 = part2()
-print('part2:', a2)
+assert a1 == 65740327379952
+
+# a2 = part2()
+# print('part2:', a2)
