@@ -31,4 +31,12 @@ minute = when_asleep[guard].most_common()[0][0]
 a1 = guard * minute
 print('part1:', a1)
 
-assert a1 == 19830
+best = (-1, None, None)
+for guard, sleep_times in when_asleep.items():
+    best = max(best, (*sleep_times.most_common()[0][::-1], guard))
+
+a2 = best[1] * best[2]
+print('part2:', a2)
+
+# assert a1 == 19830
+# assert a2 == 43695
