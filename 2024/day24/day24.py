@@ -127,7 +127,7 @@ class Gate:
             raise IndexError()
 
 
-def part2():
+def part2_wip_auto():
     # global wires
 
     def print_trace(name, indent=0):
@@ -261,34 +261,26 @@ def part2():
             if isinstance(g, Gate) and g.out in (x, y)
         ]
 
-        tmpx = 'XXXXX'
-        tmpy = 'YYYYY'
-
-        def replace(srch: str, repl: str, gates: list[Gate]):
+        def replace_out(srch: str, repl: str, gates: list[Gate]):
             for g in gates:
                 if g.out == srch:
                     g.out = repl
-                # if g.in1 == srch:
-                #     g.in1 = repl
-                # if g.in2 == srch:
-                #     g.in2 = repl
+
+        tmpx = 'XXXXX'
+        tmpy = 'YYYYY'
 
         # print(out_gates)
-        replace(x, tmpx, out_gates)
-        replace(tmpx, y, out_gates)
-        replace(y, tmpy, out_gates)
-        replace(tmpy, x, out_gates)
+        replace_out(x, tmpx, out_gates)
+        replace_out(tmpx, y, out_gates)
+        replace_out(y, tmpy, out_gates)
+        replace_out(tmpy, x, out_gates)
         # print(out_gates)
 
         wires[x], wires[y] = wires[y], wires[x]
 
-    print(find_invalid())
-    swap('swt', 'z07')
-    print(find_invalid())
-
-    # print(wires['z07'].out='YYYY')
-
-    # print(wires['z01'])
+    print(*find_invalid(), sep='\n')
+    # swap('swt', 'z07')
+    # print(find_invalid())
 
     exit()
 
@@ -362,9 +354,16 @@ def part2():
         print('recursion error', exc)
 
 
-# a1 = part1()
-# print('part1:', a1)
-# assert a1 == 65740327379952
+def part2_hardcoded():
+    nodes = ['swt', 'z07', 'pqc', 'z13', 'bgs', 'z31', 'rjm', 'wsv']
+    nodes.sort()
+    return ','.join(nodes)
 
-a2 = part2()
+
+a1 = part1()
+print('part1:', a1)
+
+a2 = part2_hardcoded()
 print('part2:', a2)
+
+# assert a1 == 65740327379952
