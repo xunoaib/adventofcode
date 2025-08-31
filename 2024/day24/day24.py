@@ -65,6 +65,10 @@ class EvalableInt(int):
     def evaluate(self, wires=None) -> int:
         return int(self)
 
+    @property
+    def inputs(self):
+        return tuple()
+
 
 @dataclass(order=True)
 class Gate:
@@ -113,6 +117,14 @@ class Gate:
     @property
     def inputs(self):
         return (self.in1, self.in2)
+
+    def set_input(self, idx: int, val: str):
+        if idx == 0:
+            self.in1 = val
+        elif idx == 1:
+            self.in2 = val
+        else:
+            raise IndexError()
 
 
 def part2():
@@ -231,12 +243,59 @@ def part2():
         for expr, names in sorted(grouped.items()):
             print('>>>', expr, ','.join(names))
 
-    # analyze_zs()
-    print('# X outputs:\n')
-    analyze_vs('x')
+    # print('# X outputs:\n')
+    # analyze_vs('x')
+    #
+    # print('\n# Y outputs:\n')
+    # analyze_vs('y')
 
-    print('\n# Y outputs:\n')
-    analyze_vs('y')
+    # analyze_zs()
+
+    def swap(x, y):
+        '''Swap two wires between nodes/gates'''
+        wx = wires[x]
+        wy = wires[y]
+
+        # # Find all gates which output to x or y
+        # in_gates = [
+        #     g for g in wires.values()
+        #     if isinstance(g, Gate) and (x in g.inputs or y in g.inputs)
+        # ]
+
+        # Find all gates which output to x or y
+        out_gates = [
+            g for g in wires.values()
+            if isinstance(g, Gate) and g.out in (x, y)
+        ]
+
+        tmpx = 'XXXXX'
+        tmpy = 'YYYYY'
+
+        def replace(srch: str, repl: str, gates: list[Gate]):
+            for g in gates:
+                if g.out == srch:
+                    g.out = repl
+                # if g.in1 == srch:
+                #     g.in1 = repl
+                # if g.in2 == srch:
+                #     g.in2 = repl
+
+        # print(out_gates)
+        replace(x, tmpx, out_gates)
+        replace(tmpx, y, out_gates)
+        replace(y, tmpy, out_gates)
+        replace(tmpy, x, out_gates)
+        # print(out_gates)
+
+        wires[x], wires[y] = wires[y], wires[x]
+
+    print(find_invalid())
+    swap('swt', 'z07')
+    print(find_invalid())
+
+    # print(wires['z07'].out='YYYY')
+
+    # print(wires['z01'])
 
     exit()
 
