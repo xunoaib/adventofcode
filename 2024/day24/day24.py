@@ -5,8 +5,9 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from heapq import heappop, heappush
 from itertools import combinations, pairwise, permutations, product
+from typing import Any
 
-from z3 import Bool, Solver, sat
+from z3 import Bool, BoolRef, Solver, sat
 
 
 class LoopError(Exception):
@@ -28,7 +29,7 @@ b = b.split('\n')  # gate outputs
 def part1():
     s = Solver()
 
-    wires = {}
+    wires: dict[str, BoolRef] = {}
 
     for v in a:
         x, y = v.split(': ')
