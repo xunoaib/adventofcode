@@ -178,23 +178,16 @@ def part2():
     def find_invalid() -> list[list[str]]:
         ''' Find all invalid z bits and the gates/values involved with them '''
         bad = []
-        actual_all = []
-        expected_all = []
         for i, z in enumerate(z_vs[::-1]):
             g = wires[z]
             actual = g.evaluate(wires)
             expected = (z_expected >> i) & 1
-            actual_all.append(actual)
-            expected_all.append(expected)
             # color = '\033[92m' if actual == expected else '\033[91m'
             # print(f'{color}{z} {expected} {actual} {g}\033[0m')
             if actual != expected:
                 # involved = {wires[v] for v in trace(z) if v[0] not in 'xy'}
                 involved = {v for v in trace(z) if v[0] not in 'xy'}
                 bad.append(sorted(involved)[::-1])
-
-        # print(actual_all)
-        # print(expected_all)
         return sorted(bad, key=len)
 
     gs = find_invalid()
