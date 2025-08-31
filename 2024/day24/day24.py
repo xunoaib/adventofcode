@@ -5,7 +5,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from heapq import heappop, heappush
 from itertools import combinations, pairwise, permutations, product
-from typing import Any
+from typing import Any, Literal
 
 from z3 import Bool, BoolRef, Solver, sat
 
@@ -110,6 +110,10 @@ class Gate:
                 return v1 & v2
         raise NotImplementedError('arst')
 
+    @property
+    def inputs(self):
+        return (self.in1, self.in2)
+
 
 def part2():
     # global wires
@@ -209,7 +213,30 @@ def part2():
         for x in sorted(z_ins):
             print(x)
 
-    analyze_zs()
+    def analyze_vs(ch: Literal['x', 'y']):
+        y_outs = defaultdict(list)
+        for name, gate in sorted(wires.items()):
+            if not isinstance(gate, Gate):
+                continue
+            for i in gate.inputs:
+                if i.startswith(ch):
+                    y_outs[i].append(gate)
+
+        grouped = defaultdict(list)
+
+        for name, outs in sorted(y_outs.items()):
+            t = tuple(sorted([out.op for out in outs]))
+            grouped[t].append(name)
+
+        for expr, names in sorted(grouped.items()):
+            print('>>>', expr, ','.join(names))
+
+    # analyze_zs()
+    print('# X outputs:\n')
+    analyze_vs('x')
+
+    print('\n# Y outputs:\n')
+    analyze_vs('y')
 
     exit()
 
