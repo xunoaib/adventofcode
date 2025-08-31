@@ -5,31 +5,28 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from heapq import heappop, heappush
 from itertools import combinations, pairwise, permutations, product
+from typing import Any, Literal
 
-from z3 import Bool, Solver, sat
-
-
-class LoopError(Exception): ...
-
-# @dataclass
-# class Gate:
-#     gtype: str
-#     left: 'Gate | '
-#     right: 'Gate | '
+from z3 import Bool, BoolRef, Solver, sat
 
 
-a,b = sys.stdin.read().strip().split('\n\n')
+class LoopError(Exception):
+    ...
 
-a = a.split('\n')
-b = b.split('\n')
+
+a, b = sys.stdin.read().strip().split('\n\n')
+
+a = a.split('\n')  # initial wire values
+b = b.split('\n')  # gate outputs
+
 
 def part1():
     s = Solver()
 
-    wires = {}
+    wires: dict[str, BoolRef] = {}
 
     for v in a:
-        x,y = v.split(': ')
+        x, y = v.split(': ')
         wires[x] = vout = Bool(f'{v}')
         s.add(vout == bool(int(y)))
 
@@ -56,9 +53,22 @@ def part1():
 
     if s.check() == sat:
         m = s.model()
-        zs = [z for w,z in sorted(wires.items()) if w.startswith('z')]
-        vals  = [bool(m[z]) for z in zs][::-1]
+        zs = [z for w, z in sorted(wires.items()) if w.startswith('z')]
+        vals = [bool(m[z]) for z in zs][::-1]
         return int(''.join(['1' if v else '0' for v in vals]), 2)
+
+
+@dataclass(order=True)
+class EvalableInt(int):
+    value: int
+
+    def evaluate(self, wires=None) -> int:
+        return int(self)
+
+    @property
+    def inputs(self):
+        return tuple()
+
 
 @dataclass(order=True)
 class Gate:
@@ -79,12 +89,12 @@ class Gate:
     #     # return f'Gate({self.out})'
     #     return f'{self.out}'
 
-    def evaluate(self, wires, seen=tuple()):
+    def evaluate(self, wires, seen=tuple()) -> int:
 
         if self in seen:
             raise LoopError()
 
-        seen += (self,)
+        seen += (self, )
 
         v1 = wires[self.in1]
         v2 = wires[self.in2]
@@ -104,40 +114,53 @@ class Gate:
                 return v1 & v2
         raise NotImplementedError('arst')
 
-def part2():
-    global wires
+    @property
+    def inputs(self):
+        return (self.in1, self.in2)
+
+    def set_input(self, idx: int, val: str):
+        if idx == 0:
+            self.in1 = val
+        elif idx == 1:
+            self.in2 = val
+        else:
+            raise IndexError()
+
+
+def part2_wip_auto():
+    # global wires
 
     def print_trace(name, indent=0):
         var = wires[name]
         if not isinstance(var, Gate):
-            print(' '*indent + f'{name} = {var}')
+            print(' ' * indent + f'{name} = {var}')
             return var
 
-        print(' '*indent + f'{var}')
-        print_trace(var.in1, indent+1)
-        print_trace(var.in2, indent+1)
+        print(' ' * indent + f'{var}')
+        print_trace(var.in1, indent + 1)
+        print_trace(var.in2, indent + 1)
 
-    def trace(name):
+    def trace(name: str):
         var = wires[name]
         if not isinstance(var, Gate):
             return {name}
         return {name} | trace(var.in1) | trace(var.in1)
 
-    wires = {}
+    wires: dict[str, EvalableInt | Gate] = {}
 
     for v in a:
         name, val = v.split(': ')
-        wires[name] = int(val)
+        wires[name] = EvalableInt(int(val))
 
     for line in b:
         vin1, op, vin2, _, vout = line.split()
         wires[vout] = Gate(vout, op, vin1, vin2)
 
-    x_vs = [v for w,v in sorted(wires.items()) if w.startswith('x')][::-1]
+    x_vs = [v for w, v in sorted(wires.items()) if w.startswith('x')][::-1]
     x_bstr = ''.join('1' if v else '0' for v in x_vs)
     x_value = int(x_bstr, 2)
 
-    y_vs = [v for w,v in sorted(wires.items()) if w.startswith('y')][::-1]
+    y_vs = [v for w, v in sorted(wires.items()) if w.startswith('y')][::-1]
     y_bstr = ''.join('1' if v else '0' for v in y_vs)
     y_value = int(y_bstr, 2)
 
@@ -152,7 +175,7 @@ def part2():
     z_bstr = ''.join('1' if wires[z].evaluate(wires) else '0' for z in z_vs)
     z_actual = int(z_bstr, 2)
 
-    def find_invalid():
+    def find_invalid() -> list[list[str]]:
         ''' Find all invalid z bits and the gates/values involved with them '''
         bad = []
         for i, z in enumerate(z_vs[::-1]):
@@ -168,15 +191,105 @@ def part2():
         return sorted(bad, key=len)
 
     gs = find_invalid()
-    # for i,g in enumerate(gs):
-    #     print(i,g)
+
+    # for i, g in enumerate(gs):
+    #     print(i, g)
+    # print()
+
+    def analyze_zs():
+        # Look for common patterns among gates
+        z_ins = []
+        for name, g in sorted(wires.items()):
+            if isinstance(g, Gate):
+                e, f = [
+                    wires[n].op if isinstance(wires[n], Gate) else wires[n]
+                    for n in (g.in1, g.in2)
+                ]
+                e, f = sorted([e, f])
+                # print(name, e, f)
+                z_ins.append(tuple(map(str, (e, g.op, f, name))))
+                # print('    ', wires[g.in1])
+                # print('    ', wires[g.in2])
+                # print(
+                #     '    ', wires[g.in2].op
+                #     if isinstance(wires[g.in2], Gate) else wires[g.in2]
+                # )
+
+        for x in sorted(z_ins):
+            print(x)
+
+    def analyze_vs(ch: Literal['x', 'y']):
+        y_outs = defaultdict(list)
+        for name, gate in sorted(wires.items()):
+            if not isinstance(gate, Gate):
+                continue
+            for i in gate.inputs:
+                if i.startswith(ch):
+                    y_outs[i].append(gate)
+
+        grouped = defaultdict(list)
+
+        for name, outs in sorted(y_outs.items()):
+            t = tuple(sorted([out.op for out in outs]))
+            grouped[t].append(name)
+
+        for expr, names in sorted(grouped.items()):
+            print('>>>', expr, ','.join(names))
+
+    # print('# X outputs:\n')
+    # analyze_vs('x')
+    #
+    # print('\n# Y outputs:\n')
+    # analyze_vs('y')
+
+    # analyze_zs()
+
+    def swap(x, y):
+        '''Swap two wires between nodes/gates'''
+        wx = wires[x]
+        wy = wires[y]
+
+        # # Find all gates which output to x or y
+        # in_gates = [
+        #     g for g in wires.values()
+        #     if isinstance(g, Gate) and (x in g.inputs or y in g.inputs)
+        # ]
+
+        # Find all gates which output to x or y
+        out_gates = [
+            g for g in wires.values()
+            if isinstance(g, Gate) and g.out in (x, y)
+        ]
+
+        def replace_out(srch: str, repl: str, gates: list[Gate]):
+            for g in gates:
+                if g.out == srch:
+                    g.out = repl
+
+        tmpx = 'XXXXX'
+        tmpy = 'YYYYY'
+
+        # print(out_gates)
+        replace_out(x, tmpx, out_gates)
+        replace_out(tmpx, y, out_gates)
+        replace_out(y, tmpy, out_gates)
+        replace_out(tmpy, x, out_gates)
+        # print(out_gates)
+
+        wires[x], wires[y] = wires[y], wires[x]
+
+    print(*find_invalid(), sep='\n')
+    # swap('swt', 'z07')
+    # print(find_invalid())
+
+    exit()
 
     gates = list(set(g for gates in gs for g in gates))
     for selected in combinations(gates, r=8):
         possible_pairs = list(combinations(selected, 2))
         for swap_pairs in combinations(possible_pairs, 4):
-            print(swap_pairs)
-            x,y = swap_pairs
+            continue
+            x, y = swap_pairs
             wires[x], wires[y] = wires[y], wires[x]
             if res := find_invalid():
                 print(res)
@@ -209,18 +322,18 @@ def part2():
         for a, b in combinations(gates, r=2):
 
             wires[a], wires[b] = wires[b], wires[a]
-            used |= {a,b}
+            used |= {a, b}
 
             try:
                 newbad = find_invalid()
-                if dfs(newbad, left-1, seq + (a,b)):
+                if dfs(newbad, left - 1, seq + (a, b)):
                     return True
                 # print(newbad)
             except LoopError:
                 pass
 
             wires[a], wires[b] = wires[b], wires[a]
-            used -= {a,b}
+            used -= {a, b}
 
     # print(f'{x_value:>7b}')
     # print(f'{y_value:>7b}')
@@ -240,8 +353,17 @@ def part2():
     except RecursionError as exc:
         print('recursion error', exc)
 
-# a1 = part1()
-# print('part1:', a1)
 
-a2 = part2()
+def part2_hardcoded():
+    nodes = ['swt', 'z07', 'pqc', 'z13', 'bgs', 'z31', 'rjm', 'wsv']
+    nodes.sort()
+    return ','.join(nodes)
+
+
+a1 = part1()
+print('part1:', a1)
+
+a2 = part2_hardcoded()
 print('part2:', a2)
+
+# assert a1 == 65740327379952
