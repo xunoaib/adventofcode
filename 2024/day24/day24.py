@@ -162,21 +162,54 @@ def part2():
     def find_invalid() -> list[list[str]]:
         ''' Find all invalid z bits and the gates/values involved with them '''
         bad = []
+        actual_all = []
+        expected_all = []
         for i, z in enumerate(z_vs[::-1]):
             g = wires[z]
             actual = g.evaluate(wires)
             expected = (z_expected >> i) & 1
+            actual_all.append(actual)
+            expected_all.append(expected)
             # color = '\033[92m' if actual == expected else '\033[91m'
             # print(f'{color}{z} {expected} {actual} {g}\033[0m')
             if actual != expected:
                 # involved = {wires[v] for v in trace(z) if v[0] not in 'xy'}
                 involved = {v for v in trace(z) if v[0] not in 'xy'}
                 bad.append(sorted(involved)[::-1])
+
+        # print(actual_all)
+        # print(expected_all)
         return sorted(bad, key=len)
 
     gs = find_invalid()
-    for i, g in enumerate(gs):
-        print(i, g)
+
+    # for i, g in enumerate(gs):
+    #     print(i, g)
+    # print()
+
+    def analyze_zs():
+        # Look for common patterns among gates
+        z_ins = []
+        for name, g in sorted(wires.items()):
+            if isinstance(g, Gate):
+                e, f = [
+                    wires[n].op if isinstance(wires[n], Gate) else wires[n]
+                    for n in (g.in1, g.in2)
+                ]
+                e, f = sorted([e, f])
+                # print(name, e, f)
+                z_ins.append(tuple(map(str, (e, g.op, f, name))))
+                # print('    ', wires[g.in1])
+                # print('    ', wires[g.in2])
+                # print(
+                #     '    ', wires[g.in2].op
+                #     if isinstance(wires[g.in2], Gate) else wires[g.in2]
+                # )
+
+        for x in sorted(z_ins):
+            print(x)
+
+    analyze_zs()
 
     exit()
 
@@ -184,7 +217,7 @@ def part2():
     for selected in combinations(gates, r=8):
         possible_pairs = list(combinations(selected, 2))
         for swap_pairs in combinations(possible_pairs, 4):
-            print(swap_pairs)
+            continue
             x, y = swap_pairs
             wires[x], wires[y] = wires[y], wires[x]
             if res := find_invalid():
