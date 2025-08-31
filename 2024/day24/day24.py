@@ -14,12 +14,6 @@ class LoopError(Exception):
     ...
 
 
-# @dataclass
-# class Gate:
-#     gtype: str
-#     left: 'Gate | '
-#     right: 'Gate | '
-
 a, b = sys.stdin.read().strip().split('\n\n')
 
 a = a.split('\n')  # initial wire values
@@ -65,6 +59,14 @@ def part1():
 
 
 @dataclass(order=True)
+class EvalableInt(int):
+    value: int
+
+    def evaluate(self, wires=None) -> int:
+        return int(self)
+
+
+@dataclass(order=True)
 class Gate:
     out: str
     op: str
@@ -83,7 +85,7 @@ class Gate:
     #     # return f'Gate({self.out})'
     #     return f'{self.out}'
 
-    def evaluate(self, wires, seen=tuple()):
+    def evaluate(self, wires, seen=tuple()) -> int:
 
         if self in seen:
             raise LoopError()
@@ -110,7 +112,7 @@ class Gate:
 
 
 def part2():
-    global wires
+    # global wires
 
     def print_trace(name, indent=0):
         var = wires[name]
@@ -122,17 +124,17 @@ def part2():
         print_trace(var.in1, indent + 1)
         print_trace(var.in2, indent + 1)
 
-    def trace(name):
+    def trace(name: str):
         var = wires[name]
         if not isinstance(var, Gate):
             return {name}
         return {name} | trace(var.in1) | trace(var.in1)
 
-    wires = {}
+    wires: dict[str, EvalableInt | Gate] = {}
 
     for v in a:
         name, val = v.split(': ')
-        wires[name] = int(val)
+        wires[name] = EvalableInt(int(val))
 
     for line in b:
         vin1, op, vin2, _, vout = line.split()
@@ -173,8 +175,10 @@ def part2():
         return sorted(bad, key=len)
 
     gs = find_invalid()
-    # for i,g in enumerate(gs):
-    #     print(i,g)
+    for i, g in enumerate(gs):
+        print(i, g)
+
+    exit()
 
     gates = list(set(g for gates in gs for g in gates))
     for selected in combinations(gates, r=8):
