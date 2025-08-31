@@ -68,7 +68,15 @@ def use_sample():
     return values, gate_lines
 
 
-def use_real():
+def use_real(fname='day24_edit.in'):
+    p1, p2 = open(fname).read().strip().split('\n\n')
+    lines = [l.split(': ') for l in p1.strip().split('\n')]
+    values = {k: int(v) for k, v in lines}
+    gate_lines = p2.strip().splitlines()
+    return values, gate_lines
+
+
+def use_real_static():
 
     values = {
         'x00': 1,
