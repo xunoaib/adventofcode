@@ -159,7 +159,7 @@ def part2():
     z_bstr = ''.join('1' if wires[z].evaluate(wires) else '0' for z in z_vs)
     z_actual = int(z_bstr, 2)
 
-    def find_invalid():
+    def find_invalid() -> list[list[str]]:
         ''' Find all invalid z bits and the gates/values involved with them '''
         bad = []
         for i, z in enumerate(z_vs[::-1]):
