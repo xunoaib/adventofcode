@@ -72,6 +72,15 @@ class Bots:
             geode=self.geode + (robot_type == 3),
         )
 
+    def gather(self):
+        '''Gathers resources, returning the amount gathered'''
+        return Resources(
+            ore=self.ore,
+            clay=self.clay,
+            obsidian=self.obsidian,
+            geode=self.geode,
+        )
+
 
 @dataclass(frozen=True)
 class Blueprint:
@@ -140,20 +149,24 @@ def maximize_geodes(
     while q:
         resources, bots, minleft = heappop(q)
 
+        if minleft == 0:
+            print(resources)
+
+        # Collect resources from bots
+        gathered = bots.gather()
+
         # Try to build each type of robot
         for robot_type, cost in enumerate(blueprint):
             if resources.can_build(cost):
-                print('Can build!')
                 heappush(
                     q, (
-                        resources.subtract(cost), bots.add(robot_type),
-                        minleft - 1
+                        resources.subtract(cost).add(gathered),
+                        bots.add(robot_type),
+                        minleft - 1,
                     )
                 )
 
-            # print(resources)
-            # print(botcost)
-            # print()
+        heappush(q, (resources.add(gathered), bots, minleft - 1))
 
 
 def main():
