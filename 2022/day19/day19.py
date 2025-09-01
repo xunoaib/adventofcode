@@ -63,6 +63,15 @@ class Bots:
         values = (self.ore, self.clay, self.obsidian, self.geode)
         return values[index]
 
+    def add(self, robot_type: int):
+        assert robot_type in range(4)
+        return Bots(
+            ore=self.ore + (robot_type == 0),
+            clay=self.clay + (robot_type == 1),
+            obsidian=self.obsidian + (robot_type == 2),
+            geode=self.geode + (robot_type == 3),
+        )
+
 
 @dataclass(frozen=True)
 class Blueprint:
@@ -132,8 +141,19 @@ def maximize_geodes(
         resources, bots, minleft = heappop(q)
 
         # Try to build each type of robot
-        for i, botcost in enumerate(blueprint):
-            print(i, botcost)
+        for robot_type, cost in enumerate(blueprint):
+            if resources.can_build(cost):
+                print('Can build!')
+                heappush(
+                    q, (
+                        resources.subtract(cost), bots.add(robot_type),
+                        minleft - 1
+                    )
+                )
+
+            # print(resources)
+            # print(botcost)
+            # print()
 
 
 def main():
