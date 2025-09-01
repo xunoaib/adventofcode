@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass, field
 from functools import cache
 from heapq import heappop, heappush
 
+ORE, CLAY, OBSIDIAN, GEODE = range(4)
+
 
 @dataclass(frozen=True, order=True)
 class Resources:
@@ -82,10 +84,10 @@ class Bots:
     def add(self, robot_type: int):
         assert robot_type in range(4)
         return Bots(
-            ore=self.ore + (robot_type == 0),
-            clay=self.clay + (robot_type == 1),
-            obsidian=self.obsidian + (robot_type == 2),
-            geode=self.geode + (robot_type == 3),
+            ore=self.ore + (robot_type == ORE),
+            clay=self.clay + (robot_type == CLAY),
+            obsidian=self.obsidian + (robot_type == OBSIDIAN),
+            geode=self.geode + (robot_type == GEODE),
         )
 
     def gather(self):
