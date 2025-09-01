@@ -191,43 +191,39 @@ def main():
               ) < 3 or len(set(pairwise_diff(heights[state.key]))) > 1:
         state = drop_rock(state)
 
-    k = state.key
-    v = heights[k]
+    # Note: Cycles occurs every 'cycle_pieces' pieces w/ a height of 'cycle_height'
 
-    cycle_height = v[-1] - v[-2]
+    cycle_height = heights[state.key][-1] - heights[state.key][-2]
+    cycle_pieces = rock_counts[state.key][-1] - rock_counts[state.key][-2]
+    current_rock_count = rock_counts[state.key][-1]
+
     print('cycle_height:', cycle_height)
-
-    # Find the number of rocks dropped in a cycle
-    cycle_pieces = rock_counts[k][-1] - rock_counts[k][-2]
     print('cycle_pieces:', cycle_pieces)
-
-    # Note: Cycles occurs every 'count_repeat' pieces w/ a height of 'y_repeat'
-    current_rock_count = rock_counts[k][-1]
     print('current_rock_count:', current_rock_count)
 
     print('key before:', state.key)
-    state = simfor(new_state(data), 188)
     state = simfor(state, cycle_pieces)
     print('key after:', state.key)
+
     exit()
 
-    # Drop a precise number of rocks in a new simulation
-    FINAL_CACHE = Path('final.pkl')
-    if FINAL_CACHE.exists():
-        print('Reading cache...')
-        state: State = pickle.load(open(FINAL_CACHE, 'rb'))
-    else:
-        state = new_state(data)
-        state = simfor(state, 1736)
-        print(state.key)
-
-        # while make_key(state) != (0, 8013):
-        # while state.fallen_count != 1376:
-        print('Waiting for k =', k)
-        while make_key(state) != k:
-            btate = drop_rock(state)
-        # print('Writing cache...')
-        # pickle.dump(state, open(FINAL_CACHE, 'wb'))
+    # # Drop a precise number of rocks in a new simulation
+    # FINAL_CACHE = Path('final.pkl')
+    # if FINAL_CACHE.exists():
+    #     print('Reading cache...')
+    #     state: State = pickle.load(open(FINAL_CACHE, 'rb'))
+    # else:
+    #     state = new_state(data)
+    #     state = simfor(state, 1736)
+    #     print(state.key)
+    #
+    #     # while make_key(state) != (0, 8013):
+    #     # while state.fallen_count != 1376:
+    #     print('Waiting for k =', k)
+    #     while make_key(state) != k:
+    #         state = drop_rock(state)
+    #     # print('Writing cache...')
+    #     # pickle.dump(state, open(FINAL_CACHE, 'wb'))
 
     # assert rock_counts[k][-1] == state.fallen_count
 
