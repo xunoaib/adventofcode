@@ -42,7 +42,7 @@ def pairwise_diff(lst):
 
 
 def make_key(state: 'State'):
-    return (state.rock_idx, state.wind_idx)
+    return (state.rock_idx, state.jet_idx)
 
 
 def simfor(state: 'State', steps: int):
@@ -145,22 +145,22 @@ def new_state(data: str):
 def main():
     data = sys.stdin.read().strip()
 
-    CACHE_FILE = Path('cache.pkl')
+    if len(data) == 40:
+        print('Detected sample input')
+        CACHE_FILE = Path('cache_sample.pkl')
+    else:
+        print('Detected real input')
+        CACHE_FILE = Path('cache_actual.pkl')
 
-    state: State
+    state = new_state(data)
     heights = defaultdict(list)
     rock_counts = defaultdict(list)
 
     if not CACHE_FILE.exists():
-        state = new_state(data)
-
-        # Simulate more steps to hopefully enter a "cycle".
-        # (this counters any side effects of the ground on the tower)
-
-        # n = len(data) * len(rocks)
-        n = 10000
-
-        for i in range(1, n + 1):
+        # Hopefully simulate enough dropped rocks to capture a cycle
+        num_rocks = 10000
+        for i in range(1, num_rocks + 1):
+            # Cycles can only occur at the same key: (rock_idx, jet_idx)
             key = state.key
             state = drop_rock(state)
             heights[key].append(state.last_piece_y)
@@ -178,13 +178,6 @@ def main():
     assert isinstance(state, State)
     assert isinstance(heights, dict)
 
-    # Find the y-height increase for a cycle (from the current rock)
-    # k = (state.rock_idx - 1) % len(rocks), (state.wind_idx - 1) % len(data)
-    # k = state.rock_idx, state.wind_idx
-
-    # for k, v in rock_counts.items():
-    #     print(k, pairwise_diff(v), v)
-
     # Simulate until we have dupes
     state = new_state(data)
     while len(heights[state.key]
@@ -195,55 +188,32 @@ def main():
 
     cycle_height = heights[state.key][-1] - heights[state.key][-2]
     cycle_pieces = rock_counts[state.key][-1] - rock_counts[state.key][-2]
-    current_rock_count = rock_counts[state.key][-1]
+    # current_rock_count = rock_counts[state.key][-1]
 
     print('cycle_height:', cycle_height)
     print('cycle_pieces:', cycle_pieces)
-    print('current_rock_count:', current_rock_count)
+    # print('current_rock_count:', current_rock_count)
 
-    print('key before:', state.key)
-    state = simfor(state, cycle_pieces)
-    print('key after:', state.key)
+    # # Confirm cycle produces the same key
+    # print('key before:', state.key)
+    # state = simfor(state, cycle_pieces)
+    # print('key after:', state.key)
 
-    exit()
-
-    # # Drop a precise number of rocks in a new simulation
-    # FINAL_CACHE = Path('final.pkl')
-    # if FINAL_CACHE.exists():
-    #     print('Reading cache...')
-    #     state: State = pickle.load(open(FINAL_CACHE, 'rb'))
-    # else:
-    #     state = new_state(data)
-    #     state = simfor(state, 1736)
-    #     print(state.key)
-    #
-    #     # while make_key(state) != (0, 8013):
-    #     # while state.fallen_count != 1376:
-    #     print('Waiting for k =', k)
-    #     while make_key(state) != k:
-    #         state = drop_rock(state)
-    #     # print('Writing cache...')
-    #     # pickle.dump(state, open(FINAL_CACHE, 'wb'))
-
-    # assert rock_counts[k][-1] == state.fallen_count
-
-    # print('fallen_count:', state.fallen_count)
+    # y_before = state.max_y
+    # state = simfor(state, cycle_pieces)
+    # y_after = state.max_y
 
     # Determine how many more cycles we can perform w/o going over
     rocks_left = 1000000000000 - state.fallen_count
     cycles_left = int(rocks_left / cycle_pieces)
 
+    print('rocks_left:', rocks_left)
+    print('cycles_left:', cycles_left)
+
     # Adjust height/count based on cycles left
-    current_rock_height = state.max_y()  # heights[k][-1]
+    current_rock_height = state.max_y() - 1  # heights[k][-1]
     current_rock_height += cycles_left * cycle_height
-    current_rock_count += cycles_left * cycle_pieces
-
-    print(state.rock_idx, state.wind_idx)
-    for _ in range(cycle_pieces):
-        state = drop_rock(state)
-    print(state.rock_idx, state.wind_idx)
-
-    exit()
+    current_rock_count = state.fallen_count + cycles_left * cycle_pieces
 
     rocks_left -= cycles_left * cycle_pieces
 
@@ -251,188 +221,15 @@ def main():
     print('cycles_left:', cycles_left)
 
     y_before = state.last_piece_y or 0
-
     for _ in range(rocks_left):
         state = drop_rock(state)
-
     y_after = state.last_piece_y or 0
     y_diff = y_after - y_before
     print('y_diff', y_diff)
 
-    print(current_rock_height + y_diff)
-
-    # print()
-    # print('cur_height:', current_rock_height)
-    # print('cur_count: ', current_rock_count)
-
-    exit()
-
-    # Inspect the properties of the next rock
-    print('rock_idx:', state.rock_idx)
-    print('wind_idx:', state.wind_idx)
-    print('fallen_count:', state.fallen_count)
-
-    # Use the repeating interval to get as close to the target w/o going over
-    fallen_count = state.fallen_count
-    heights[state.rock_idx, state.wind_idx]
-
-    print()
-
-    # # interval = pieces[max(pieces)]
-    # # print(interval)
-    # for k, v in pieces.items():
-    #     print(k, [b - a for a, b in zip(v, v[1:])])
-
-    # print('turn:', state.turn)
-    # print('height:', state.max_y())
-    # print('rocks:', state.fallen_count)
-
-    # print(len(data))
-
-    # print_grid(state.grid, y_low=4000, y_high=4100)
-
-    # print_grid(
-    #     state.grid, repeat_ystart - repeat_length,
-    #     repeat_ystart + repeat_length * 4
-    # )
-
-    exit()
-
-    # 1. establish a baseline by dropping rocks until the repeated pattern count increases.
-    # 2. then drop more rocks until the repeat count increases again.
-    # 3. then count the number of dropped rocks between these events for the final calculation.
-
-    # TLDR: count the number of rocks (interval) that will produce a repeat.
-    #       determine the height of a single repeat.
-    #       use this info to extrapolate height after 1 trillion rocks
-
-    for _ in range(3):
-        repeat_ystart, repeat_length, num_repeats, leftover = find_largest_repeat(
-            state.grid
-        )
-        print(
-            f'{repeat_ystart=}, {repeat_length=}, {num_repeats=}, {leftover=}'
-        )
-
-    # print rock formation where repeat pattern begins
-    for x in range(8):
-        print(state.grid.get((x, 3100)), end=' ')
-
-    # print_grid(
-    #     state.grid, repeat_ystart - repeat_length,
-    #     repeat_ystart + repeat_length * 4
-    # )
-    exit()
-
-    # 1. drop rocks until the repeat count increases
-    print('waiting for repeats to increase...')
-    old_repeats = num_repeats
-    while num_repeats == old_repeats:
-        state = tick(state)
-        _, _, num_repeats, _ = find_largest_repeat(state.grid)
-
-    ymax1 = max(y for _, y in state.grid)
-    fallen1 = state.fallen_count
-    print(f'{ymax1=}')
-
-    print('waiting for repeats to increase')
-    old_repeats = num_repeats
-    while num_repeats == old_repeats:
-        state = tick(state)
-        _, _, num_repeats, _ = find_largest_repeat(state.grid)
-
-    ymax2 = max(y for _, y in state.grid)
-    fallen2 = state.fallen_count
-    print(f'{ymax2=}')
-
-    single_repeat_height = ymax2 - ymax1
-    print(f'{single_repeat_height=}')
-
-    repeat_rock_count = fallen2 - fallen1
-    print(f'{repeat_rock_count=}')
-
-    print()
-    print(find_largest_repeat(state.grid))
-
-    # start test
-
-    ymax = max(y for _, y in state.grid)
-    fallen = state.fallen_count
-
-    for i in range(100):
-        old_fallen = state.fallen_count
-        while state.fallen_count - old_fallen < repeat_rock_count:
-            state = tick(state)
-        ret = _, _, num_repeats, _ = find_largest_repeat(state.grid)
-        print(ret)
-
-    ymax1 = max(y for _, y in state.grid)
-    fallen1 = state.fallen_count
-
-    print('new:', ymax1, fallen1)
-
-    print(ymax1, ymax1 - ymax)
-    print(fallen1 - fallen)
-    ret = _, _, num_repeats, _ = find_largest_repeat(state.grid)
-    print(ret)
-
-    exit()  # ------------------------------
-
-    # rocks_left = 1_000_000_000_000 - fallen_count
-    rocks_left = 1000000000000 - state.fallen_count
-    repeats_left = rocks_left // repeat_rock_count
-    height_to_add = repeats_left * single_repeat_height
-    final_height = repeat_ystart + height_to_add
-
-    # correct answer: 1514285714288
-    # my      answer: 2599999984822
-    print(f'{repeats_left=}')
-    print(f'{height_to_add=}')
-    print(f'{final_height=}')
-
-    exit()
-
-    fallen_count1 = state.fallen_count
-
-    # # 2. drop rocks until a second repeat occurs
-    # repeats2 = repeats1
-    # while repeats2 == repeats1:
-    #     turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
-    #     ystart2, length2, repeats2, _ = find_largest_repeat(grid)
-    fallen_count2 = state.fallen_count
-    ymax2 = max(y for _, y in state.grid)
-
-    # number of rocks needed to cause a repeated pattern
-    rock_repeat_interval = fallen_count2 - fallen_count1
-
-    # the height increase of a single repetition
-    single_repeat_height = ymax2 - ymax1
-
-    print(find_largest_repeat(state.grid))
-
-    print(state.fallen_count)
-    print(rock_repeat_interval)
-
-    if not rock_repeat_interval:
-        print('woops, zero interval')
-        exit(0)
-
-    repeats_left = (1000000000000 - state.fallen_count) // rock_repeat_interval
-    total_height = ymax2 + (single_repeat_height) * repeats_left
-
-    print(f'{rock_repeat_interval=}')
-    print(f'{single_repeat_height=}')
-    print(f'{ymax2=}')
-    print(f'{repeats_left=}')
-    print(f'{total_height=}')
-    print('diff:', total_height - 1514285714288)
-
-    # # test interval (drop 6 sets of 5 rocks)
-    # for _ in range(6):
-    #     for _ in range(repeat_rock_interval):
-    #         turn, rock_idx, x, y, fallen_count = drop_rock(grid, data, turn, rock_idx, x, y, fallen_count)
-
-    print(f'{ystart0=}, {length0=}, {repeats0=}, {leftover0=}')
+    ans2 = current_rock_height + y_diff
+    print('part2:', ans2)
+    assert ans2 == 1570434782634
 
 
 @dataclass
@@ -450,12 +247,12 @@ class State:
         return max(y + 1 for x, y in self.grid)
 
     @property
-    def wind_idx(self):
+    def jet_idx(self):
         return self.turn % len(self.data)
 
     @property
     def key(self):
-        return self.rock_idx, self.wind_idx
+        return self.rock_idx, self.jet_idx
 
 
 def tick(state: State):
@@ -473,7 +270,7 @@ def tick(state: State):
     y = state.y
     fallen_count = state.fallen_count
 
-    ch = state.data[state.wind_idx]
+    ch = state.data[state.jet_idx]
     rock = rocks[rock_idx]
     xoff = 1 if ch == '>' else -1  # horiz direction to shift based on jet stream
     newx = max(0, min(6, x + xoff))  # clamp x position to game area
