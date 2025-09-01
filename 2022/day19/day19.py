@@ -140,6 +140,18 @@ def maximize_geodes(
         # Collect resources from bots
         gathered = bots.gather()
 
+        # Greedily build a geode robot
+        if resources.can_build(blueprint.geode):
+            item = (
+                resources.subtract(blueprint.geode).add(gathered),
+                bots.add(GEODE),
+                minleft - 1,
+            )
+            if item not in visited:
+                visited.add(item)
+                heappush(q, item)
+            continue
+
         # Try to build each type of robot
         for robot_type, cost in enumerate(blueprint):
             if resources.can_build(cost):
