@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
 import re
 import sys
+from dataclasses import dataclass
 from functools import cache
+
+
+@dataclass(frozen=True)
+class Cost:
+    ore: int = 0
+    clay: int = 0
+    obsidian: int = 0
+    geode: int = 0
+
+
+@dataclass(frozen=True)
+class Blueprint:
+    id: int
+    ore: Cost
+    clay: Cost
+    obsidian: Cost
+    geode: Cost
 
 
 @cache
@@ -71,15 +89,22 @@ def main():
     res = (0, 0, 0, 0)
 
     blueprints = []
-    for line in lines:
-        nums = tuple(map(int, re.findall(r'\d+', line)))
-        blueprint = (
-            (nums[1], 0, 0, 0),
-            (nums[2], 0, 0, 0),
-            tuple(nums[3:5]) + (0, 0),
-            (nums[5], 0, nums[6], 0),
+    for i, line in enumerate(lines):
+        c = list(map(int, re.findall(r'\d+', line)))
+        blueprints.append(
+            Blueprint(
+                i,
+                ore=Cost(ore=c[1]),
+                clay=Cost(ore=c[2]),
+                obsidian=Cost(ore=c[3], clay=c[4]),
+                geode=Cost(ore=c[5], obsidian=c[6]),
+            )
         )
-        blueprints.append(blueprint)
+
+    for b in blueprints:
+        print(b)
+
+    exit(0)
 
     # __import__('pprint').pprint(blueprints)
     # blueprints.pop(0)
