@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+import re
+import sys
+from functools import cache
+
+
+@cache
+def can_build(resources, cost_tuple):
+    return all(res >= cost for res, cost in zip(resources, cost_tuple))
+
+
+def subtract(tup1, tup2):
+    return tuple(x - y for x, y in zip(tup1, tup2))
+
+
+def add(tup1, tup2):
+    return tuple(x + y for x, y in zip(tup1, tup2))
+
+
+best = (0, 0, 0, 0)
+histories = {}
+
+
+def reset():
+    global best, histories
+    best = (0, ) * 4
+    histories = {}
+
+
+@cache
+def optimize(blueprint, bots, resources, minute=24):
+    global best
+
+    # print(minute, bots, resources)
+
+    if minute <= 0:
+        if resources[-1] > best[-1]:
+            print(resources)
+            best = resources
+        return resources
+
+    # if resources[-1] + minute * (bots[-1] + minute) < best[-1]:
+    #     return resources
+
+    # first, gather resources
+    added_resources = add(resources, bots)
+
+    # permute spending resources on new robots
+    results = []
+    botcosts = list(enumerate(blueprint))
+    for idx, botcost in botcosts[::-1]:
+        if can_build(resources, botcost):
+            newbots = list(bots)
+            newbots[idx] += 1
+            newbots = tuple(newbots)
+            newresources = subtract(added_resources, botcost)
+            newcount = optimize(blueprint, newbots, newresources, minute - 1)
+            results.append(newcount)
+    results.append(optimize(blueprint, bots, added_resources, minute - 1))
+
+    return max(results, key=lambda tup: tup[-1])
+
+
+def main():
+    # lines = sys.stdin.read().strip().split('\n')
+    with open('sample.in') as f:
+        lines = f.read().strip().splitlines()
+
+    # (ore, clay, obsidian, geode)
+    bots = (1, 0, 0, 0)
+    res = (0, 0, 0, 0)
+
+    blueprints = []
+    for line in lines:
+        nums = tuple(map(int, re.findall(r'\d+', line)))
+        blueprint = (
+            (nums[1], 0, 0, 0),
+            (nums[2], 0, 0, 0),
+            tuple(nums[3:5]) + (0, 0),
+            (nums[5], 0, nums[6], 0),
+        )
+        blueprints.append(blueprint)
+
+    # __import__('pprint').pprint(blueprints)
+    # blueprints.pop(0)
+
+    for idx, blueprint in enumerate(blueprints):
+        reset()
+        result = optimize(blueprint, bots, res)
+        print('Blueprint', idx + 1, 'max =', result[-1], result)
+
+    # ans1 = part1(lines)
+    # print('part1:', ans1)
+
+    # ans2 = part2(lines)
+    # print('part2:', ans2)
+
+    # assert ans1 == 0
+    # assert ans2 == 0
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('interrupted')
