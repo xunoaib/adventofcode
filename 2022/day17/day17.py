@@ -45,8 +45,9 @@ def make_key(state: 'State'):
     return (state.rock_idx, state.jet_idx)
 
 
-def simfor(state: 'State', steps: int):
-    for _ in range(steps):
+def simfor(state: 'State', rocks_to_drop: int):
+    '''Simulate dropping a number of rocks'''
+    for _ in range(rocks_to_drop):
         state = drop_rock(state)
     return state
 
@@ -145,7 +146,8 @@ def new_state(data: str):
 def main():
     data = sys.stdin.read().strip()
 
-    print('part1:', simfor(new_state(data), 2022).max_y())
+    ans1 = simfor(new_state(data), 2022).height()
+    print('part1:', ans1)
 
     if len(data) == 40:
         print('Detected sample input')
@@ -177,57 +179,40 @@ def main():
     assert isinstance(state, State)
     assert isinstance(heights, dict)
 
-    # Simulate until we have dupes
+    # Simulate until we have a suitable cycle (janky)
     state = new_state(data)
     while len(heights[state.key]
               ) < 3 or len(set(pairwise_diff(heights[state.key]))) > 1:
         state = drop_rock(state)
 
     # Note: Cycles occurs every 'cycle_pieces' pieces w/ a height of 'cycle_height'
-
-    cycle_height = heights[state.key][-1] - heights[state.key][-2]
     cycle_pieces = rock_counts[state.key][-1] - rock_counts[state.key][-2]
-    # current_rock_count = rock_counts[state.key][-1]
-
-    print('cycle_height:', cycle_height)
-    print('cycle_pieces:', cycle_pieces)
-    # print('current_rock_count:', current_rock_count)
-
-    # # Confirm cycle produces the same key
-    # print('key before:', state.key)
-    # state = simfor(state, cycle_pieces)
-    # print('key after:', state.key)
-
-    # y_before = state.max_y
-    # state = simfor(state, cycle_pieces)
-    # y_after = state.max_y
+    cycle_height = heights[state.key][-1] - heights[state.key][-2]
 
     # Determine how many more cycles we can perform w/o going over
     rocks_left = 1000000000000 - state.fallen_count
-    cycles_left = int(rocks_left / cycle_pieces)
+    cycles_left, rocks_left = divmod(rocks_left, cycle_pieces)
 
-    print('rocks_left:', rocks_left)
-    print('cycles_left:', cycles_left)
-
-    # Adjust height/count based on cycles left
-    current_rock_height = state.max_y() - 1  # heights[k][-1]
+    # Adjust height/count based on the number of cycles left
+    current_rock_height = state.height() - 1
     current_rock_height += cycles_left * cycle_height
     current_rock_count = state.fallen_count + cycles_left * cycle_pieces
 
-    rocks_left -= cycles_left * cycle_pieces
+    # print('cycle_height:', cycle_height)
+    # print('cycle_pieces:', cycle_pieces)
+    # print('rocks_left:', rocks_left)
+    # print('cycles_left:', cycles_left)
 
-    print('rocks_left:', rocks_left)
-    print('cycles_left:', cycles_left)
-
+    # Drop the remaining rocks, then add the height delta
     y_before = state.last_piece_y or 0
-    for _ in range(rocks_left):
-        state = drop_rock(state)
+    state = simfor(state, rocks_left)
     y_after = state.last_piece_y or 0
-    y_diff = y_after - y_before
-    print('y_diff', y_diff)
 
-    ans2 = current_rock_height + y_diff
+    # WARN: off-by one for part 2 of sample input. it might be related to rock y-geometry (?)
+    ans2 = current_rock_height + y_after - y_before
     print('part2:', ans2)
+
+    assert ans1 == 3181
     assert ans2 == 1570434782634
 
 
@@ -242,7 +227,7 @@ class State:
     fallen_count: int
     last_piece_y: int | None = None
 
-    def max_y(self):
+    def height(self):
         return max(y + 1 for x, y in self.grid)
 
     @property
