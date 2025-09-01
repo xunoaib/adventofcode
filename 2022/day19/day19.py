@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from functools import cache
 from heapq import heappop, heappush
 
@@ -17,9 +17,9 @@ class Resources:
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
 
-    def __getitem__(self, index: int):
-        values = (self.ore, self.clay, self.obsidian, self.geode)
-        return values[index]
+    # def __getitem__(self, index: int):
+    #     values = (self.ore, self.clay, self.obsidian, self.geode)
+    #     return values[index]
 
     def can_build(self, cost: 'Resources'):
         return all(
@@ -59,9 +59,9 @@ class Bots:
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
 
-    def __getitem__(self, index: int):
-        values = (self.ore, self.clay, self.obsidian, self.geode)
-        return values[index]
+    # def __getitem__(self, index: int):
+    #     values = (self.ore, self.clay, self.obsidian, self.geode)
+    #     return values[index]
 
     def add(self, robot_type: int):
         assert robot_type in range(4)
@@ -94,9 +94,9 @@ class Blueprint:
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
 
-    def __getitem__(self, index: int):
-        values = (self.ore, self.clay, self.obsidian, self.geode)
-        return values[index]
+    # def __getitem__(self, index: int):
+    #     values = (self.ore, self.clay, self.obsidian, self.geode)
+    #     return values[index]
 
 
 def maximize_geodes(
