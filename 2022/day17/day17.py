@@ -8,13 +8,13 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
-rocks = [
+ROCKS = (
     ['####'],
     '.#.\n###\n.#.'.split(),
     '..#\n..#\n###'.split(),
     ['#'] * 4,
     ['##', '##'],
-]
+)
 
 MAX_X = 6
 
@@ -145,6 +145,8 @@ def new_state(data: str):
 def main():
     data = sys.stdin.read().strip()
 
+    print('part1:', simfor(new_state(data), 2022).max_y())
+
     if len(data) == 40:
         print('Detected sample input')
         CACHE_FILE = Path('cache_sample.pkl')
@@ -165,9 +167,6 @@ def main():
             state = drop_rock(state)
             heights[key].append(state.last_piece_y)
             rock_counts[key].append(state.fallen_count)
-
-            if i == 2022:
-                print('part1:', state.max_y())
 
         print('Writing cache...')
         pickle.dump([state, heights, rock_counts], open(CACHE_FILE, 'wb'))
@@ -271,7 +270,7 @@ def tick(state: State):
     fallen_count = state.fallen_count
 
     ch = state.data[state.jet_idx]
-    rock = rocks[rock_idx]
+    rock = ROCKS[rock_idx]
     xoff = 1 if ch == '>' else -1  # horiz direction to shift based on jet stream
     newx = max(0, min(6, x + xoff))  # clamp x position to game area
     newy = y - 1  # drop rock down
@@ -297,7 +296,7 @@ def tick(state: State):
         x = 2
         y = 4 + max(y for _, y in grid)
         rock_idx += 1
-        rock_idx %= len(rocks)
+        rock_idx %= len(ROCKS)
         fallen_count += 1
 
     return State(
