@@ -160,19 +160,30 @@ def main():
     assert isinstance(state, State)
     assert isinstance(heights, dict)
 
-    # Find the repeating y-height interval
+    # Find the y-height difference of a cycle
     k, v = max(heights.items())
     y_repeat = v[-1] - v[-2]
     print('y-repeat:', y_repeat)
 
-    # Find the number of rocks in that interval
-    count = rock_counts[k][-1] - rock_counts[k][-2]
-    print('piece-repeat count:', count)
+    # Find the number of rocks dropped in a cycle
+    count_repeat = rock_counts[k][-1] - rock_counts[k][-2]
+    print('piece-repeat count:', count_repeat)
 
-    for k, v in rock_counts.items():
-        diffs = [b - a for a, b in zip(v[:-1], v[1:])]
-        if diffs:
-            print(k, diffs)
+    # Note: Cycles occurs every 'count_repeat' pieces at a height of 'y_repeat'
+    # above the last
+
+    current_rock_count = rock_counts[k][-1]
+    current_rock_height = heights[k][-1]
+
+    rocks_left = 1000000000000 - current_rock_count
+    cycles_left = int(rocks_left / count_repeat)
+
+    # Adjust height based on cycles left
+    current_rock_height += cycles_left * y_repeat
+    current_rock_count += cycles_left * count_repeat
+
+    print(current_rock_height)
+    print(current_rock_count)
 
     exit()
 
