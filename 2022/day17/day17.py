@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import itertools
+import pickle
 import string
 import sys
 from copy import deepcopy
 from dataclasses import dataclass
+from pathlib import Path
 
 rocks = [
     ['####'],
@@ -111,13 +113,27 @@ def compare_blocks(rows, ystart1, ystart2, height):
 def main():
     data = sys.stdin.read().strip()
 
-    # part 1
-    state = State({}, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
-    for i in range(2022):
-        state = drop_rock(state, data)
+    CACHE_FILE = Path('cache.pkl')
 
-    print('part1:', state.max_y())
-    exit(0)
+    if not CACHE_FILE.exists():
+        # part 1
+        state = State({}, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
+        for i in range(1, 2023):
+            state = drop_rock(state, data)
+        print('part1:', state.max_y())
+
+        for _ in range(50000):
+            state = drop_rock(state, data)
+
+        print('Writing cache...')
+        pickle.dump(state, open(CACHE_FILE, 'wb'))
+    else:
+        print('Reading cache...')
+        state = pickle.load(open(CACHE_FILE, 'rb'))
+
+    print('part2:', state.max_y())
+
+    exit()
 
     # 1. establish a baseline by dropping rocks until the repeated pattern count increases.
     # 2. then drop more rocks until the repeat count increases again.
