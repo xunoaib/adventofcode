@@ -37,6 +37,20 @@ def valid_pos(grid, newx, newy, rock):
     return True
 
 
+def pairwise_diff(lst):
+    return list(b - a for a, b in zip(lst, lst[1:]))
+
+
+def make_key(state: 'State'):
+    return (state.rock_idx, state.wind_idx)
+
+
+def simfor(state: 'State', steps: int):
+    for _ in range(steps):
+        state = drop_rock(state)
+    return state
+
+
 def print_grid(grid: dict[tuple[int, int], int], y_low=None, y_high=None):
 
     y_high = y_high or max(y for x, y in grid)
@@ -124,6 +138,10 @@ def compare_blocks(rows, ystart1, ystart2, height):
     return True
 
 
+def new_state(data: str):
+    return State({}, data, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
+
+
 def main():
     data = sys.stdin.read().strip()
 
@@ -134,7 +152,7 @@ def main():
     rock_counts = defaultdict(list)
 
     if not CACHE_FILE.exists():
-        state = State({}, data, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
+        state = new_state(data)
 
         # Simulate more steps to hopefully enter a "cycle".
         # (this counters any side effects of the ground on the tower)
@@ -143,7 +161,7 @@ def main():
         n = 10000
 
         for i in range(1, n + 1):
-            key = (state.rock_idx, state.wind_idx)
+            key = state.key
             state = drop_rock(state)
             heights[key].append(state.last_piece_y)
             rock_counts[key].append(state.fallen_count)
@@ -160,30 +178,96 @@ def main():
     assert isinstance(state, State)
     assert isinstance(heights, dict)
 
-    # Find the y-height difference of a cycle
-    k, v = max(heights.items())
-    y_repeat = v[-1] - v[-2]
-    print('y-repeat:', y_repeat)
+    # Find the y-height increase for a cycle (from the current rock)
+    # k = (state.rock_idx - 1) % len(rocks), (state.wind_idx - 1) % len(data)
+    # k = state.rock_idx, state.wind_idx
+
+    # for k, v in rock_counts.items():
+    #     print(k, pairwise_diff(v), v)
+
+    # Simulate until we have dupes
+    state = new_state(data)
+    while len(heights[state.key]
+              ) < 3 or len(set(pairwise_diff(heights[state.key]))) > 1:
+        state = drop_rock(state)
+
+    k = state.key
+    v = heights[k]
+
+    cycle_height = v[-1] - v[-2]
+    print('cycle_height:', cycle_height)
 
     # Find the number of rocks dropped in a cycle
-    count_repeat = rock_counts[k][-1] - rock_counts[k][-2]
-    print('piece-repeat count:', count_repeat)
+    cycle_pieces = rock_counts[k][-1] - rock_counts[k][-2]
+    print('cycle_pieces:', cycle_pieces)
 
-    # Note: Cycles occurs every 'count_repeat' pieces at a height of 'y_repeat'
-    # above the last
-
+    # Note: Cycles occurs every 'count_repeat' pieces w/ a height of 'y_repeat'
     current_rock_count = rock_counts[k][-1]
-    current_rock_height = heights[k][-1]
+    print('current_rock_count:', current_rock_count)
 
-    rocks_left = 1000000000000 - current_rock_count
-    cycles_left = int(rocks_left / count_repeat)
+    print('key before:', state.key)
+    state = simfor(new_state(data), 188)
+    state = simfor(state, cycle_pieces)
+    print('key after:', state.key)
+    exit()
 
-    # Adjust height based on cycles left
-    current_rock_height += cycles_left * y_repeat
-    current_rock_count += cycles_left * count_repeat
+    # Drop a precise number of rocks in a new simulation
+    FINAL_CACHE = Path('final.pkl')
+    if FINAL_CACHE.exists():
+        print('Reading cache...')
+        state: State = pickle.load(open(FINAL_CACHE, 'rb'))
+    else:
+        state = new_state(data)
+        state = simfor(state, 1736)
+        print(state.key)
 
-    print(current_rock_height)
-    print(current_rock_count)
+        # while make_key(state) != (0, 8013):
+        # while state.fallen_count != 1376:
+        print('Waiting for k =', k)
+        while make_key(state) != k:
+            btate = drop_rock(state)
+        # print('Writing cache...')
+        # pickle.dump(state, open(FINAL_CACHE, 'wb'))
+
+    # assert rock_counts[k][-1] == state.fallen_count
+
+    # print('fallen_count:', state.fallen_count)
+
+    # Determine how many more cycles we can perform w/o going over
+    rocks_left = 1000000000000 - state.fallen_count
+    cycles_left = int(rocks_left / cycle_pieces)
+
+    # Adjust height/count based on cycles left
+    current_rock_height = state.max_y()  # heights[k][-1]
+    current_rock_height += cycles_left * cycle_height
+    current_rock_count += cycles_left * cycle_pieces
+
+    print(state.rock_idx, state.wind_idx)
+    for _ in range(cycle_pieces):
+        state = drop_rock(state)
+    print(state.rock_idx, state.wind_idx)
+
+    exit()
+
+    rocks_left -= cycles_left * cycle_pieces
+
+    print('rocks_left:', rocks_left)
+    print('cycles_left:', cycles_left)
+
+    y_before = state.last_piece_y or 0
+
+    for _ in range(rocks_left):
+        state = drop_rock(state)
+
+    y_after = state.last_piece_y or 0
+    y_diff = y_after - y_before
+    print('y_diff', y_diff)
+
+    print(current_rock_height + y_diff)
+
+    # print()
+    # print('cur_height:', current_rock_height)
+    # print('cur_count: ', current_rock_count)
 
     exit()
 
@@ -355,7 +439,7 @@ def main():
     print(f'{ystart0=}, {length0=}, {repeats0=}, {leftover0=}')
 
 
-@dataclass(frozen=True)
+@dataclass
 class State:
     grid: dict
     data: str
@@ -372,6 +456,10 @@ class State:
     @property
     def wind_idx(self):
         return self.turn % len(self.data)
+
+    @property
+    def key(self):
+        return self.rock_idx, self.wind_idx
 
 
 def tick(state: State):
