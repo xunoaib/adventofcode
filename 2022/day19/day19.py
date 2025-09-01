@@ -51,26 +51,31 @@ def add(tup1, tup2):
     return tuple(x + y for x, y in zip(tup1, tup2))
 
 
-best = (0, 0, 0, 0)
+best_geode_count = 0
 histories = {}
 
 
 def reset():
-    global best, histories
-    best = (0, ) * 4
+    global best_geode_count, histories
+    best_geode_count = (0, ) * 4
     histories = {}
 
 
 @cache
-def optimize(blueprint: Blueprint, bots, resources, minute=24):
-    global best
+def optimize(
+    blueprint: Blueprint,
+    bots: Bots,
+    resources: Resources,
+    minutes_left=24,
+):
+    global best_geode_count
 
     # print(minute, bots, resources)
 
-    if minute <= 0:
-        if resources[-1] > best[-1]:
+    if minutes_left <= 0:
+        if resources.geode > best_geode_count:
             print(resources)
-            best = resources
+            best_geode_count = resources.geode
         return resources
 
     # if resources[-1] + minute * (bots[-1] + minute) < best[-1]:
@@ -88,9 +93,13 @@ def optimize(blueprint: Blueprint, bots, resources, minute=24):
             newbots[idx] += 1
             newbots = tuple(newbots)
             newresources = subtract(added_resources, botcost)
-            newcount = optimize(blueprint, newbots, newresources, minute - 1)
+            newcount = optimize(
+                blueprint, newbots, newresources, minutes_left - 1
+            )
             results.append(newcount)
-    results.append(optimize(blueprint, bots, added_resources, minute - 1))
+    results.append(
+        optimize(blueprint, bots, added_resources, minutes_left - 1)
+    )
 
     return max(results, key=lambda tup: tup[-1])
 
