@@ -9,19 +9,57 @@ from heapq import heappop, heappush
 @dataclass(frozen=True, order=True)
 class Resources:
     '''How many of each resource we have'''
-    geode: int = 0
-    obsidian: int = 0
-    clay: int = 0
     ore: int = 0
+    clay: int = 0
+    obsidian: int = 0
+    geode: int = 0
+
+    def __iter__(self):
+        yield self.ore
+        yield self.clay
+        yield self.obsidian
+        yield self.geode
+
+    def can_build(self, cost: 'Resources'):
+        return all(
+            [
+                self.geode >= cost.geode,
+                self.clay >= cost.clay,
+                self.obsidian >= cost.obsidian,
+                self.ore >= cost.ore,
+            ]
+        )
+
+    def subtract(self, cost: 'Resources'):
+        return Resources(
+            geode=self.geode - cost.geode,
+            clay=self.clay - cost.clay,
+            obsidian=self.obsidian - cost.obsidian,
+            ore=self.ore - cost.ore,
+        )
+
+    def add(self, add: 'Resources'):
+        return Resources(
+            geode=self.geode + add.geode,
+            clay=self.clay + add.clay,
+            obsidian=self.obsidian + add.obsidian,
+            ore=self.ore + add.ore,
+        )
 
 
 @dataclass(frozen=True, order=True)
 class Bots:
     '''How many of each bot we have'''
-    geode: int = 0
-    obsidian: int = 0
-    clay: int = 0
     ore: int = 0
+    clay: int = 0
+    obsidian: int = 0
+    geode: int = 0
+
+    def __iter__(self):
+        yield self.ore
+        yield self.clay
+        yield self.obsidian
+        yield self.geode
 
 
 @dataclass(frozen=True)
@@ -33,28 +71,11 @@ class Blueprint:
     obsidian: Resources
     geode: Resources
 
-
-@cache
-def can_build(resources, cost_tuple):
-    return all(res >= cost for res, cost in zip(resources, cost_tuple))
-
-
-def subtract(tup1, tup2):
-    return tuple(x - y for x, y in zip(tup1, tup2))
-
-
-def add(tup1, tup2):
-    return tuple(x + y for x, y in zip(tup1, tup2))
-
-
-best_geode_count = 0
-histories = {}
-
-
-def reset():
-    global best_geode_count, histories
-    best_geode_count = (0, ) * 4
-    histories = {}
+    def __iter__(self):
+        yield self.ore
+        yield self.clay
+        yield self.obsidian
+        yield self.geode
 
 
 def old_optimize(
@@ -63,10 +84,6 @@ def old_optimize(
     resources: Resources,
     minutes_left: int,
 ):
-    global best_geode_count
-
-    # print(minute, bots, resources)
-
     if minutes_left <= 0:
         if resources.geode > best_geode_count:
             print(resources)
@@ -99,7 +116,6 @@ def old_optimize(
     return max(results, key=lambda tup: tup[-1])
 
 
-@cache
 def maximize_geodes(
     blueprint: Blueprint,
     bots: Bots,
@@ -112,14 +128,16 @@ def maximize_geodes(
     while q:
         resources, bots, minleft = heappop(q)
 
-        # Try to build each kind of robot
+        # Try to build each type of robot
+        for res, botcost in zip(resources, blueprint):
+            print(res, botcost)
 
 
 def main():
     with open('sample.in') as f:
         lines = f.read().strip().splitlines()
 
-    blueprints = []
+    blueprints: list[Blueprint] = []
     for i, line in enumerate(lines):
         c = list(map(int, re.findall(r'\d+', line)))
         blueprints.append(
@@ -134,11 +152,15 @@ def main():
 
     bots = Bots(ore=1)
     resources = Resources()
+    minutes_left = 24
 
     for idx, blueprint in enumerate(blueprints):
-        reset()
-        result = maximize_geodes(blueprint, bots, resources, minutes=24)
-        print(f'Blueprint {blueprint.id}: max = {result}')
+        print(f'\n>> Blueprint {blueprint.id}\n')
+        maximize_geodes(blueprint, bots, resources, minutes_left)
+
+        # reset()
+        # result = maximize_geodes(blueprint, bots, resources, minutes=24)
+        # print(f'Blueprint {blueprint.id}: max = {result}')
 
     # ans1 = part1(lines)
     # print('part1:', ans1)
