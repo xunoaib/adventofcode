@@ -2,6 +2,8 @@
 import itertools
 import string
 import sys
+from copy import deepcopy
+from dataclasses import dataclass
 
 rocks = [
     ['####'],
@@ -109,22 +111,16 @@ def compare_blocks(rows, ystart1, ystart2, height):
 def main():
     data = sys.stdin.read().strip()
 
-    grid = {}
-    turn = 0
-    rock_idx = 0
-    x = 2
-    y = 3
-    fallen_count = 0
-
     # part 1
+    state = State({}, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
     for turn in itertools.count():
-        turn, rock_idx, x, y, fallen_count = tick(
-            grid, data, turn, rock_idx, x, y, fallen_count
-        )
-        if fallen_count >= 2022:
-            print('part1:', y - 3)
+        state = tick(state, data)
+        if state.fallen_count >= 2022:
+            print('part1:', state.y - 3)
             # assert y - 3 == 3181
             break
+
+    exit()
 
     for _ in range(20000):
         turn, rock_idx, x, y, fallen_count = tick(
@@ -139,18 +135,21 @@ def main():
     #       determine the height of a single repeat.
     #       use this info to extrapolate height after 1 trillion rocks
 
-    repeat_ystart, repeat_length, num_repeats, leftover = find_largest_repeat(
-        grid
-    )
-    print(f'{repeat_ystart=}, {repeat_length=}, {num_repeats=}, {leftover=}')
+    for _ in range(3):
+        repeat_ystart, repeat_length, num_repeats, leftover = find_largest_repeat(
+            grid
+        )
+        print(
+            f'{repeat_ystart=}, {repeat_length=}, {num_repeats=}, {leftover=}'
+        )
 
-    # print rock formation where repeat pattern begins
-    for x in range(8):
-        print(grid.get((x, 3100)), end=' ')
-
-    print_grid(
-        grid, repeat_ystart - repeat_length, repeat_ystart + repeat_length * 4
-    )
+    # # print rock formation where repeat pattern begins
+    # for x in range(8):
+    #     print(grid.get((x, 3100)), end=' ')
+    #
+    # print_grid(
+    #     grid, repeat_ystart - repeat_length, repeat_ystart + repeat_length * 4
+    # )
     exit()
 
     # 1. drop rocks until the repeat count increases
@@ -270,12 +269,31 @@ def main():
     print(f'{ystart0=}, {length0=}, {repeats0=}, {leftover0=}')
 
 
-def tick(grid, data, turn, rock_idx, x, y, fallen_count):
+@dataclass(frozen=True)
+class State:
+    grid: dict
+    turn: int
+    rock_idx: int
+    x: int
+    y: int
+    fallen_count: int
+
+
+def tick(state: State, data: str):
     '''
     Runs one tick of the simulation. Applies left/right jet stream,
     then drops rock down one tile. Grid only stores settled (not falling)
     rocks. rock_idx, x, and y correspond to the current falling rock.
     '''
+
+    grid = state.grid  # NOTE: reference
+    rock_idx = state.rock_idx
+    turn = state.turn
+    rock_idx = state.rock_idx
+    x = state.x
+    y = state.y
+    fallen_count = state.fallen_count
+
     ch = data[turn % len(data)]
     rock = rocks[rock_idx]
     xoff = 1 if ch == '>' else -1  # horiz direction to shift based on jet stream
@@ -303,19 +321,17 @@ def tick(grid, data, turn, rock_idx, x, y, fallen_count):
         rock_idx %= len(rocks)
         fallen_count += 1
 
-    return turn, rock_idx, x, y, fallen_count
+    return State(grid, turn + 1, rock_idx, x, y, fallen_count)
 
 
-def drop_rock(grid, data, turn, rock_idx, x, y, fallen_count):
+def drop_rock(state: State, data: str):
     '''Continues running the simulation until the current rock settles and a
     new rock is spawned.'''
 
-    fallen_start = fallen_count
-    while fallen_count == fallen_start:
-        turn, rock_idx, x, y, fallen_count = tick(
-            grid, data, turn, rock_idx, x, y, fallen_count
-        )
-    return turn, rock_idx, x, y, fallen_count
+    fallen_start = state.fallen_count
+    while state.fallen_count == fallen_start:
+        state = tick(state, data)
+    return state
 
 
 if __name__ == '__main__':
