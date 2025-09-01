@@ -16,11 +16,38 @@ ROCKS = (
     ['##', '##'],
 )
 
-MAX_X = 6
+
+@dataclass
+class State:
+    grid: dict
+    data: str
+    turn: int
+    rock_idx: int
+    x: int
+    y: int
+    fallen_count: int
+    last_piece_y: int | None = None
+
+    def height(self):
+        return max(y + 1 for x, y in self.grid)
+
+    @property
+    def jet_idx(self):
+        return self.turn % len(self.data)
+
+    @property
+    def key(self):
+        return self.rock_idx, self.jet_idx
 
 
-def can_fall(grid, x, y, rock):
-    return valid_pos(grid, x, y - 1, rock)
+def drop_rock(state: State):
+    '''Continues running the simulation until the current rock settles and a
+    new rock is spawned.'''
+
+    fallen_start = state.fallen_count
+    while state.fallen_count == fallen_start:
+        state = tick(state)
+    return state
 
 
 def rock_to_coords(x, y, rock):
@@ -32,7 +59,7 @@ def rock_to_coords(x, y, rock):
 
 def valid_pos(grid, newx, newy, rock):
     for rx, ry in rock_to_coords(newx, newy, rock):
-        if ry < 0 or rx < 0 or rx > MAX_X or (rx, ry) in grid:
+        if ry < 0 or rx < 0 or rx > 6 or (rx, ry) in grid:
             return False
     return True
 
@@ -41,11 +68,11 @@ def pairwise_diff(lst):
     return list(b - a for a, b in zip(lst, lst[1:]))
 
 
-def make_key(state: 'State'):
+def make_key(state: State):
     return (state.rock_idx, state.jet_idx)
 
 
-def simfor(state: 'State', rocks_to_drop: int):
+def simfor(state: State, rocks_to_drop: int):
     '''Simulate dropping a number of rocks'''
     for _ in range(rocks_to_drop):
         state = drop_rock(state)
@@ -53,90 +80,13 @@ def simfor(state: 'State', rocks_to_drop: int):
 
 
 def print_grid(grid: dict[tuple[int, int], int], y_low=None, y_high=None):
-
     y_high = y_high or max(y for x, y in grid)
     y_low = y_low or 0
-
     y = y_high
     while y >= y_low:
-        # row = (str(grid.get((x, y), '.')).rjust(5) for x in range(7))
         row = ('.#'[(x, y) in grid] for x in range(7))
         print(*row, sep='')
         y -= 1
-
-    return
-
-    print('')
-    if not grid:
-        print('nothing')
-        return
-
-    max_height = max(y for _, y in grid)
-    min_height = min(y for _, y in grid)
-    print(f'y: {min_height} to {max_height}')
-
-    if y_high is None:
-        yend = max_height
-
-    if y_low is None:
-        ystart = min_height
-
-    print(f'printing from {yend} to {ystart}')
-
-    for y in range(yend, ystart, -1):
-        for x in range(8):
-            ch = grid.get((x, y), '.')
-            if isinstance(ch, int):
-                ch = string.ascii_letters[ch % len(string.ascii_letters)]
-            print(ch, end='')
-        print()
-
-
-def find_largest_repeat(grid):
-    ymax = max(y for _, y in grid)
-    rows = [
-        tuple(x for x in range(MAX_X + 1) if (x, y) in grid)
-        for y in range(ymax + 1)
-    ]
-
-    best_total = 0
-    for ystart in range(3100, ymax):  # save time by starting at 3100
-        height_left = ymax + 1 - ystart
-        for length in range(
-            1, height_left // 2
-        ):  # when trying to place 2 blocks, their max height will be 1/2 the space left
-            # find the total number of duplicated blocks of height 'length' starting from 'ystart'
-            repeats = 0
-            for num_repeats in range(1, height_left // length):
-                if not compare_blocks(
-                    rows, ystart, ystart + num_repeats * length, length
-                ):
-                    break
-                else:
-                    repeats = num_repeats
-
-            total = repeats * length
-            if total > best_total:
-                # print(f'{ystart=}, {length=}, {repeats=}, {total=}')
-                best_total = total
-
-            if best_total > 1000:
-                leftover = ymax - (ystart + best_total)
-                # print('unmatched at the top:', leftover)
-                return ystart, length, repeats, leftover
-
-    return (0, ) * 4
-
-
-def compare_blocks(rows, ystart1, ystart2, height):
-    """Check if two regions of the given height at ystart1 and ystart2 are equal"""
-    if ystart2 < ystart1:
-        ystart1, ystart2 = ystart2, ystart1
-
-    for yoff in range(height):
-        if rows[ystart1 + yoff] != rows[ystart2 + yoff]:
-            return False
-    return True
 
 
 def new_state(data: str):
@@ -198,17 +148,12 @@ def main():
     current_rock_height += cycles_left * cycle_height
     current_rock_count = state.fallen_count + cycles_left * cycle_pieces
 
-    # print('cycle_height:', cycle_height)
-    # print('cycle_pieces:', cycle_pieces)
-    # print('rocks_left:', rocks_left)
-    # print('cycles_left:', cycles_left)
-
     # Drop the remaining rocks, then add the height delta
     y_before = state.last_piece_y or 0
     state = simfor(state, rocks_left)
     y_after = state.last_piece_y or 0
 
-    # WARN: off-by one for part 2 of sample input. it might be related to rock y-geometry (?)
+    # WARN: off-by one for part 2 of sample input. might be related to rock y-geometry (?)
     ans2 = current_rock_height + y_after - y_before
     print('part2:', ans2)
 
@@ -216,37 +161,16 @@ def main():
     assert ans2 == 1570434782634
 
 
-@dataclass
-class State:
-    grid: dict
-    data: str
-    turn: int
-    rock_idx: int
-    x: int
-    y: int
-    fallen_count: int
-    last_piece_y: int | None = None
-
-    def height(self):
-        return max(y + 1 for x, y in self.grid)
-
-    @property
-    def jet_idx(self):
-        return self.turn % len(self.data)
-
-    @property
-    def key(self):
-        return self.rock_idx, self.jet_idx
-
-
-def tick(state: State):
+def tick(state: State) -> State:
     '''
     Runs one tick of the simulation. Applies left/right jet stream,
     then drops rock down one tile. Grid only stores settled (not falling)
     rocks. rock_idx, x, and y correspond to the current falling rock.
+
+    NOTE: This mutates the original state.grid.
     '''
 
-    grid = state.grid  # NOTE: reference
+    grid = state.grid  # mutable copy
     rock_idx = state.rock_idx
     turn = state.turn
     rock_idx = state.rock_idx
@@ -289,18 +213,5 @@ def tick(state: State):
     )
 
 
-def drop_rock(state: State):
-    '''Continues running the simulation until the current rock settles and a
-    new rock is spawned.'''
-
-    fallen_start = state.fallen_count
-    while state.fallen_count == fallen_start:
-        state = tick(state)
-    return state
-
-
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()
