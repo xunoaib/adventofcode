@@ -113,15 +113,11 @@ def main():
 
     # part 1
     state = State({}, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
-    for turn in itertools.count():
-        state = tick(state, data)
-        if state.fallen_count >= 2022:
-            print('part1:', state.y - 3)
-            # assert y - 3 == 3181
-            break
+    for i in range(2022):
+        state = drop_rock(state, data)
 
-    for _ in range(20000):
-        state = tick(state, data)
+    print('part1:', state.max_y())
+    exit(0)
 
     # 1. establish a baseline by dropping rocks until the repeated pattern count increases.
     # 2. then drop more rocks until the repeat count increases again.
@@ -139,12 +135,13 @@ def main():
             f'{repeat_ystart=}, {repeat_length=}, {num_repeats=}, {leftover=}'
         )
 
-    # # print rock formation where repeat pattern begins
-    # for x in range(8):
-    #     print(grid.get((x, 3100)), end=' ')
-    #
+    # print rock formation where repeat pattern begins
+    for x in range(8):
+        print(state.grid.get((x, 3100)), end=' ')
+
     # print_grid(
-    #     grid, repeat_ystart - repeat_length, repeat_ystart + repeat_length * 4
+    #     state.grid, repeat_ystart - repeat_length,
+    #     repeat_ystart + repeat_length * 4
     # )
     exit()
 
@@ -267,6 +264,9 @@ class State:
     x: int
     y: int
     fallen_count: int
+
+    def max_y(self):
+        return max(y + 1 for x, y in self.grid)
 
 
 def tick(state: State, data: str):
