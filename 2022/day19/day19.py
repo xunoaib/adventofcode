@@ -99,44 +99,6 @@ class Blueprint:
         return values[index]
 
 
-def old_optimize(
-    blueprint: Blueprint,
-    bots: Bots,
-    resources: Resources,
-    minutes_left: int,
-):
-    if minutes_left <= 0:
-        if resources.geode > best_geode_count:
-            print(resources)
-            best_geode_count = resources.geode
-        return resources
-
-    # if resources[-1] + minute * (bots[-1] + minute) < best[-1]:
-    #     return resources
-
-    # first, gather resources
-    added_resources = add(resources, bots)
-
-    # permute spending resources on new robots
-    results = []
-    botcosts = list(enumerate(blueprint))
-    for idx, botcost in botcosts[::-1]:
-        if can_build(resources, botcost):
-            newbots = list(bots)
-            newbots[idx] += 1
-            newbots = tuple(newbots)
-            newresources = subtract(added_resources, botcost)
-            newcount = maximize_geodes(
-                blueprint, newbots, newresources, minutes_left - 1
-            )
-            results.append(newcount)
-    results.append(
-        maximize_geodes(blueprint, bots, added_resources, minutes_left - 1)
-    )
-
-    return max(results, key=lambda tup: tup[-1])
-
-
 def maximize_geodes(
     blueprint: Blueprint,
     bots: Bots,
@@ -193,19 +155,6 @@ def main():
     for idx, blueprint in enumerate(blueprints):
         print(f'\n>> Blueprint {blueprint.id}\n')
         maximize_geodes(blueprint, bots, resources, minutes_left)
-
-        # reset()
-        # result = maximize_geodes(blueprint, bots, resources, minutes=24)
-        # print(f'Blueprint {blueprint.id}: max = {result}')
-
-    # ans1 = part1(lines)
-    # print('part1:', ans1)
-
-    # ans2 = part2(lines)
-    # print('part2:', ans2)
-
-    # assert ans1 == 0
-    # assert ans2 == 0
 
 
 if __name__ == '__main__':
