@@ -3,39 +3,35 @@ import re
 import sys
 from dataclasses import asdict, dataclass
 from functools import cache
+from heapq import heappop, heappush
 
 
-@dataclass(frozen=True)
-class Cost:
-    ore: int = 0
-    clay: int = 0
-    obsidian: int = 0
+@dataclass(frozen=True, order=True)
+class Resources:
+    '''How many of each resource we have'''
     geode: int = 0
+    obsidian: int = 0
+    clay: int = 0
+    ore: int = 0
+
+
+@dataclass(frozen=True, order=True)
+class Bots:
+    '''How many of each bot we have'''
+    geode: int = 0
+    obsidian: int = 0
+    clay: int = 0
+    ore: int = 0
 
 
 @dataclass(frozen=True)
 class Blueprint:
+    '''Resource costs for each type of robot'''
     id: int
-    ore: Cost
-    clay: Cost
-    obsidian: Cost
-    geode: Cost
-
-
-@dataclass(frozen=True)
-class Bots:
-    ore: int = 0
-    clay: int = 0
-    obsidian: int = 0
-    geode: int = 0
-
-
-@dataclass(frozen=True)
-class Resources:
-    ore: int = 0
-    clay: int = 0
-    obsidian: int = 0
-    geode: int = 0
+    ore: Resources
+    clay: Resources
+    obsidian: Resources
+    geode: Resources
 
 
 @cache
@@ -61,12 +57,11 @@ def reset():
     histories = {}
 
 
-@cache
-def optimize(
+def old_optimize(
     blueprint: Blueprint,
     bots: Bots,
     resources: Resources,
-    minutes_left=24,
+    minutes_left: int,
 ):
     global best_geode_count
 
@@ -93,15 +88,31 @@ def optimize(
             newbots[idx] += 1
             newbots = tuple(newbots)
             newresources = subtract(added_resources, botcost)
-            newcount = optimize(
+            newcount = maximize_geodes(
                 blueprint, newbots, newresources, minutes_left - 1
             )
             results.append(newcount)
     results.append(
-        optimize(blueprint, bots, added_resources, minutes_left - 1)
+        maximize_geodes(blueprint, bots, added_resources, minutes_left - 1)
     )
 
     return max(results, key=lambda tup: tup[-1])
+
+
+@cache
+def maximize_geodes(
+    blueprint: Blueprint,
+    bots: Bots,
+    resources: Resources,
+    minutes_left: int,
+):
+    q = [(resources, bots, minutes_left)]
+    visited = {q[0]}
+
+    while q:
+        resources, bots, minleft = heappop(q)
+
+        # Try to build each kind of robot
 
 
 def main():
@@ -114,10 +125,10 @@ def main():
         blueprints.append(
             Blueprint(
                 id=c[0],
-                ore=Cost(ore=c[1]),
-                clay=Cost(ore=c[2]),
-                obsidian=Cost(ore=c[3], clay=c[4]),
-                geode=Cost(ore=c[5], obsidian=c[6]),
+                ore=Resources(ore=c[1]),
+                clay=Resources(ore=c[2]),
+                obsidian=Resources(ore=c[3], clay=c[4]),
+                geode=Resources(ore=c[5], obsidian=c[6]),
             )
         )
 
@@ -126,8 +137,8 @@ def main():
 
     for idx, blueprint in enumerate(blueprints):
         reset()
-        result = optimize(blueprint, bots, resources)
-        print('Blueprint', idx + 1, 'max =', result[-1], result)
+        result = maximize_geodes(blueprint, bots, resources, minutes=24)
+        print(f'Blueprint {blueprint.id}: max = {result}')
 
     # ans1 = part1(lines)
     # print('part1:', ans1)
