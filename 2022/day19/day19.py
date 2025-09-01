@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from functools import cache
 
 
@@ -20,6 +20,22 @@ class Blueprint:
     clay: Cost
     obsidian: Cost
     geode: Cost
+
+
+@dataclass(frozen=True)
+class Bots:
+    ore: int = 0
+    clay: int = 0
+    obsidian: int = 0
+    geode: int = 0
+
+
+@dataclass(frozen=True)
+class Resources:
+    ore: int = 0
+    clay: int = 0
+    obsidian: int = 0
+    geode: int = 0
 
 
 @cache
@@ -46,7 +62,7 @@ def reset():
 
 
 @cache
-def optimize(blueprint, bots, resources, minute=24):
+def optimize(blueprint: Blueprint, bots, resources, minute=24):
     global best
 
     # print(minute, bots, resources)
@@ -80,20 +96,15 @@ def optimize(blueprint, bots, resources, minute=24):
 
 
 def main():
-    # lines = sys.stdin.read().strip().split('\n')
     with open('sample.in') as f:
         lines = f.read().strip().splitlines()
-
-    # (ore, clay, obsidian, geode)
-    bots = (1, 0, 0, 0)
-    res = (0, 0, 0, 0)
 
     blueprints = []
     for i, line in enumerate(lines):
         c = list(map(int, re.findall(r'\d+', line)))
         blueprints.append(
             Blueprint(
-                i,
+                id=c[0],
                 ore=Cost(ore=c[1]),
                 clay=Cost(ore=c[2]),
                 obsidian=Cost(ore=c[3], clay=c[4]),
@@ -101,17 +112,12 @@ def main():
             )
         )
 
-    for b in blueprints:
-        print(b)
-
-    exit(0)
-
-    # __import__('pprint').pprint(blueprints)
-    # blueprints.pop(0)
+    bots = Bots(ore=1)
+    resources = Resources()
 
     for idx, blueprint in enumerate(blueprints):
         reset()
-        result = optimize(blueprint, bots, res)
+        result = optimize(blueprint, bots, resources)
         print('Blueprint', idx + 1, 'max =', result[-1], result)
 
     # ans1 = part1(lines)
