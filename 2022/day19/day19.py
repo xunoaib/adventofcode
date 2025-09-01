@@ -15,10 +15,11 @@ class Resources:
     geode: int = 0
 
     def __iter__(self):
-        yield self.ore
-        yield self.clay
-        yield self.obsidian
-        yield self.geode
+        return iter((self.ore, self.clay, self.obsidian, self.geode))
+
+    def __getitem__(self, index: int):
+        values = (self.ore, self.clay, self.obsidian, self.geode)
+        return values[index]
 
     def can_build(self, cost: 'Resources'):
         return all(
@@ -56,10 +57,11 @@ class Bots:
     geode: int = 0
 
     def __iter__(self):
-        yield self.ore
-        yield self.clay
-        yield self.obsidian
-        yield self.geode
+        return iter((self.ore, self.clay, self.obsidian, self.geode))
+
+    def __getitem__(self, index: int):
+        values = (self.ore, self.clay, self.obsidian, self.geode)
+        return values[index]
 
 
 @dataclass(frozen=True)
@@ -72,10 +74,11 @@ class Blueprint:
     geode: Resources
 
     def __iter__(self):
-        yield self.ore
-        yield self.clay
-        yield self.obsidian
-        yield self.geode
+        return iter((self.ore, self.clay, self.obsidian, self.geode))
+
+    def __getitem__(self, index: int):
+        values = (self.ore, self.clay, self.obsidian, self.geode)
+        return values[index]
 
 
 def old_optimize(
@@ -129,8 +132,8 @@ def maximize_geodes(
         resources, bots, minleft = heappop(q)
 
         # Try to build each type of robot
-        for res, botcost in zip(resources, blueprint):
-            print(res, botcost)
+        for i, botcost in enumerate(blueprint):
+            print(i, botcost)
 
 
 def main():
@@ -173,7 +176,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        print('interrupted')
+    main()
