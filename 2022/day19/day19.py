@@ -9,10 +9,18 @@ from heapq import heappop, heappush
 @dataclass(frozen=True, order=True)
 class Resources:
     '''How many of each resource we have'''
+    sort_index: tuple = field(init=False, repr=False)
+
     geode: int = 0
     obsidian: int = 0
     clay: int = 0
     ore: int = 0
+
+    def __post_init__(self):
+        object.__setattr__(
+            self, "sort_index",
+            (-self.geode, -self.obsidian, -self.clay, -self.ore)
+        )
 
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
@@ -51,6 +59,8 @@ class Resources:
 @dataclass(frozen=True, order=True)
 class Bots:
     '''How many of each bot we have'''
+    sort_index: tuple = field(init=False, repr=False)
+
     geode: int = 0
     obsidian: int = 0
     clay: int = 0
@@ -58,6 +68,12 @@ class Bots:
 
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
+
+    def __post_init__(self):
+        object.__setattr__(
+            self, "sort_index",
+            (-self.geode, -self.obsidian, -self.clay, -self.ore)
+        )
 
     # def __getitem__(self, index: int):
     #     values = (self.ore, self.clay, self.obsidian, self.geode)
@@ -108,11 +124,16 @@ def maximize_geodes(
     q = [(resources, bots, minutes_left)]
     visited = {q[0]}
 
+    best_geodes = 0
+
     while q:
         resources, bots, minleft = heappop(q)
 
         if minleft == 0:
-            print(resources)
+            if resources.geode > best_geodes:
+                best_geodes = resources.geode
+                print(best_geodes)
+            continue
 
         # Collect resources from bots
         gathered = bots.gather()
