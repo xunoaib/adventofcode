@@ -36,7 +36,20 @@ def valid_pos(grid, newx, newy, rock):
     return True
 
 
-def print_grid(grid, ystart=None, yend=None):
+def print_grid(grid: dict[tuple[int, int], int], y_low=None, y_high=None):
+
+    y_high = y_high or max(y for x, y in grid)
+    y_low = y_low or 0
+
+    y = y_high
+    while y >= y_low:
+        # row = (str(grid.get((x, y), '.')).rjust(5) for x in range(7))
+        row = ('.#'[(x, y) in grid] for x in range(7))
+        print(*row, sep='')
+        y -= 1
+
+    return
+
     print('')
     if not grid:
         print('nothing')
@@ -46,10 +59,10 @@ def print_grid(grid, ystart=None, yend=None):
     min_height = min(y for _, y in grid)
     print(f'y: {min_height} to {max_height}')
 
-    if yend is None:
+    if y_high is None:
         yend = max_height
 
-    if ystart is None:
+    if y_low is None:
         ystart = min_height
 
     print(f'printing from {yend} to {ystart}')
@@ -117,13 +130,13 @@ def main():
 
     if not CACHE_FILE.exists():
         # part 1
-        state = State({}, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
+        state = State({}, data, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
         for i in range(1, 2023):
-            state = drop_rock(state, data)
+            state = drop_rock(state)
         print('part1:', state.max_y())
 
-        for _ in range(20000):
-            state = drop_rock(state, data)
+        for _ in range(10000):
+            state = drop_rock(state)
 
         print('Writing cache...')
         pickle.dump(state, open(CACHE_FILE, 'wb'))
@@ -131,7 +144,18 @@ def main():
         print('Reading cache...')
         state = pickle.load(open(CACHE_FILE, 'rb'))
 
-    print('part2:', state.max_y())
+    # print('turn:', state.turn)
+    # print('height:', state.max_y())
+    # print('rocks:', state.fallen_count)
+
+    print(len(data))
+
+    print_grid(state.grid, y_low=4000, y_high=4100)
+
+    # print_grid(
+    #     state.grid, repeat_ystart - repeat_length,
+    #     repeat_ystart + repeat_length * 4
+    # )
 
     exit()
 
@@ -165,7 +189,7 @@ def main():
     print('waiting for repeats to increase...')
     old_repeats = num_repeats
     while num_repeats == old_repeats:
-        state = tick(state, data)
+        state = tick(state)
         _, _, num_repeats, _ = find_largest_repeat(state.grid)
 
     ymax1 = max(y for _, y in state.grid)
@@ -175,7 +199,7 @@ def main():
     print('waiting for repeats to increase')
     old_repeats = num_repeats
     while num_repeats == old_repeats:
-        state = tick(state, data)
+        state = tick(state)
         _, _, num_repeats, _ = find_largest_repeat(state.grid)
 
     ymax2 = max(y for _, y in state.grid)
@@ -199,7 +223,7 @@ def main():
     for i in range(100):
         old_fallen = state.fallen_count
         while state.fallen_count - old_fallen < repeat_rock_count:
-            state = tick(state, data)
+            state = tick(state)
         ret = _, _, num_repeats, _ = find_largest_repeat(state.grid)
         print(ret)
 
@@ -275,6 +299,7 @@ def main():
 @dataclass(frozen=True)
 class State:
     grid: dict
+    data: str
     turn: int
     rock_idx: int
     x: int
@@ -284,8 +309,12 @@ class State:
     def max_y(self):
         return max(y + 1 for x, y in self.grid)
 
+    @property
+    def wind_idx(self):
+        return self.turn % len(self.data)
 
-def tick(state: State, data: str):
+
+def tick(state: State):
     '''
     Runs one tick of the simulation. Applies left/right jet stream,
     then drops rock down one tile. Grid only stores settled (not falling)
@@ -300,7 +329,7 @@ def tick(state: State, data: str):
     y = state.y
     fallen_count = state.fallen_count
 
-    ch = data[turn % len(data)]
+    ch = state.data[state.wind_idx]
     rock = rocks[rock_idx]
     xoff = 1 if ch == '>' else -1  # horiz direction to shift based on jet stream
     newx = max(0, min(6, x + xoff))  # clamp x position to game area
@@ -327,16 +356,16 @@ def tick(state: State, data: str):
         rock_idx %= len(rocks)
         fallen_count += 1
 
-    return State(grid, turn + 1, rock_idx, x, y, fallen_count)
+    return State(grid, state.data, turn + 1, rock_idx, x, y, fallen_count)
 
 
-def drop_rock(state: State, data: str):
+def drop_rock(state: State):
     '''Continues running the simulation until the current rock settles and a
     new rock is spawned.'''
 
     fallen_start = state.fallen_count
     while state.fallen_count == fallen_start:
-        state = tick(state, data)
+        state = tick(state)
     return state
 
 
