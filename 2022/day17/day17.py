@@ -131,40 +131,50 @@ def main():
 
     state: State
     heights = defaultdict(list)
+    rock_counts = defaultdict(list)
 
     if not CACHE_FILE.exists():
-        # part 1
         state = State({}, data, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
-        for i in range(1, 2023):
-            key = (state.rock_idx, state.wind_idx)
-            state = drop_rock(state)
-            heights[key].append(state.last_piece_y)
-        print('part1:', state.max_y())
 
         # Simulate more steps to hopefully enter a "cycle".
         # (this counters any side effects of the ground on the tower)
-        n = len(data) * len(rocks)
-        print('n:', n)
+
+        # n = len(data) * len(rocks)
         n = 10000
 
-        for _ in range(n):
+        for i in range(1, n + 1):
             key = (state.rock_idx, state.wind_idx)
             state = drop_rock(state)
             heights[key].append(state.last_piece_y)
+            rock_counts[key].append(state.fallen_count)
+
+            if i == 2022:
+                print('part1:', state.max_y())
 
         print('Writing cache...')
-        pickle.dump([state, heights], open(CACHE_FILE, 'wb'))
+        pickle.dump([state, heights, rock_counts], open(CACHE_FILE, 'wb'))
     else:
         print('Reading cache...')
-        state, pieces = pickle.load(open(CACHE_FILE, 'rb'))
+        state, heights, rock_counts = pickle.load(open(CACHE_FILE, 'rb'))
 
     assert isinstance(state, State)
     assert isinstance(heights, dict)
 
-    # Find the repeating interval
+    # Find the repeating y-height interval
     k, v = max(heights.items())
-    interval = v[-1] - v[-2]
-    print('interval:', interval)
+    y_repeat = v[-1] - v[-2]
+    print('y-repeat:', y_repeat)
+
+    # Find the number of rocks in that interval
+    count = rock_counts[k][-1] - rock_counts[k][-2]
+    print('piece-repeat count:', count)
+
+    for k, v in rock_counts.items():
+        diffs = [b - a for a, b in zip(v[:-1], v[1:])]
+        if diffs:
+            print(k, diffs)
+
+    exit()
 
     # Inspect the properties of the next rock
     print('rock_idx:', state.rock_idx)
