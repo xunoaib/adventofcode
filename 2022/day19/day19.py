@@ -9,10 +9,10 @@ from heapq import heappop, heappush
 @dataclass(frozen=True, order=True)
 class Resources:
     '''How many of each resource we have'''
-    ore: int = 0
-    clay: int = 0
-    obsidian: int = 0
     geode: int = 0
+    obsidian: int = 0
+    clay: int = 0
+    ore: int = 0
 
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
@@ -51,10 +51,10 @@ class Resources:
 @dataclass(frozen=True, order=True)
 class Bots:
     '''How many of each bot we have'''
-    ore: int = 0
-    clay: int = 0
-    obsidian: int = 0
     geode: int = 0
+    obsidian: int = 0
+    clay: int = 0
+    ore: int = 0
 
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
@@ -120,15 +120,19 @@ def maximize_geodes(
         # Try to build each type of robot
         for robot_type, cost in enumerate(blueprint):
             if resources.can_build(cost):
-                heappush(
-                    q, (
-                        resources.subtract(cost).add(gathered),
-                        bots.add(robot_type),
-                        minleft - 1,
-                    )
+                item = (
+                    resources.subtract(cost).add(gathered),
+                    bots.add(robot_type),
+                    minleft - 1,
                 )
+                if item not in visited:
+                    visited.add(item)
+                    heappush(q, item)
 
-        heappush(q, (resources.add(gathered), bots, minleft - 1))
+        item = (resources.add(gathered), bots, minleft - 1)
+        if item not in visited:
+            visited.add(item)
+            heappush(q, item)
 
 
 def main():
