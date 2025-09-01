@@ -120,12 +120,8 @@ def main():
             # assert y - 3 == 3181
             break
 
-    exit()
-
     for _ in range(20000):
-        turn, rock_idx, x, y, fallen_count = tick(
-            grid, data, turn, rock_idx, x, y, fallen_count
-        )
+        state = tick(state, data)
 
     # 1. establish a baseline by dropping rocks until the repeated pattern count increases.
     # 2. then drop more rocks until the repeat count increases again.
@@ -137,7 +133,7 @@ def main():
 
     for _ in range(3):
         repeat_ystart, repeat_length, num_repeats, leftover = find_largest_repeat(
-            grid
+            state.grid
         )
         print(
             f'{repeat_ystart=}, {repeat_length=}, {num_repeats=}, {leftover=}'
@@ -156,25 +152,21 @@ def main():
     print('waiting for repeats to increase...')
     old_repeats = num_repeats
     while num_repeats == old_repeats:
-        turn, rock_idx, x, y, fallen_count = tick(
-            grid, data, turn, rock_idx, x, y, fallen_count
-        )
-        _, _, num_repeats, _ = find_largest_repeat(grid)
+        state = tick(state, data)
+        _, _, num_repeats, _ = find_largest_repeat(state.grid)
 
-    ymax1 = max(y for _, y in grid)
-    fallen1 = fallen_count
+    ymax1 = max(y for _, y in state.grid)
+    fallen1 = state.fallen_count
     print(f'{ymax1=}')
 
     print('waiting for repeats to increase')
     old_repeats = num_repeats
     while num_repeats == old_repeats:
-        turn, rock_idx, x, y, fallen_count = tick(
-            grid, data, turn, rock_idx, x, y, fallen_count
-        )
-        _, _, num_repeats, _ = find_largest_repeat(grid)
+        state = tick(state, data)
+        _, _, num_repeats, _ = find_largest_repeat(state.grid)
 
-    ymax2 = max(y for _, y in grid)
-    fallen2 = fallen_count
+    ymax2 = max(y for _, y in state.grid)
+    fallen2 = state.fallen_count
     print(f'{ymax2=}')
 
     single_repeat_height = ymax2 - ymax1
@@ -184,36 +176,34 @@ def main():
     print(f'{repeat_rock_count=}')
 
     print()
-    print(find_largest_repeat(grid))
+    print(find_largest_repeat(state.grid))
 
     # start test
 
-    ymax = max(y for _, y in grid)
-    fallen = fallen_count
+    ymax = max(y for _, y in state.grid)
+    fallen = state.fallen_count
 
     for i in range(100):
-        old_fallen = fallen_count
-        while fallen_count - old_fallen < repeat_rock_count:
-            turn, rock_idx, x, y, fallen_count = tick(
-                grid, data, turn, rock_idx, x, y, fallen_count
-            )
-        ret = _, _, num_repeats, _ = find_largest_repeat(grid)
+        old_fallen = state.fallen_count
+        while state.fallen_count - old_fallen < repeat_rock_count:
+            state = tick(state, data)
+        ret = _, _, num_repeats, _ = find_largest_repeat(state.grid)
         print(ret)
 
-    ymax1 = max(y for _, y in grid)
-    fallen1 = fallen_count
+    ymax1 = max(y for _, y in state.grid)
+    fallen1 = state.fallen_count
 
     print('new:', ymax1, fallen1)
 
     print(ymax1, ymax1 - ymax)
     print(fallen1 - fallen)
-    ret = _, _, num_repeats, _ = find_largest_repeat(grid)
+    ret = _, _, num_repeats, _ = find_largest_repeat(state.grid)
     print(ret)
 
     exit()  # ------------------------------
 
     # rocks_left = 1_000_000_000_000 - fallen_count
-    rocks_left = 1000000000000 - fallen_count
+    rocks_left = 1000000000000 - state.fallen_count
     repeats_left = rocks_left // repeat_rock_count
     height_to_add = repeats_left * single_repeat_height
     final_height = repeat_ystart + height_to_add
@@ -226,15 +216,15 @@ def main():
 
     exit()
 
-    fallen_count1 = fallen_count
+    fallen_count1 = state.fallen_count
 
     # # 2. drop rocks until a second repeat occurs
     # repeats2 = repeats1
     # while repeats2 == repeats1:
     #     turn, rock_idx, x, y, fallen_count = tick(grid, data, turn, rock_idx, x, y, fallen_count)
     #     ystart2, length2, repeats2, _ = find_largest_repeat(grid)
-    fallen_count2 = fallen_count
-    ymax2 = max(y for _, y in grid)
+    fallen_count2 = state.fallen_count
+    ymax2 = max(y for _, y in state.grid)
 
     # number of rocks needed to cause a repeated pattern
     rock_repeat_interval = fallen_count2 - fallen_count1
@@ -242,16 +232,16 @@ def main():
     # the height increase of a single repetition
     single_repeat_height = ymax2 - ymax1
 
-    print(find_largest_repeat(grid))
+    print(find_largest_repeat(state.grid))
 
-    print(fallen_count)
+    print(state.fallen_count)
     print(rock_repeat_interval)
 
     if not rock_repeat_interval:
         print('woops, zero interval')
         exit(0)
 
-    repeats_left = (1000000000000 - fallen_count) // rock_repeat_interval
+    repeats_left = (1000000000000 - state.fallen_count) // rock_repeat_interval
     total_height = ymax2 + (single_repeat_height) * repeats_left
 
     print(f'{rock_repeat_interval=}')
