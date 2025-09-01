@@ -122,7 +122,7 @@ def main():
             state = drop_rock(state, data)
         print('part1:', state.max_y())
 
-        for _ in range(50000):
+        for _ in range(20000):
             state = drop_rock(state, data)
 
         print('Writing cache...')
