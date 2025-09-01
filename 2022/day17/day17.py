@@ -3,6 +3,7 @@ import itertools
 import pickle
 import string
 import sys
+from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -128,29 +129,66 @@ def main():
 
     CACHE_FILE = Path('cache.pkl')
 
+    state: State
+    heights = defaultdict(list)
+
     if not CACHE_FILE.exists():
         # part 1
         state = State({}, data, turn=0, rock_idx=0, x=2, y=3, fallen_count=0)
         for i in range(1, 2023):
+            key = (state.rock_idx, state.wind_idx)
             state = drop_rock(state)
+            heights[key].append(state.last_piece_y)
         print('part1:', state.max_y())
 
-        for _ in range(10000):
+        # Simulate more steps to hopefully enter a "cycle".
+        # (this counters any side effects of the ground on the tower)
+        n = len(data) * len(rocks)
+        print('n:', n)
+        n = 10000
+
+        for _ in range(n):
+            key = (state.rock_idx, state.wind_idx)
             state = drop_rock(state)
+            heights[key].append(state.last_piece_y)
 
         print('Writing cache...')
-        pickle.dump(state, open(CACHE_FILE, 'wb'))
+        pickle.dump([state, heights], open(CACHE_FILE, 'wb'))
     else:
         print('Reading cache...')
-        state = pickle.load(open(CACHE_FILE, 'rb'))
+        state, pieces = pickle.load(open(CACHE_FILE, 'rb'))
+
+    assert isinstance(state, State)
+    assert isinstance(heights, dict)
+
+    # Find the repeating interval
+    k, v = max(heights.items())
+    interval = v[-1] - v[-2]
+    print('interval:', interval)
+
+    # Inspect the properties of the next rock
+    print('rock_idx:', state.rock_idx)
+    print('wind_idx:', state.wind_idx)
+    print('fallen_count:', state.fallen_count)
+
+    # Use the repeating interval to get as close to the target w/o going over
+    fallen_count = state.fallen_count
+    heights[state.rock_idx, state.wind_idx]
+
+    print()
+
+    # # interval = pieces[max(pieces)]
+    # # print(interval)
+    # for k, v in pieces.items():
+    #     print(k, [b - a for a, b in zip(v, v[1:])])
 
     # print('turn:', state.turn)
     # print('height:', state.max_y())
     # print('rocks:', state.fallen_count)
 
-    print(len(data))
+    # print(len(data))
 
-    print_grid(state.grid, y_low=4000, y_high=4100)
+    # print_grid(state.grid, y_low=4000, y_high=4100)
 
     # print_grid(
     #     state.grid, repeat_ystart - repeat_length,
@@ -305,6 +343,7 @@ class State:
     x: int
     y: int
     fallen_count: int
+    last_piece_y: int | None = None
 
     def max_y(self):
         return max(y + 1 for x, y in self.grid)
@@ -334,6 +373,7 @@ def tick(state: State):
     xoff = 1 if ch == '>' else -1  # horiz direction to shift based on jet stream
     newx = max(0, min(6, x + xoff))  # clamp x position to game area
     newy = y - 1  # drop rock down
+    last_piece_y = None
 
     # validate and apply horizontal movement
     if valid_pos(grid, newx, y, rock):
@@ -349,6 +389,8 @@ def tick(state: State):
         for coord in coords:
             grid[coord] = fallen_count
 
+        last_piece_y = y
+
         # spawn new rock
         x = 2
         y = 4 + max(y for _, y in grid)
@@ -356,7 +398,9 @@ def tick(state: State):
         rock_idx %= len(rocks)
         fallen_count += 1
 
-    return State(grid, state.data, turn + 1, rock_idx, x, y, fallen_count)
+    return State(
+        grid, state.data, turn + 1, rock_idx, x, y, fallen_count, last_piece_y
+    )
 
 
 def drop_rock(state: State):
