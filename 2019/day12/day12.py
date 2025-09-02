@@ -1,33 +1,45 @@
 #!/usr/bin/env python3
 import re
 import sys
-from itertools import combinations
+from itertools import batched, combinations
 
 
-def apply_gravity(moons):
-    netvelocity = [[0, 0, 0] for _ in range(len(moons))]
-    for m1, m2 in combinations(range(moons), 2):
+def apply_gravity(moons: list, velocities: list):
+    delta_velocities = [[0, 0, 0] for _ in velocities]
+    for m1, m2 in combinations(range(len(moons)), 2):
         p1 = moons[m1]
         p2 = moons[m2]
         for axis in [0, 1, 2]:
             if p1[axis] > p2[axis]:
-                d1, d2 = 1, -1
-            elif p1[axis] < p2[axis]:
                 d1, d2 = -1, 1
+            elif p1[axis] < p2[axis]:
+                d1, d2 = 1, -1
             else:
                 d1 = d2 = 0
-            netvelocity[m1][axis] += d1
-            netvelocity[m2][axis] -= d2
-    return netvelocity
+            delta_velocities[m1][axis] += d1
+            delta_velocities[m2][axis] += d2
+
+    final_velocities = [
+        (vx + dvx, vy + dvy, vz + dvz)
+        for (vx, vy, vz), (dvx, dvy, dvz) in zip(delta_velocities, velocities)
+    ]
+
+    # Apply deltas
+    return [
+        (x + dx, y + dy, z + dz)
+        for (x, y, z), (dx, dy, dz) in zip(moons, final_velocities)
+    ], final_velocities
 
 
-moons = [
-    list(map(int, m))
-    for m in re.findall(r'<x=(.*), y=(.*), z=(.*)>', sys.stdin.read())
-]
+moons = list(batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3))
+velocities = [[0, 0, 0] for i in range(len(moons))]
 
-velocities = {i: [0, 0, 0] for i in range(len(moons))}
+for i in range(11):
+    print(f'\nAfter {i} steps:')
 
-for _ in range(1000):
-    apply_gravity(moons)
-    exit(0)
+    for (x, y, z), (vx, vy, vz) in zip(moons, velocities):
+        print(
+            f'pos=<x={x:2}, y={y:3}, z={z:2}>, vel=<x={vx:2}, y={vy:2}, z={vz:2}>'
+        )
+
+    moons, velocities = apply_gravity(moons, velocities)
