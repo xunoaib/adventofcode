@@ -128,8 +128,18 @@ def maximize_geodes(
 
     best_geodes = 0
 
+    i = 0
+
     while q:
         resources, bots, minleft = heappop(q)
+
+        i += 1
+        if i % 10000 == 0: print(
+            len(visited),
+            minleft,
+            resources,
+            bots,
+        )
 
         if minleft == 0:
             if resources.geode > best_geodes:
