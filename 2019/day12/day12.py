@@ -49,11 +49,21 @@ def print_status():
 
 moons = tuple(batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3))
 velocities = tuple((0, 0, 0) for i in range(len(moons)))
+seen = {(moons, velocities)}
 
 for i in range(1000):
-    moons, velocities = apply_gravity(moons, velocities)
+    state = moons, velocities = apply_gravity(moons, velocities)
+    seen.add(state)
 
 ans1 = calculate_energy(moons, velocities)
 print('part1:', ans1)
+
+while True:
+    state = moons, velocities = apply_gravity(moons, velocities)
+    i += 1
+    if state in seen:
+        print('part2:', i)
+        break
+    seen.add(state)
 
 assert ans1 == 9493
