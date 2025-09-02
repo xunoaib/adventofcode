@@ -218,12 +218,18 @@ def simulate(blueprints: list[Blueprint], minutes_left: int):
     bots = Bots(ore=1)
     resources = Resources()
 
+    log = Path(f'results_{minutes_left}min.log')
+    with open(log, 'a') as f:
+        print(f'--- Starting Log ({minutes_left} min) ---', file=f)
+
     for idx, blueprint in enumerate(blueprints):
         print(f'\n>> Blueprint {blueprint.id}\n')
         best = maximize_geodes(blueprint, bots, resources, minutes_left)
         print(
             f'\033[95mBEST: {best} geodes for Blueprint #{blueprint.id}\033[0m'
         )
+        with open(log, 'a') as f:
+            print(f'Blueprint {blueprint.id} => max {best} geodes', file=f)
         results[blueprint.id] = best
 
     return results
