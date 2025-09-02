@@ -27,9 +27,13 @@ class Resources:
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
 
-    # def __getitem__(self, index: int):
-    #     values = (self.ore, self.clay, self.obsidian, self.geode)
-    #     return values[index]
+    def exceeds_any(self, threshold: 'Resources'):
+        '''Determines if the current resources exceeds any corresponding resources in the threshold'''
+        return any(s > t for s, t in zip(self, threshold))
+
+    def __getitem__(self, index: int):
+        values = (self.ore, self.clay, self.obsidian, self.geode)
+        return values[index]
 
     def can_build(self, cost: 'Resources'):
         return all(
@@ -77,9 +81,9 @@ class Bots:
             (-self.geode, -self.obsidian, -self.clay, -self.ore)
         )
 
-    # def __getitem__(self, index: int):
-    #     values = (self.ore, self.clay, self.obsidian, self.geode)
-    #     return values[index]
+    def __getitem__(self, index: int):
+        values = (self.ore, self.clay, self.obsidian, self.geode)
+        return values[index]
 
     def add(self, robot_type: int):
         assert robot_type in range(4)
@@ -117,6 +121,19 @@ class Blueprint:
     #     return values[index]
 
 
+def max_resource_cost(blueprint: Blueprint):
+    '''Calculate the maximum cost of a blueprint's resources'''
+
+    geode = clay = obsidian = ore = 0
+    for costs in blueprint:
+        ore = max(ore, costs.ore)
+        clay = max(clay, costs.clay)
+        obsidian = max(obsidian, costs.obsidian)
+        geodes = max(geode, costs.geode)
+
+    return Resources(geode=geode, obsidian=obsidian, clay=clay, ore=ore)
+
+
 def maximize_geodes(
     blueprint: Blueprint,
     bots: Bots,
@@ -125,26 +142,28 @@ def maximize_geodes(
 ):
     q = [(resources, bots, minutes_left)]
     visited = {q[0]}
-
     best_geodes = 0
-
     i = 0
+
+    # Identify max costs to avoid building more robots than needed
+    max_costs = max_resource_cost(blueprint)
 
     while q:
         resources, bots, minleft = heappop(q)
 
         i += 1
-        if i % 10000 == 0: print(
-            len(visited),
-            minleft,
-            resources,
-            bots,
-        )
+        if i % 10000 == 0:
+            print(
+                len(visited),
+                minleft,
+                str(resources).ljust(49),
+                str(bots).ljust(49),
+            )
 
         if minleft == 0:
             if resources.geode > best_geodes:
                 best_geodes = resources.geode
-                print(best_geodes)
+                print(f'\033[92m>>>>> NEW BEST: {best_geodes} <<<<<\033[0m')
             continue
 
         # Collect resources from bots
@@ -163,7 +182,15 @@ def maximize_geodes(
             continue
 
         # Try to build each type of robot
-        for robot_type, cost in enumerate(blueprint):
+        for robot_type, cost in enumerate(list(blueprint)[:-1]):
+            # Avoid building more robots than the max resource consumption rate
+            if bots[robot_type] >= max_costs[robot_type]:
+                # print(
+                #     'excess!', robot_type, bots[robot_type],
+                #     max_costs[robot_type]
+                # )
+                continue
+
             if resources.can_build(cost):
                 item = (
                     resources.subtract(cost).add(gathered),
