@@ -13,9 +13,8 @@ ORE, CLAY, OBSIDIAN, GEODE = range(4)
 
 @dataclass(frozen=True, order=True)
 class Resources:
-    '''How many of each resource we have'''
+    '''Represents any collection of resources'''
     sort_index: tuple = field(init=False, repr=False)
-
     geode: int = 0
     obsidian: int = 0
     clay: int = 0
@@ -69,7 +68,6 @@ class Resources:
 class Bots:
     '''How many of each bot we have'''
     sort_index: tuple = field(init=False, repr=False)
-
     geode: int = 0
     obsidian: int = 0
     clay: int = 0
@@ -118,10 +116,6 @@ class Blueprint:
 
     def __iter__(self):
         return iter((self.ore, self.clay, self.obsidian, self.geode))
-
-    # def __getitem__(self, index: int):
-    #     values = (self.ore, self.clay, self.obsidian, self.geode)
-    #     return values[index]
 
 
 def max_resource_cost(blueprint: Blueprint):
@@ -190,10 +184,6 @@ def maximize_geodes(
         for robot_type, cost in enumerate(list(blueprint)[:-1]):
             # Avoid building more robots than the max resource consumption rate
             if bots[robot_type] >= max_costs[robot_type]:
-                # print(
-                #     'excess!', robot_type, bots[robot_type],
-                #     max_costs[robot_type]
-                # )
                 continue
 
             if resources.can_build(cost):
