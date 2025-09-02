@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import ast
+import math
 import re
 import sys
 from dataclasses import asdict, dataclass, field
@@ -154,7 +154,7 @@ def maximize_geodes(
         resources, bots, minleft = heappop(q)
 
         i += 1
-        if i % 100000 == 0:
+        if i % 200000 == 0:
             print(
                 f'BP {blueprint.id}:',
                 str(len(q)).rjust(8),
@@ -214,49 +214,22 @@ def maximize_geodes(
 
 
 def simulate(blueprints: list[Blueprint], minutes_left: int):
-
+    results = {}
     bots = Bots(ore=1)
     resources = Resources()
 
-    LOG_FNAME = Path('results.log')
-
-    if LOG_FNAME.exists():
-        results = [
-            ast.literal_eval(line)
-            for line in open(LOG_FNAME).read().strip().splitlines()
-        ]
-    else:
-        results = []
-
-    # LOG_FNAME.exists() and LOG_FNAME.unlink()
-
-    ans = 0
     for idx, blueprint in enumerate(blueprints):
+        print(f'\n>> Blueprint {blueprint.id}\n')
+        best = maximize_geodes(blueprint, bots, resources, minutes_left)
+        print(
+            f'\033[95mBEST: {best} geodes for Blueprint #{blueprint.id}\033[0m'
+        )
+        results[blueprint.id] = best
 
-        if results and blueprint.id <= results[-1][0]:
-            _, best, quality = results[idx]
-        else:
-            print(f'\n>> Blueprint {blueprint.id}\n')
-
-            best = maximize_geodes(blueprint, bots, resources, minutes_left)
-            quality = best * blueprint.id
-
-            row = [blueprint.id, best, quality]
-            with open(LOG_FNAME, 'a') as f:
-                f.write(f'{row}\n')
-            results.append(row)
-
-        print(f'\033[95mBEST: {best} * #{blueprint.id} = {quality}\033[0m')
-
-        ans += quality
-
-    return ans
+    return results
 
 
 def main():
-    # with open('sample.in') as f:
-    #     lines = f.read().strip().splitlines()
-
     lines = sys.stdin.read().strip().splitlines()
 
     blueprints: list[Blueprint] = []
@@ -272,11 +245,13 @@ def main():
             )
         )
 
-    # a1 = simulate(blueprints, 24)
-    a2 = simulate(blueprints[:3], 32)
+    a1_results = simulate(blueprints, 24)
+    ans1 = sum(i * n for i, n in a1_results.items())
+    print('part1:', ans1)
 
-    # print('part1:', a1)
-    print('part2:', a2)
+    a2_results = simulate(blueprints[:3], 32)
+    ans2 = math.prod(a2_results.values())
+    print('part2:', ans2)
 
 
 if __name__ == '__main__':
