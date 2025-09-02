@@ -21,16 +21,16 @@ def apply_gravity(moons: list, velocities: list):
             delta_velocities[m1][axis] += d1
             delta_velocities[m2][axis] += d2
 
-    final_velocities = [
+    final_velocities = tuple(
         (vx + dvx, vy + dvy, vz + dvz)
         for (vx, vy, vz), (dvx, dvy, dvz) in zip(delta_velocities, velocities)
-    ]
+    )
 
     # Apply deltas
-    return [
+    return tuple(
         (x + dx, y + dy, z + dz)
         for (x, y, z), (dx, dy, dz) in zip(moons, final_velocities)
-    ], final_velocities
+    ), final_velocities
 
 
 def calculate_energy(moons: list, velocities: list):
@@ -47,16 +47,11 @@ def print_status():
         )
 
 
-moons = list(batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3))
-velocities = [(0, 0, 0) for i in range(len(moons))]
-
-print(f'\nAfter 0 steps:')
-print_status()
+moons = tuple(batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3))
+velocities = tuple((0, 0, 0) for i in range(len(moons)))
 
 for i in range(1000):
     moons, velocities = apply_gravity(moons, velocities)
-    print(f'\nAfter {i+1} steps:')
-    print_status()
 
 ans1 = calculate_energy(moons, velocities)
 print('part1:', ans1)
