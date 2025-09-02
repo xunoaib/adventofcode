@@ -2,7 +2,19 @@
 import copy
 import re
 import sys
-from itertools import batched, combinations
+from collections import defaultdict
+from itertools import batched, combinations, pairwise
+from typing import Literal
+
+X, Y, Z = range(3)
+
+
+def extract_dim(moons: tuple, dim: int):
+    return tuple(m[dim] for m in moons)
+
+
+def pwdiff(nums):
+    return [b - a for a, b in pairwise(nums)]
 
 
 def apply_gravity(moons: list, velocities: list):
@@ -11,7 +23,7 @@ def apply_gravity(moons: list, velocities: list):
     for m1, m2 in combinations(range(len(moons)), 2):
         p1 = moons[m1]
         p2 = moons[m2]
-        for axis in [0, 1, 2]:
+        for axis in [X, Y, Z]:
             if p1[axis] > p2[axis]:
                 d1, d2 = -1, 1
             elif p1[axis] < p2[axis]:
@@ -49,21 +61,34 @@ def print_status():
 
 moons = tuple(batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3))
 velocities = tuple((0, 0, 0) for i in range(len(moons)))
-seen = {(moons, velocities)}
 
-for i in range(1000):
-    state = moons, velocities = apply_gravity(moons, velocities)
-    seen.add(state)
+x_hist = defaultdict(list)
+y_hist = defaultdict(list)
+z_hist = defaultdict(list)
 
-ans1 = calculate_energy(moons, velocities)
-print('part1:', ans1)
+for m in moons:
+    x_hist[extract_dim(moons, X)].append(0)
+    y_hist[extract_dim(moons, Y)].append(0)
+    z_hist[extract_dim(moons, Z)].append(0)
 
+ans1 = ans2 = 0
+
+i = 1
 while True:
-    state = moons, velocities = apply_gravity(moons, velocities)
-    i += 1
-    if state in seen:
-        print('part2:', i)
-        break
-    seen.add(state)
+    moons, velocities = apply_gravity(moons, velocities)
 
-assert ans1 == 9493
+    if i == 1000:
+        ans1 = calculate_energy(moons, velocities)
+        print('part1:', ans1)
+
+    new_x = extract_dim(moons, X)
+    x_hist[new_x].append(i)
+
+    if len(x_hist[new_x]) > 2:
+        print(pwdiff(x_hist[new_x]))
+
+    i += 1
+    if i > 1000000:
+        break
+
+assert ans1 == 9493, ans1
