@@ -206,6 +206,8 @@ def maximize_geodes(
             visited.add(item)
             heappush(q, item)
 
+    return best_geodes
+
 
 def main():
     with open('sample.in') as f:
@@ -228,9 +230,16 @@ def main():
     resources = Resources()
     minutes_left = 24
 
+    a1 = 0
+
     for idx, blueprint in enumerate(blueprints):
         print(f'\n>> Blueprint {blueprint.id}\n')
-        maximize_geodes(blueprint, bots, resources, minutes_left)
+        best = maximize_geodes(blueprint, bots, resources, minutes_left)
+        quality = best * blueprint.id
+        print(f'\033[95mBEST: {best} * #{blueprint.id} = {quality}\033[0m')
+        a1 += quality
+
+    print('part1:', a1)
 
 
 if __name__ == '__main__':
