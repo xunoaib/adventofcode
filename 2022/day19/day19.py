@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import ast
 import re
 import sys
 from dataclasses import asdict, dataclass, field
 from functools import cache
 from heapq import heappop, heappush
+from pathlib import Path
 
 ORE, CLAY, OBSIDIAN, GEODE = range(4)
 
@@ -152,9 +154,11 @@ def maximize_geodes(
         resources, bots, minleft = heappop(q)
 
         i += 1
-        if i % 10000 == 0:
+        if i % 100000 == 0:
             print(
-                len(visited),
+                f'BP {blueprint.id}:',
+                str(len(q)).rjust(8),
+                str(len(visited)).rjust(8),
                 minleft,
                 str(resources).ljust(49),
                 str(bots).ljust(49),
@@ -169,7 +173,7 @@ def maximize_geodes(
         # Collect resources from bots
         gathered = bots.gather()
 
-        # Greedily build a geode robot
+        # Greedily build a geode robot (NOTE: could be wrong)
         if resources.can_build(blueprint.geode):
             item = (
                 resources.subtract(blueprint.geode).add(gathered),
@@ -209,9 +213,51 @@ def maximize_geodes(
     return best_geodes
 
 
+def simulate(blueprints: list[Blueprint], minutes_left: int):
+
+    bots = Bots(ore=1)
+    resources = Resources()
+
+    LOG_FNAME = Path('results.log')
+
+    if LOG_FNAME.exists():
+        results = [
+            ast.literal_eval(line)
+            for line in open(LOG_FNAME).read().strip().splitlines()
+        ]
+    else:
+        results = []
+
+    # LOG_FNAME.exists() and LOG_FNAME.unlink()
+
+    ans = 0
+    for idx, blueprint in enumerate(blueprints):
+
+        if results and blueprint.id <= results[-1][0]:
+            _, best, quality = results[idx]
+        else:
+            print(f'\n>> Blueprint {blueprint.id}\n')
+
+            best = maximize_geodes(blueprint, bots, resources, minutes_left)
+            quality = best * blueprint.id
+
+            row = [blueprint.id, best, quality]
+            with open(LOG_FNAME, 'a') as f:
+                f.write(f'{row}\n')
+            results.append(row)
+
+        print(f'\033[95mBEST: {best} * #{blueprint.id} = {quality}\033[0m')
+
+        ans += quality
+
+    return ans
+
+
 def main():
-    with open('sample.in') as f:
-        lines = f.read().strip().splitlines()
+    # with open('sample.in') as f:
+    #     lines = f.read().strip().splitlines()
+
+    lines = sys.stdin.read().strip().splitlines()
 
     blueprints: list[Blueprint] = []
     for i, line in enumerate(lines):
@@ -226,20 +272,11 @@ def main():
             )
         )
 
-    bots = Bots(ore=1)
-    resources = Resources()
-    minutes_left = 24
+    # a1 = simulate(blueprints, 24)
+    a2 = simulate(blueprints[:3], 32)
 
-    a1 = 0
-
-    for idx, blueprint in enumerate(blueprints):
-        print(f'\n>> Blueprint {blueprint.id}\n')
-        best = maximize_geodes(blueprint, bots, resources, minutes_left)
-        quality = best * blueprint.id
-        print(f'\033[95mBEST: {best} * #{blueprint.id} = {quality}\033[0m')
-        a1 += quality
-
-    print('part1:', a1)
+    # print('part1:', a1)
+    print('part2:', a2)
 
 
 if __name__ == '__main__':
