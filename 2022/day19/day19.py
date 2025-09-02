@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json
+import ast
 import math
 import re
 import sys
@@ -209,21 +209,24 @@ def simulate(blueprints: list[Blueprint], minutes_left: int):
     resources = Resources()
 
     cache = Path(f'results_{minutes_left}min.json')
-    results = json.load(open(cache)) if cache.exists() else {}
+    if cache.exists():
+        print('Reading from cache...', cache.name)
+        results = ast.literal_eval(cache.read_text())
+    else:
+        results = {}
 
     for idx, blueprint in enumerate(blueprints):
-        print(f'\n>> Blueprint {blueprint.id}\n')
-
         if blueprint.id not in results:
+            print(f'\n>> Blueprint {blueprint.id}\n')
             results[
                 blueprint.id
             ] = maximize_geodes(blueprint, bots, resources, minutes_left)
 
             with open(cache, 'w') as f:
-                json.dump(results, f)
+                print(results, file=f)
 
         print(
-            f'\033[95mBlueprint #{blueprint.id} best: {results[blueprint.id]} geodes\033[0m'
+            f'Blueprint #{blueprint.id} best = {results[blueprint.id]} geodes'
         )
 
     return results
