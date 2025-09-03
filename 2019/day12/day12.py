@@ -50,7 +50,7 @@ class Moon:
         return abs(sum(map(abs, self.position)) * sum(map(abs, self.velocity)))
 
 
-@dataclass
+@dataclass(frozen=True)
 class System:
     moons: list[Moon]
     time: int = 0
@@ -126,12 +126,13 @@ def calculate_velocity_deltas(moons: list[Moon]):
     return delta_velocities
 
 
-def main():
-    data = sys.stdin.read()
-    groups = batched(map(int, re.findall(r'-?\d+', data)), 3)
-    moons = [Moon(position=Vec(*arg), velocity=Vec(0, 0, 0)) for arg in groups]
-    system = System(moons)
+def part1(system: System):
+    for _ in range(1000):
+        system = system.step()
+    return system.energy()
 
+
+def part2(system: System, cache_id: str):
     histories: list[dict[tuple[int, ...],
                          list[int]]] = [defaultdict(list[int]) for _ in 'xyz']
     xhist, yhist, zhist = histories
@@ -143,9 +144,9 @@ def main():
     for axis, hist in enumerate(histories):
         hist[system.axis_coords(axis)].append(0)
 
-    ans1 = ans2 = step = 0
+    ans2 = step = 0
 
-    CACHE = Path(f'cache_{md5(data.encode()).hexdigest()}.pkl')
+    CACHE = Path(f'cache_{cache_id}.pkl')
 
     if CACHE.exists():
         print('Loading cache...')
@@ -161,10 +162,6 @@ def main():
             for axis, hist in enumerate(histories):
                 hist[system.axis_coords(axis)].append(step)
 
-            if step == 1000:
-                ans1 = system.energy()
-                print('part1:', ans1)
-
             # Wait until we find a repeating pattern on each axis
             if all(
                 len(hist[init]) >= 5
@@ -176,8 +173,8 @@ def main():
             pickle.dump((histories, step), f)
 
     # Repeating states seems to occur at two alternating intervals.
-    # This might be input/puzzle-specific.
-    # Let's confirm, then just merge them into one interval.
+    # We want a single interval, so we merge the two alternating ones.
+    # Note: This might be input/puzzle-specific.
 
     xdiffs = pairwise_diff(xhist[xinit])
     ydiffs = pairwise_diff(yhist[yinit])
@@ -188,17 +185,27 @@ def main():
         assert len(set(diffs[::2])) == len(set(diffs[1::2])) == 1
         intervals.append(diffs[0] + diffs[1])
 
-    print(intervals)
-
-    print('step:', step)
     print('X:', xdiffs)
     print('Y:', ydiffs)
     print('Z:', zdiffs)
 
-    lcm = math.lcm(*intervals)
-    print('part2:', lcm)
+    return math.lcm(*intervals)
 
-    # assert ans1 == 9493, ans1
+
+def main():
+    data = sys.stdin.read()
+    groups = batched(map(int, re.findall(r'-?\d+', data)), 3)
+    moons = [Moon(position=Vec(*arg), velocity=Vec(0, 0, 0)) for arg in groups]
+    system = System(moons)
+
+    ans1 = part1(system)
+    print('part1:', ans1)
+
+    ans2 = part2(system, md5(data.encode()).hexdigest())
+    print('part2:', ans2)
+
+    assert ans1 == 9493
+    assert ans2 == 326365108375488
 
 
 if __name__ == '__main__':
