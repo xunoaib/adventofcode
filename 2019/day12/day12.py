@@ -1,4 +1,5 @@
 import copy
+import math
 import pickle
 import re
 import sys
@@ -174,11 +175,28 @@ def main():
         with open(CACHE, 'wb') as f:
             pickle.dump((histories, step), f)
 
-    print(step)
+    # Repeating states seems to occur at two alternating intervals.
+    # This might be input/puzzle-specific.
+    # Let's confirm, then just merge them into one interval.
 
-    print('X:', pairwise_diff(xhist[xinit]))
-    print('Y:', pairwise_diff(yhist[yinit]))
-    print('Z:', pairwise_diff(zhist[zinit]))
+    xdiffs = pairwise_diff(xhist[xinit])
+    ydiffs = pairwise_diff(yhist[yinit])
+    zdiffs = pairwise_diff(zhist[zinit])
+
+    intervals = []
+    for diffs in (xdiffs, ydiffs, zdiffs):
+        assert len(set(diffs[::2])) == len(set(diffs[1::2])) == 1
+        intervals.append(diffs[0] + diffs[1])
+
+    print(intervals)
+
+    print('step:', step)
+    print('X:', xdiffs)
+    print('Y:', ydiffs)
+    print('Z:', zdiffs)
+
+    lcm = math.lcm(*intervals)
+    print('part2:', lcm)
 
     # assert ans1 == 9493, ans1
 
