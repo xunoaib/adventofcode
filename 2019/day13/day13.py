@@ -11,6 +11,7 @@ def run_simulation(mem, input_val) -> list[int]:
     pc = relative_base = 0
     outputs = []
     last_output = None
+    score = 0
     while True:
         opcode = mem[pc]
 
@@ -38,6 +39,14 @@ def run_simulation(mem, input_val) -> list[int]:
 
         if opcode == 4:
             outputs.append(val1)
+
+            # Detect score output case
+            tail = outputs[-3:]
+            if tail[:2] == [-1, 0]:
+                score = tail[2]
+                outputs = outputs[:-3]
+                print('Score:', score)
+
             last_output = val1
             pc += 2
             continue
