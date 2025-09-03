@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import sys
 from collections import defaultdict
+from itertools import batched
 
 POS, IMM, REL = 0, 1, 2
 
 
-def run_simulation(mem, input_val):
+def run_simulation(mem, input_val) -> list[int]:
     mem = defaultdict(lambda: 0, {i: val for i, val in enumerate(mem)})
     pc = relative_base = 0
+    outputs = []
     last_output = None
     while True:
         opcode = mem[pc]
@@ -35,6 +37,7 @@ def run_simulation(mem, input_val):
             continue
 
         if opcode == 4:
+            outputs.append(val1)
             last_output = val1
             pc += 2
             continue
@@ -80,28 +83,24 @@ def run_simulation(mem, input_val):
             print('unknown opcode:', opcode)
             return
 
-    return last_output
+    return outputs
 
 
 def part1(mem):
-    return run_simulation(mem, 1)
+    outputs = run_simulation(mem, 1)
 
+    screen = {}
+    for x, y, tid in batched(outputs, 3):
+        screen[x, y] = tid
 
-def part2(mem):
-    return run_simulation(mem, 2)
+    return list(screen.values()).count(2)
 
 
 def main():
     mem = list(map(int, sys.stdin.read().split(',')))
 
-    ans1 = part1(mem)
-    print('part1:', ans1)
-
-    ans2 = part2(mem)
-    print('part2:', ans2)
-
-    assert ans1 == 2932210790
-    assert ans2 == 73144
+    a1 = part1(mem)
+    print('part1:', a1)
 
 
 if __name__ == '__main__':
