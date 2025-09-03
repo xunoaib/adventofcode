@@ -152,6 +152,9 @@ def main():
     a2 = part2(mem)
     print('part2:', a2)
 
+    assert a1 == 333
+    assert a2 == 16539
+
 
 if __name__ == '__main__':
     main()
