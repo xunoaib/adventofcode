@@ -88,12 +88,34 @@ def run_simulation(mem, input_val) -> list[int]:
 
 def part1(mem):
     outputs = run_simulation(mem, 1)
-
-    screen = {}
-    for x, y, tid in batched(outputs, 3):
-        screen[x, y] = tid
-
+    screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
     return list(screen.values()).count(2)
+
+
+def part2(mem):
+    mem[0] = 2
+
+    joystick_inputs = [0]
+
+    for j in joystick_inputs:
+        outputs = run_simulation(mem, j)
+        screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
+        print_screen(screen)
+        print()
+
+
+def print_screen(screen: dict):
+    min_x = min(x for x, y in screen)
+    min_y = min(y for x, y in screen)
+    max_x = max(x for x, y in screen)
+    max_y = max(y for x, y in screen)
+
+    lookup = ' #x-o'
+
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            print(lookup[screen.get((x, y), 0)], end='')
+        print('')
 
 
 def main():
@@ -101,6 +123,9 @@ def main():
 
     a1 = part1(mem)
     print('part1:', a1)
+
+    a2 = part2(mem)
+    print('part2:', a2)
 
 
 if __name__ == '__main__':
