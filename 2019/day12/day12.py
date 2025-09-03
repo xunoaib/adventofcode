@@ -146,31 +146,20 @@ def part2(system: System, cache_id: str):
 
     ans2 = step = 0
 
-    CACHE = Path(f'cache_{cache_id}.pkl')
+    while True:
+        system = system.step()
+        step += 1
 
-    if CACHE.exists():
-        print('Loading cache...')
-        with open(CACHE, 'rb') as f:
-            histories, step = pickle.load(f)
-            xhist, yhist, zhist = histories
-    else:
-        while True:
-            system = system.step()
-            step += 1
+        # Log positions
+        for axis, hist in enumerate(histories):
+            hist[system.axis_coords(axis)].append(step)
 
-            # Log positions
-            for axis, hist in enumerate(histories):
-                hist[system.axis_coords(axis)].append(step)
-
-            # Wait until we find a repeating pattern on each axis
-            if all(
-                len(hist[init]) >= 5
-                for hist, init in zip(histories, initial_states)
-            ):
-                break
-
-        with open(CACHE, 'wb') as f:
-            pickle.dump((histories, step), f)
+        # Wait until we find a repeating pattern on each axis
+        if all(
+            len(hist[init]) >= 5
+            for hist, init in zip(histories, initial_states)
+        ):
+            break
 
     # Repeating states seems to occur at two alternating intervals.
     # We want a single interval, so we merge the two alternating ones.
@@ -185,9 +174,9 @@ def part2(system: System, cache_id: str):
         assert len(set(diffs[::2])) == len(set(diffs[1::2])) == 1
         intervals.append(diffs[0] + diffs[1])
 
-    print('X:', xdiffs)
-    print('Y:', ydiffs)
-    print('Z:', zdiffs)
+    # print('X:', xdiffs)
+    # print('Y:', ydiffs)
+    # print('Z:', zdiffs)
 
     return math.lcm(*intervals)
 
