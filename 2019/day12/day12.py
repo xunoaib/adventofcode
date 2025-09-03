@@ -132,7 +132,7 @@ def part1(system: System):
     return system.energy()
 
 
-def part2(system: System, cache_id: str):
+def part2(system: System):
     histories: list[dict[tuple[int, ...],
                          list[int]]] = [defaultdict(list[int]) for _ in 'xyz']
     xhist, yhist, zhist = histories
@@ -174,10 +174,6 @@ def part2(system: System, cache_id: str):
         assert len(set(diffs[::2])) == len(set(diffs[1::2])) == 1
         intervals.append(diffs[0] + diffs[1])
 
-    # print('X:', xdiffs)
-    # print('Y:', ydiffs)
-    # print('Z:', zdiffs)
-
     return math.lcm(*intervals)
 
 
@@ -190,7 +186,7 @@ def main():
     ans1 = part1(system)
     print('part1:', ans1)
 
-    ans2 = part2(system, md5(data.encode()).hexdigest())
+    ans2 = part2(system)
     print('part2:', ans2)
 
     assert ans1 == 9493
