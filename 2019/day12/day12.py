@@ -28,6 +28,11 @@ class Vec:
     def __str__(self):
         return f'<x={self.x:2}, y={self.y:3}, z={self.z:2}>'
 
+    def __iter__(self):
+        yield self.x
+        yield self.y
+        yield self.z
+
 
 @dataclass(frozen=True)
 class Moon:
@@ -37,10 +42,14 @@ class Moon:
     def __str__(self):
         return f'pos={self.position}, vel={self.velocity}'
 
+    def energy(self):
+        return abs(sum(map(abs, self.position)) * sum(map(abs, self.velocity)))
+
 
 @dataclass
 class System:
     moons: list[Moon]
+    time: int = 0
 
     @property
     def x_coords(self):
@@ -66,7 +75,22 @@ class System:
                 raise IndexError()
 
     def __str__(self):
-        return '\n'.join(f'{moon}' for moon in self.moons)
+        return f'After {self.time} steps:\n' + '\n'.join(
+            f'{moon}' for moon in self.moons
+        ) + '\n'
+
+    def step(self):
+        dvs = calculate_velocity_deltas(self.moons)
+        moons = [
+            Moon(
+                position=m.velocity + dv + m.position,
+                velocity=m.velocity + dv,
+            ) for m, dv in zip(self.moons, dvs)
+        ]
+        return System(moons, self.time + 1)
+
+    def energy(self):
+        return sum(m.energy() for m in self.moons)
 
 
 def pairwise_diff(nums):
@@ -92,35 +116,10 @@ def calculate_velocity_deltas(moons: list[Moon]):
             dv1.append(d1)
             dv2.append(d2)
 
-        delta_velocities[m1] = Vec(*dv1)
-        delta_velocities[m2] = Vec(*dv2)
+        delta_velocities[m1] += Vec(*dv1)
+        delta_velocities[m2] += Vec(*dv2)
 
     return delta_velocities
-
-    # final_velocities = tuple(
-    #     (vx + dvx, vy + dvy, vz + dvz)
-    #     for (vx, vy, vz), (dvx, dvy, dvz) in zip(delta_velocities, velocities)
-    # )
-    #
-    # # Apply deltas
-    # return tuple(
-    #     (x + dx, y + dy, z + dz)
-    #     for (x, y, z), (dx, dy, dz) in zip(moons, final_velocities)
-    # ), final_velocities
-
-
-def calculate_energy(moons: list, velocities: list):
-    return sum(
-        abs(sum(map(abs, pos)) * sum(map(abs, vel)))
-        for pos, vel in zip(moons, velocities)
-    )
-
-
-# def print_status():
-#     for (x, y, z), (vx, vy, vz) in zip(moons, velocities):
-#         print(
-#             f'pos=<x={x:2}, y={y:3}, z={z:2}>, vel=<x={vx:2}, y={vy:2}, z={vz:2}>'
-#         )
 
 
 def main():
@@ -146,10 +145,9 @@ def main():
     while True:
         step += 1
         dvs = calculate_velocity_deltas(moons)
-
-        print(dvs)
+        system = system.step()
+        print(system)
         exit(0)
-        moons, velocities = apply_gravity(moons, velocities)
 
         if step == 1000:
             ans1 = calculate_energy(moons, velocities)
