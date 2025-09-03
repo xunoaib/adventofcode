@@ -8,17 +8,29 @@ POS, IMM, REL = 0, 1, 2
 
 class JoystickController:
 
-    def next(self, mem: dict[int, int]):
-        # TODO: move joystick to meet ball
-        return 0
+    def next(self, outputs: list[int]):
+        # find ball and paddle positions
+        ball = [(x, y) for x, y, tid in batched(outputs, 3) if tid == 4][-1]
+        paddle = [(x, y) for x, y, tid in batched(outputs, 3) if tid == 3][-1]
+
+        # move paddle to meet ball
+        if ball[0] < paddle[0]:
+            return -1
+        elif ball[0] > paddle[0]:
+            return 1
+        else:
+            return 0
 
 
-def run_simulation(mem, input_source: int | JoystickController) -> list[int]:
+def run_simulation(
+    mem, input_source: int | JoystickController
+) -> tuple[list[int], int]:
     mem = defaultdict(lambda: 0, {i: val for i, val in enumerate(mem)})
     pc = relative_base = 0
     outputs = []
     last_output = None
     score = 0
+
     while True:
         opcode = mem[pc]
 
@@ -42,7 +54,7 @@ def run_simulation(mem, input_source: int | JoystickController) -> list[int]:
         if opcode == 3:
             mem[param1] = input_source if isinstance(
                 input_source, int
-            ) else input_source.next(mem)
+            ) else input_source.next(outputs)
             pc += 2
             continue
 
@@ -54,7 +66,6 @@ def run_simulation(mem, input_source: int | JoystickController) -> list[int]:
             if tail[:2] == [-1, 0]:
                 score = tail[2]
                 outputs = outputs[:-3]
-                print('Score:', score)
 
             last_output = val1
             pc += 2
@@ -101,24 +112,21 @@ def run_simulation(mem, input_source: int | JoystickController) -> list[int]:
             print('unknown opcode:', opcode)
             return
 
-    return outputs
+    return outputs, score
 
 
 def part1(mem):
-    outputs = run_simulation(mem, 1)
+    outputs, score = run_simulation(mem, 1)
     screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
     return list(screen.values()).count(2)
 
 
 def part2(mem):
     mem[0] = 2
-
-    joystick_inputs = JoystickController()
-
-    outputs = run_simulation(mem, joystick_inputs)
+    outputs, score = run_simulation(mem, JoystickController())
     screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
     print_screen(screen)
-    print()
+    return score
 
 
 def print_screen(screen: dict):
