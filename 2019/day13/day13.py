@@ -6,7 +6,14 @@ from itertools import batched
 POS, IMM, REL = 0, 1, 2
 
 
-def run_simulation(mem, input_val) -> list[int]:
+class JoystickController:
+
+    def next(self, mem: dict[int, int]):
+        # TODO: move joystick to meet ball
+        return 0
+
+
+def run_simulation(mem, input_source: int | JoystickController) -> list[int]:
     mem = defaultdict(lambda: 0, {i: val for i, val in enumerate(mem)})
     pc = relative_base = 0
     outputs = []
@@ -33,7 +40,9 @@ def run_simulation(mem, input_val) -> list[int]:
         val1 = param1 if mode1 == IMM else mem[param1]
 
         if opcode == 3:
-            mem[param1] = input_val
+            mem[param1] = input_source if isinstance(
+                input_source, int
+            ) else input_source.next(mem)
             pc += 2
             continue
 
@@ -104,13 +113,12 @@ def part1(mem):
 def part2(mem):
     mem[0] = 2
 
-    joystick_inputs = [0]
+    joystick_inputs = JoystickController()
 
-    for j in joystick_inputs:
-        outputs = run_simulation(mem, j)
-        screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
-        print_screen(screen)
-        print()
+    outputs = run_simulation(mem, joystick_inputs)
+    screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
+    print_screen(screen)
+    print()
 
 
 def print_screen(screen: dict):
