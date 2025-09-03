@@ -131,48 +131,42 @@ def main():
                       ] = [defaultdict(list[int]) for _ in 'xyz']
     xhist, yhist, zhist = state_times
 
-    step = 0
-
     # Log initial state
     for m in moons:
         for hist in state_times:
-            hist[system.axis_coords(X)].append(step)
+            hist[system.axis_coords(X)].append(0)
 
-    ans1 = ans2 = 0
-
-    print(system)
+    ans1 = ans2 = step = 0
 
     while True:
-        step += 1
-        dvs = calculate_velocity_deltas(moons)
         system = system.step()
-        print(system)
-        exit(0)
+        step += 1
 
         if step == 1000:
-            ans1 = calculate_energy(moons, velocities)
+            ans1 = system.energy()
             print('part1:', ans1)
-
-        new_x = extract_dim(moons, X)
-        new_y = extract_dim(moons, Y)
-        new_z = extract_dim(moons, Z)
-
-        x_hist[new_x].append(step)
-        y_hist[new_y].append(step)
-        z_hist[new_z].append(step)
-
-        # for d in (x_hist, y_hist, z_hist):
-        #     if len(d[new_x]) > 2:
-        #         print(pwdiff(d[new_x]))
-
-        if step > 1000000:
             break
 
-    import pickle
+        # new_x = extract_dim(moons, X)
+        # new_y = extract_dim(moons, Y)
+        # new_z = extract_dim(moons, Z)
+        #
+        # x_hist[new_x].append(step)
+        # y_hist[new_y].append(step)
+        # z_hist[new_z].append(step)
+        #
+        # # for d in (x_hist, y_hist, z_hist):
+        # #     if len(d[new_x]) > 2:
+        # #         print(pwdiff(d[new_x]))
+        #
+        # if step > 1000000:
+        #     break
 
-    pickle.dump((x_hist, y_hist, z_hist), open('histories.pkl', 'wb'))
+    # import pickle
+    #
+    # pickle.dump((x_hist, y_hist, z_hist), open('histories.pkl', 'wb'))
 
-    assert ans1 == 9493, ans1
+    # assert ans1 == 9493, ans1
 
 
 if __name__ == '__main__':
