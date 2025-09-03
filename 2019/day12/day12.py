@@ -4,6 +4,7 @@ import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+from hashlib import md5
 from itertools import batched, combinations, pairwise
 from pathlib import Path
 from typing import Literal
@@ -125,7 +126,8 @@ def calculate_velocity_deltas(moons: list[Moon]):
 
 
 def main():
-    groups = batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3)
+    data = sys.stdin.read()
+    groups = batched(map(int, re.findall(r'-?\d+', data)), 3)
     moons = [Moon(position=Vec(*arg), velocity=Vec(0, 0, 0)) for arg in groups]
     system = System(moons)
 
@@ -142,7 +144,7 @@ def main():
 
     ans1 = ans2 = step = 0
 
-    CACHE = Path('cache.pkl')
+    CACHE = Path(f'cache_{md5(data.encode()).hexdigest()}.pkl')
 
     if CACHE.exists():
         print('Loading cache...')
