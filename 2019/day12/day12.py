@@ -1,9 +1,11 @@
 import copy
+import pickle
 import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import batched, combinations, pairwise
+from pathlib import Path
 from typing import Literal
 
 X, Y, Z = range(3)
@@ -127,44 +129,54 @@ def main():
     moons = [Moon(position=Vec(*arg), velocity=Vec(0, 0, 0)) for arg in groups]
     system = System(moons)
 
-    state_times: list[dict[tuple[int, ...], list[int]]
-                      ] = [defaultdict(list[int]) for _ in 'xyz']
-    xhist, yhist, zhist = state_times
+    histories: list[dict[tuple[int, ...],
+                         list[int]]] = [defaultdict(list[int]) for _ in 'xyz']
+    xhist, yhist, zhist = histories
 
     # Log initial state
-    for m in moons:
-        for hist in state_times:
-            hist[system.axis_coords(X)].append(0)
+    initial_states = xinit, yinit, zinit = [
+        system.axis_coords(axis) for axis in [X, Y, Z]
+    ]
+    for axis, hist in enumerate(histories):
+        hist[system.axis_coords(axis)].append(0)
 
     ans1 = ans2 = step = 0
 
-    while True:
-        system = system.step()
-        step += 1
+    CACHE = Path('cache.pkl')
 
-        if step == 1000:
-            ans1 = system.energy()
-            print('part1:', ans1)
-            break
+    if CACHE.exists():
+        print('Loading cache...')
+        with open(CACHE, 'rb') as f:
+            histories, step = pickle.load(f)
+            xhist, yhist, zhist = histories
+    else:
+        while True:
+            system = system.step()
+            step += 1
 
-        # new_x = extract_dim(moons, X)
-        # new_y = extract_dim(moons, Y)
-        # new_z = extract_dim(moons, Z)
-        #
-        # x_hist[new_x].append(step)
-        # y_hist[new_y].append(step)
-        # z_hist[new_z].append(step)
-        #
-        # # for d in (x_hist, y_hist, z_hist):
-        # #     if len(d[new_x]) > 2:
-        # #         print(pwdiff(d[new_x]))
-        #
-        # if step > 1000000:
-        #     break
+            # Log positions
+            for axis, hist in enumerate(histories):
+                hist[system.axis_coords(axis)].append(step)
 
-    # import pickle
-    #
-    # pickle.dump((x_hist, y_hist, z_hist), open('histories.pkl', 'wb'))
+            if step == 1000:
+                ans1 = system.energy()
+                print('part1:', ans1)
+
+            # Wait until we find a repeating pattern on each axis
+            if all(
+                len(hist[init]) >= 5
+                for hist, init in zip(histories, initial_states)
+            ):
+                break
+
+        with open(CACHE, 'wb') as f:
+            pickle.dump((histories, step), f)
+
+    print(step)
+
+    print('X:', pairwise_diff(xhist[xinit]))
+    print('Y:', pairwise_diff(yhist[yinit]))
+    print('Z:', pairwise_diff(zhist[zinit]))
 
     # assert ans1 == 9493, ans1
 
