@@ -82,13 +82,23 @@ while True:
         print('part1:', ans1)
 
     new_x = extract_dim(moons, X)
-    x_hist[new_x].append(i)
+    new_y = extract_dim(moons, Y)
+    new_z = extract_dim(moons, Z)
 
-    if len(x_hist[new_x]) > 2:
-        print(pwdiff(x_hist[new_x]))
+    x_hist[new_x].append(i)
+    y_hist[new_y].append(i)
+    z_hist[new_z].append(i)
+
+    # for d in (x_hist, y_hist, z_hist):
+    #     if len(d[new_x]) > 2:
+    #         print(pwdiff(d[new_x]))
 
     i += 1
     if i > 1000000:
         break
+
+import pickle
+
+pickle.dump((x_hist, y_hist, z_hist), open('histories.pkl', 'wb'))
 
 assert ans1 == 9493, ans1
