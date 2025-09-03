@@ -1,48 +1,112 @@
-#!/usr/bin/env python3
 import copy
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from itertools import batched, combinations, pairwise
 from typing import Literal
 
 X, Y, Z = range(3)
 
 
-def extract_dim(moons: tuple, dim: int):
-    return tuple(m[dim] for m in moons)
+@dataclass(frozen=True)
+class Vec:
+    x: int
+    y: int
+    z: int
+
+    def __add__(self, other: 'Vec'):
+        return Vec(
+            self.x + other.x,
+            self.y + other.y,
+            self.z + other.z,
+        )
+
+    def __getitem__(self, index: int):
+        return (self.x, self.y, self.z)[index]
+
+    def __str__(self):
+        return f'<x={self.x:2}, y={self.y:3}, z={self.z:2}>'
 
 
-def pwdiff(nums):
+@dataclass(frozen=True)
+class Moon:
+    position: Vec
+    velocity: Vec
+
+    def __str__(self):
+        return f'pos={self.position}, vel={self.velocity}'
+
+
+@dataclass
+class System:
+    moons: list[Moon]
+
+    @property
+    def x_coords(self):
+        return tuple(moon.position.x for moon in self.moons)
+
+    @property
+    def y_coords(self):
+        return tuple(moon.position.y for moon in self.moons)
+
+    @property
+    def z_coords(self):
+        return tuple(moon.position.z for moon in self.moons)
+
+    def axis_coords(self, axis: int):
+        match axis:
+            case 0:
+                return self.x_coords
+            case 1:
+                return self.y_coords
+            case 2:
+                return self.z_coords
+            case _:
+                raise IndexError()
+
+    def __str__(self):
+        return '\n'.join(f'{moon}' for moon in self.moons)
+
+
+def pairwise_diff(nums):
     return [b - a for a, b in pairwise(nums)]
 
 
-def apply_gravity(moons: list, velocities: list):
-    velocities = copy.deepcopy(velocities)
-    delta_velocities = [[0, 0, 0] for _ in velocities]
+def calculate_velocity_deltas(moons: list[Moon]):
+    '''Calculates the velocity deltas for each moon.'''
+
+    delta_velocities = [Vec(0, 0, 0) for _ in moons]
     for m1, m2 in combinations(range(len(moons)), 2):
-        p1 = moons[m1]
-        p2 = moons[m2]
+        pos1 = moons[m1].position
+        pos2 = moons[m2].position
+
+        dv1, dv2 = [], []
         for axis in [X, Y, Z]:
-            if p1[axis] > p2[axis]:
+            if pos1[axis] > pos2[axis]:
                 d1, d2 = -1, 1
-            elif p1[axis] < p2[axis]:
+            elif pos1[axis] < pos2[axis]:
                 d1, d2 = 1, -1
             else:
                 d1 = d2 = 0
-            delta_velocities[m1][axis] += d1
-            delta_velocities[m2][axis] += d2
+            dv1.append(d1)
+            dv2.append(d2)
 
-    final_velocities = tuple(
-        (vx + dvx, vy + dvy, vz + dvz)
-        for (vx, vy, vz), (dvx, dvy, dvz) in zip(delta_velocities, velocities)
-    )
+        delta_velocities[m1] = Vec(*dv1)
+        delta_velocities[m2] = Vec(*dv2)
 
-    # Apply deltas
-    return tuple(
-        (x + dx, y + dy, z + dz)
-        for (x, y, z), (dx, dy, dz) in zip(moons, final_velocities)
-    ), final_velocities
+    return delta_velocities
+
+    # final_velocities = tuple(
+    #     (vx + dvx, vy + dvy, vz + dvz)
+    #     for (vx, vy, vz), (dvx, dvy, dvz) in zip(delta_velocities, velocities)
+    # )
+    #
+    # # Apply deltas
+    # return tuple(
+    #     (x + dx, y + dy, z + dz)
+    #     for (x, y, z), (dx, dy, dz) in zip(moons, final_velocities)
+    # ), final_velocities
 
 
 def calculate_energy(moons: list, velocities: list):
@@ -52,53 +116,66 @@ def calculate_energy(moons: list, velocities: list):
     )
 
 
-def print_status():
-    for (x, y, z), (vx, vy, vz) in zip(moons, velocities):
-        print(
-            f'pos=<x={x:2}, y={y:3}, z={z:2}>, vel=<x={vx:2}, y={vy:2}, z={vz:2}>'
-        )
+# def print_status():
+#     for (x, y, z), (vx, vy, vz) in zip(moons, velocities):
+#         print(
+#             f'pos=<x={x:2}, y={y:3}, z={z:2}>, vel=<x={vx:2}, y={vy:2}, z={vz:2}>'
+#         )
 
 
-moons = tuple(batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3))
-velocities = tuple((0, 0, 0) for i in range(len(moons)))
+def main():
+    groups = batched(map(int, re.findall(r'-?\d+', sys.stdin.read())), 3)
+    moons = [Moon(position=Vec(*arg), velocity=Vec(0, 0, 0)) for arg in groups]
+    system = System(moons)
 
-x_hist = defaultdict(list)
-y_hist = defaultdict(list)
-z_hist = defaultdict(list)
+    state_times: list[dict[tuple[int, ...], list[int]]
+                      ] = [defaultdict(list[int]) for _ in 'xyz']
+    xhist, yhist, zhist = state_times
 
-for m in moons:
-    x_hist[extract_dim(moons, X)].append(0)
-    y_hist[extract_dim(moons, Y)].append(0)
-    z_hist[extract_dim(moons, Z)].append(0)
+    step = 0
 
-ans1 = ans2 = 0
+    # Log initial state
+    for m in moons:
+        for hist in state_times:
+            hist[system.axis_coords(X)].append(step)
 
-i = 1
-while True:
-    moons, velocities = apply_gravity(moons, velocities)
+    ans1 = ans2 = 0
 
-    if i == 1000:
-        ans1 = calculate_energy(moons, velocities)
-        print('part1:', ans1)
+    print(system)
 
-    new_x = extract_dim(moons, X)
-    new_y = extract_dim(moons, Y)
-    new_z = extract_dim(moons, Z)
+    while True:
+        step += 1
+        dvs = calculate_velocity_deltas(moons)
 
-    x_hist[new_x].append(i)
-    y_hist[new_y].append(i)
-    z_hist[new_z].append(i)
+        print(dvs)
+        exit(0)
+        moons, velocities = apply_gravity(moons, velocities)
 
-    # for d in (x_hist, y_hist, z_hist):
-    #     if len(d[new_x]) > 2:
-    #         print(pwdiff(d[new_x]))
+        if step == 1000:
+            ans1 = calculate_energy(moons, velocities)
+            print('part1:', ans1)
 
-    i += 1
-    if i > 1000000:
-        break
+        new_x = extract_dim(moons, X)
+        new_y = extract_dim(moons, Y)
+        new_z = extract_dim(moons, Z)
 
-import pickle
+        x_hist[new_x].append(step)
+        y_hist[new_y].append(step)
+        z_hist[new_z].append(step)
 
-pickle.dump((x_hist, y_hist, z_hist), open('histories.pkl', 'wb'))
+        # for d in (x_hist, y_hist, z_hist):
+        #     if len(d[new_x]) > 2:
+        #         print(pwdiff(d[new_x]))
 
-assert ans1 == 9493, ans1
+        if step > 1000000:
+            break
+
+    import pickle
+
+    pickle.dump((x_hist, y_hist, z_hist), open('histories.pkl', 'wb'))
+
+    assert ans1 == 9493, ans1
+
+
+if __name__ == '__main__':
+    main()
