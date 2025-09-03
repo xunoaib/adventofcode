@@ -1,14 +1,10 @@
-import copy
 import math
-import pickle
 import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from hashlib import md5
-from itertools import batched, combinations, pairwise
-from pathlib import Path
-from typing import Literal
+from itertools import batched, combinations, count, pairwise
 
 X, Y, Z = range(3)
 
@@ -144,11 +140,8 @@ def part2(system: System):
     for axis, hist in enumerate(histories):
         hist[system.axis_coords(axis)].append(0)
 
-    ans2 = step = 0
-
-    while True:
+    for step in count(1):
         system = system.step()
-        step += 1
 
         # Log positions
         for axis, hist in enumerate(histories):
