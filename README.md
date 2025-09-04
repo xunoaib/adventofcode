@@ -1,17 +1,25 @@
-# Advent of Code - Solutions
+# 🎄 Advent of Code - Solutions 🦌
 
-Advent of Code is a festive annual coding event that takes place during
-December consisting of a series of programming puzzles released daily.
+Advent of Code is a festive annual programming event that runs every December.
+
+Each day leading up to Christmas, a new two-part puzzle is released. Solving
+each part earns a star, with up to 50 stars available by the end of the event.
+It's a fun way to practice coding and sharpen problem solving skills!
 
 https://adventofcode.com/
 
-- [2024](2024/README.md) - 50 stars
-- [2023](2023/README.md) - 50 stars
-- [2022](2022/README.md) - 50 stars
-- [2021](2021/README.md) - 50 stars
-- [2020](2020/README.md) - 50 stars
-- [2019](2019/README.md) - 26 stars
-- [2018](2018/README.md) - 8 stars
-- [2017](2017/README.md) - 10 stars
-- [2016](2016/README.md) - 17 stars
-- [2015](2015/README.md) - 29 stars
+Below are my solutions for each year, along with total ⭐ counts.
+
+
+| Year | Stars | Link |
+|------|-------|------|
+| 2024 | ⭐ 50 | [Solutions](2024/README.md) |
+| 2023 | ⭐ 50 | [Solutions](2023/README.md) |
+| 2022 | ⭐ 50 | [Solutions](2022/README.md) |
+| 2021 | ⭐ 50 | [Solutions](2021/README.md) |
+| 2020 | ⭐ 50 | [Solutions](2020/README.md) |
+| 2019 | ⭐ 26 | [Solutions](2019/README.md) |
+| 2018 | ⭐  8 | [Solutions](2018/README.md) |
+| 2017 | ⭐ 10 | [Solutions](2017/README.md) |
+| 2016 | ⭐ 17 | [Solutions](2016/README.md) |
+| 2015 | ⭐ 29 | [Solutions](2015/README.md) |
