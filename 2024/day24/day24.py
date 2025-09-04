@@ -127,231 +127,231 @@ class Gate:
             raise IndexError()
 
 
-def part2_wip_auto():
-    # global wires
-
-    def print_trace(name, indent=0):
-        var = wires[name]
-        if not isinstance(var, Gate):
-            print(' ' * indent + f'{name} = {var}')
-            return var
-
-        print(' ' * indent + f'{var}')
-        print_trace(var.in1, indent + 1)
-        print_trace(var.in2, indent + 1)
-
-    def trace(name: str):
-        var = wires[name]
-        if not isinstance(var, Gate):
-            return {name}
-        return {name} | trace(var.in1) | trace(var.in1)
-
-    wires: dict[str, EvalableInt | Gate] = {}
-
-    for v in a:
-        name, val = v.split(': ')
-        wires[name] = EvalableInt(int(val))
-
-    for line in b:
-        vin1, op, vin2, _, vout = line.split()
-        wires[vout] = Gate(vout, op, vin1, vin2)
-
-    x_vs = [v for w, v in sorted(wires.items()) if w.startswith('x')][::-1]
-    x_bstr = ''.join('1' if v else '0' for v in x_vs)
-    x_value = int(x_bstr, 2)
-
-    y_vs = [v for w, v in sorted(wires.items()) if w.startswith('y')][::-1]
-    y_bstr = ''.join('1' if v else '0' for v in y_vs)
-    y_value = int(y_bstr, 2)
-
-    # import random
-    # x_value = random.randint(1,(1 << len(x_vs))-1)
-    # y_value = random.randint(1,(1 << len(y_vs))-1)
-
-    z_expected = x_value + y_value  # REAL operation for part 2
-    # z_expected = x_value & y_value  # SAMPLE operation
-
-    z_vs = sorted([w for w in wires if w.startswith('z')])[::-1]
-    z_bstr = ''.join('1' if wires[z].evaluate(wires) else '0' for z in z_vs)
-    z_actual = int(z_bstr, 2)
-
-    def find_invalid() -> list[list[str]]:
-        ''' Find all invalid z bits and the gates/values involved with them '''
-        bad = []
-        for i, z in enumerate(z_vs[::-1]):
-            g = wires[z]
-            actual = g.evaluate(wires)
-            expected = (z_expected >> i) & 1
-            # color = '\033[92m' if actual == expected else '\033[91m'
-            # print(f'{color}{z} {expected} {actual} {g}\033[0m')
-            if actual != expected:
-                # involved = {wires[v] for v in trace(z) if v[0] not in 'xy'}
-                involved = {v for v in trace(z) if v[0] not in 'xy'}
-                bad.append(sorted(involved)[::-1])
-        return sorted(bad, key=len)
-
-    gs = find_invalid()
-
-    # for i, g in enumerate(gs):
-    #     print(i, g)
-    # print()
-
-    def analyze_zs():
-        # Look for common patterns among gates
-        z_ins = []
-        for name, g in sorted(wires.items()):
-            if isinstance(g, Gate):
-                e, f = [
-                    wires[n].op if isinstance(wires[n], Gate) else wires[n]
-                    for n in (g.in1, g.in2)
-                ]
-                e, f = sorted([e, f])
-                # print(name, e, f)
-                z_ins.append(tuple(map(str, (e, g.op, f, name))))
-                # print('    ', wires[g.in1])
-                # print('    ', wires[g.in2])
-                # print(
-                #     '    ', wires[g.in2].op
-                #     if isinstance(wires[g.in2], Gate) else wires[g.in2]
-                # )
-
-        for x in sorted(z_ins):
-            print(x)
-
-    def analyze_vs(ch: Literal['x', 'y']):
-        y_outs = defaultdict(list)
-        for name, gate in sorted(wires.items()):
-            if not isinstance(gate, Gate):
-                continue
-            for i in gate.inputs:
-                if i.startswith(ch):
-                    y_outs[i].append(gate)
-
-        grouped = defaultdict(list)
-
-        for name, outs in sorted(y_outs.items()):
-            t = tuple(sorted([out.op for out in outs]))
-            grouped[t].append(name)
-
-        for expr, names in sorted(grouped.items()):
-            print('>>>', expr, ','.join(names))
-
-    # print('# X outputs:\n')
-    # analyze_vs('x')
-    #
-    # print('\n# Y outputs:\n')
-    # analyze_vs('y')
-
-    # analyze_zs()
-
-    def swap(x, y):
-        '''Swap two wires between nodes/gates'''
-        wx = wires[x]
-        wy = wires[y]
-
-        # # Find all gates which output to x or y
-        # in_gates = [
-        #     g for g in wires.values()
-        #     if isinstance(g, Gate) and (x in g.inputs or y in g.inputs)
-        # ]
-
-        # Find all gates which output to x or y
-        out_gates = [
-            g for g in wires.values()
-            if isinstance(g, Gate) and g.out in (x, y)
-        ]
-
-        def replace_out(srch: str, repl: str, gates: list[Gate]):
-            for g in gates:
-                if g.out == srch:
-                    g.out = repl
-
-        tmpx = 'XXXXX'
-        tmpy = 'YYYYY'
-
-        # print(out_gates)
-        replace_out(x, tmpx, out_gates)
-        replace_out(tmpx, y, out_gates)
-        replace_out(y, tmpy, out_gates)
-        replace_out(tmpy, x, out_gates)
-        # print(out_gates)
-
-        wires[x], wires[y] = wires[y], wires[x]
-
-    print(*find_invalid(), sep='\n')
-    # swap('swt', 'z07')
-    # print(find_invalid())
-
-    exit()
-
-    gates = list(set(g for gates in gs for g in gates))
-    for selected in combinations(gates, r=8):
-        possible_pairs = list(combinations(selected, 2))
-        for swap_pairs in combinations(possible_pairs, 4):
-            continue
-            x, y = swap_pairs
-            wires[x], wires[y] = wires[y], wires[x]
-            if res := find_invalid():
-                print(res)
-            else:
-                print('wooooo')
-                exit(0)
-            wires[x], wires[y] = wires[y], wires[x]
-
-    print(gs)
-    # for x,y in combinations(gs, r=2):
-    #     if set(x) & set(y):
-    #         print(x,y)
-    exit(0)
-
-    used = set()
-
-    def dfs(bad, left=4, seq=tuple()):
-        nonlocal used
-
-        print(seq)
-
-        if not bad:
-            print(wires)
-            return True
-
-        if left == 0:
-            return not bad
-
-        gates = sorted({gate for group in bad for gate in group} - used)
-        for a, b in combinations(gates, r=2):
-
-            wires[a], wires[b] = wires[b], wires[a]
-            used |= {a, b}
-
-            try:
-                newbad = find_invalid()
-                if dfs(newbad, left - 1, seq + (a, b)):
-                    return True
-                # print(newbad)
-            except LoopError:
-                pass
-
-            wires[a], wires[b] = wires[b], wires[a]
-            used -= {a, b}
-
-    # print(f'{x_value:>7b}')
-    # print(f'{y_value:>7b}')
-    # print('-'*7)
-    # print(f'{z_value:>7b} expected')
-    # print(f'{z_calc:>7b} actual')
-    # print()
-    # print(f'{x_value} + {y_value} = {z_value} (got {z_calc})')
-    # print()
-
-    bad = find_invalid()
-    __import__('pprint').pprint(bad)
-
-    try:
-        success = dfs(bad)
-        print(success)
-    except RecursionError as exc:
-        print('recursion error', exc)
+# def part2_auto_broken():
+#     # global wires
+#
+#     def print_trace(name, indent=0):
+#         var = wires[name]
+#         if not isinstance(var, Gate):
+#             print(' ' * indent + f'{name} = {var}')
+#             return var
+#
+#         print(' ' * indent + f'{var}')
+#         print_trace(var.in1, indent + 1)
+#         print_trace(var.in2, indent + 1)
+#
+#     def trace(name: str):
+#         var = wires[name]
+#         if not isinstance(var, Gate):
+#             return {name}
+#         return {name} | trace(var.in1) | trace(var.in1)
+#
+#     wires: dict[str, EvalableInt | Gate] = {}
+#
+#     for v in a:
+#         name, val = v.split(': ')
+#         wires[name] = EvalableInt(int(val))
+#
+#     for line in b:
+#         vin1, op, vin2, _, vout = line.split()
+#         wires[vout] = Gate(vout, op, vin1, vin2)
+#
+#     x_vs = [v for w, v in sorted(wires.items()) if w.startswith('x')][::-1]
+#     x_bstr = ''.join('1' if v else '0' for v in x_vs)
+#     x_value = int(x_bstr, 2)
+#
+#     y_vs = [v for w, v in sorted(wires.items()) if w.startswith('y')][::-1]
+#     y_bstr = ''.join('1' if v else '0' for v in y_vs)
+#     y_value = int(y_bstr, 2)
+#
+#     # import random
+#     # x_value = random.randint(1,(1 << len(x_vs))-1)
+#     # y_value = random.randint(1,(1 << len(y_vs))-1)
+#
+#     z_expected = x_value + y_value  # REAL operation for part 2
+#     # z_expected = x_value & y_value  # SAMPLE operation
+#
+#     z_vs = sorted([w for w in wires if w.startswith('z')])[::-1]
+#     z_bstr = ''.join('1' if wires[z].evaluate(wires) else '0' for z in z_vs)
+#     z_actual = int(z_bstr, 2)
+#
+#     def find_invalid() -> list[list[str]]:
+#         ''' Find all invalid z bits and the gates/values involved with them '''
+#         bad = []
+#         for i, z in enumerate(z_vs[::-1]):
+#             g = wires[z]
+#             actual = g.evaluate(wires)
+#             expected = (z_expected >> i) & 1
+#             # color = '\033[92m' if actual == expected else '\033[91m'
+#             # print(f'{color}{z} {expected} {actual} {g}\033[0m')
+#             if actual != expected:
+#                 # involved = {wires[v] for v in trace(z) if v[0] not in 'xy'}
+#                 involved = {v for v in trace(z) if v[0] not in 'xy'}
+#                 bad.append(sorted(involved)[::-1])
+#         return sorted(bad, key=len)
+#
+#     gs = find_invalid()
+#
+#     # for i, g in enumerate(gs):
+#     #     print(i, g)
+#     # print()
+#
+#     def analyze_zs():
+#         # Look for common patterns among gates
+#         z_ins = []
+#         for name, g in sorted(wires.items()):
+#             if isinstance(g, Gate):
+#                 e, f = [
+#                     wires[n].op if isinstance(wires[n], Gate) else wires[n]
+#                     for n in (g.in1, g.in2)
+#                 ]
+#                 e, f = sorted([e, f])
+#                 # print(name, e, f)
+#                 z_ins.append(tuple(map(str, (e, g.op, f, name))))
+#                 # print('    ', wires[g.in1])
+#                 # print('    ', wires[g.in2])
+#                 # print(
+#                 #     '    ', wires[g.in2].op
+#                 #     if isinstance(wires[g.in2], Gate) else wires[g.in2]
+#                 # )
+#
+#         for x in sorted(z_ins):
+#             print(x)
+#
+#     def analyze_vs(ch: Literal['x', 'y']):
+#         y_outs = defaultdict(list)
+#         for name, gate in sorted(wires.items()):
+#             if not isinstance(gate, Gate):
+#                 continue
+#             for i in gate.inputs:
+#                 if i.startswith(ch):
+#                     y_outs[i].append(gate)
+#
+#         grouped = defaultdict(list)
+#
+#         for name, outs in sorted(y_outs.items()):
+#             t = tuple(sorted([out.op for out in outs]))
+#             grouped[t].append(name)
+#
+#         for expr, names in sorted(grouped.items()):
+#             print('>>>', expr, ','.join(names))
+#
+#     # print('# X outputs:\n')
+#     # analyze_vs('x')
+#     #
+#     # print('\n# Y outputs:\n')
+#     # analyze_vs('y')
+#
+#     # analyze_zs()
+#
+#     def swap(x, y):
+#         '''Swap two wires between nodes/gates'''
+#         wx = wires[x]
+#         wy = wires[y]
+#
+#         # # Find all gates which output to x or y
+#         # in_gates = [
+#         #     g for g in wires.values()
+#         #     if isinstance(g, Gate) and (x in g.inputs or y in g.inputs)
+#         # ]
+#
+#         # Find all gates which output to x or y
+#         out_gates = [
+#             g for g in wires.values()
+#             if isinstance(g, Gate) and g.out in (x, y)
+#         ]
+#
+#         def replace_out(srch: str, repl: str, gates: list[Gate]):
+#             for g in gates:
+#                 if g.out == srch:
+#                     g.out = repl
+#
+#         tmpx = 'XXXXX'
+#         tmpy = 'YYYYY'
+#
+#         # print(out_gates)
+#         replace_out(x, tmpx, out_gates)
+#         replace_out(tmpx, y, out_gates)
+#         replace_out(y, tmpy, out_gates)
+#         replace_out(tmpy, x, out_gates)
+#         # print(out_gates)
+#
+#         wires[x], wires[y] = wires[y], wires[x]
+#
+#     print(*find_invalid(), sep='\n')
+#     # swap('swt', 'z07')
+#     # print(find_invalid())
+#
+#     exit()
+#
+#     gates = list(set(g for gates in gs for g in gates))
+#     for selected in combinations(gates, r=8):
+#         possible_pairs = list(combinations(selected, 2))
+#         for swap_pairs in combinations(possible_pairs, 4):
+#             continue
+#             x, y = swap_pairs
+#             wires[x], wires[y] = wires[y], wires[x]
+#             if res := find_invalid():
+#                 print(res)
+#             else:
+#                 print('wooooo')
+#                 exit(0)
+#             wires[x], wires[y] = wires[y], wires[x]
+#
+#     print(gs)
+#     # for x,y in combinations(gs, r=2):
+#     #     if set(x) & set(y):
+#     #         print(x,y)
+#     exit(0)
+#
+#     used = set()
+#
+#     def dfs(bad, left=4, seq=tuple()):
+#         nonlocal used
+#
+#         print(seq)
+#
+#         if not bad:
+#             print(wires)
+#             return True
+#
+#         if left == 0:
+#             return not bad
+#
+#         gates = sorted({gate for group in bad for gate in group} - used)
+#         for a, b in combinations(gates, r=2):
+#
+#             wires[a], wires[b] = wires[b], wires[a]
+#             used |= {a, b}
+#
+#             try:
+#                 newbad = find_invalid()
+#                 if dfs(newbad, left - 1, seq + (a, b)):
+#                     return True
+#                 # print(newbad)
+#             except LoopError:
+#                 pass
+#
+#             wires[a], wires[b] = wires[b], wires[a]
+#             used -= {a, b}
+#
+#     # print(f'{x_value:>7b}')
+#     # print(f'{y_value:>7b}')
+#     # print('-'*7)
+#     # print(f'{z_value:>7b} expected')
+#     # print(f'{z_calc:>7b} actual')
+#     # print()
+#     # print(f'{x_value} + {y_value} = {z_value} (got {z_calc})')
+#     # print()
+#
+#     bad = find_invalid()
+#     __import__('pprint').pprint(bad)
+#
+#     try:
+#         success = dfs(bad)
+#         print(success)
+#     except RecursionError as exc:
+#         print('recursion error', exc)
 
 
 def part2_hardcoded():
