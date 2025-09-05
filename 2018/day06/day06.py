@@ -1,5 +1,7 @@
 import sys
 from collections import defaultdict
+from itertools import pairwise
+from typing import cast
 
 
 def neighbors4(x, y):
@@ -25,6 +27,7 @@ def explore(p: tuple[int, int]):
 
 
 points = [tuple(map(int, line.split(', '))) for line in sys.stdin]
+points = cast(list[tuple[int, int]], points)
 
 min_x = min(x for x, y in points)
 min_y = min(y for x, y in points)
@@ -42,4 +45,16 @@ for i, (x, y) in enumerate(points):
     # print(len(distto))
     # dists.append(distto)
 
-print(dists[1, 1])
+# Find the closest node to each coordinate (ignoring duplicates)
+closest = {}
+for p, items in dists.items():
+    items.sort()
+    if items[0][0] != items[1][0]:
+        closest[p] = items[0][1]
+
+p = 1, 4
+p = 1, 1
+# p = 1, 2
+
+print(dists[p])
+print(closest[p])
