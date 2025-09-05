@@ -3,10 +3,6 @@ from collections import Counter, defaultdict
 from itertools import pairwise
 from typing import cast
 
-from joblib import Memory
-
-memory = Memory('cache')
-
 
 def neighbors4(x, y):
     yield (x - 1, y)
@@ -16,24 +12,28 @@ def neighbors4(x, y):
 
 
 def explore(p: tuple[int, int]):
+    '''Totally excessive and unnecessary use of BFS'''
     q = [(p, 0)]
     distto = {p: 0}
     while q:
         p, dist = q.pop(0)
         for n in neighbors4(*p):
-            if n[0] not in range(min_x, max_x
-                                 + 1) or n[1] not in range(min_y, max_y + 1):
-                continue
-            if n not in distto:
+            if all(
+                [
+                    n[0] in range(MIN_X, MAX_X + 1),
+                    n[1] in range(MIN_Y, MAX_Y + 1),
+                    n not in distto,
+                ]
+            ):
                 distto[n] = dist + 1
                 q.append((n, dist + 1))
     return distto
 
 
-@memory.cache
 def get_all_dists():
+    '''Find the shortest distance to each node from each point'''
     dists = defaultdict(list)
-    for i, (x, y) in enumerate(points):
+    for i, (x, y) in enumerate(POINTS):
         distto = explore((x, y))
         for p, dist in distto.items():
             dists[p].append((dist, i))
@@ -43,7 +43,7 @@ def get_all_dists():
 def part1():
     # Find the closest node to each coordinate (ignoring duplicates)
     closest = {}
-    for p, items in dists.items():
+    for p, items in DISTS.items():
         items.sort()
         if items[0][0] != items[1][0]:
             closest[p] = items[0][1]
@@ -51,35 +51,47 @@ def part1():
     # Count the number of each type of closest node
     c = Counter(closest.values())
 
-    # Remove infinite nodes
-    to_rem = set()
+    # Remove nodes that extend off into infinity
+    remove = set()
 
-    for x in range(min_x, max_x + 1):
-        for y in (min_y, max_y):
+    for x in range(MIN_X, MAX_X + 1):
+        for y in (MIN_Y, MAX_Y):
             if i := closest.get((x, y)):
-                to_rem.add(i)
+                remove.add(i)
 
-    for y in range(min_y, max_y + 1):
-        for x in (min_x, max_x):
+    for y in range(MIN_Y, MAX_Y + 1):
+        for x in (MIN_X, MAX_X):
             if i := closest.get((x, y)):
-                to_rem.add(i)
+                remove.add(i)
 
-    for i in to_rem:
-        if i in c:
-            del c[i]
+    for i in remove:
+        del c[i]
 
     return c.most_common()[0][1]
 
 
-points = [tuple(map(int, line.split(', '))) for line in sys.stdin]
-points = cast(list[tuple[int, int]], points)
+def part2():
+    sums = Counter()
+    for p, dist_is in DISTS.items():
+        sums[p] += sum(d for d, i in dist_is)
+    return sum(1 for x in sums.values() if x < 10000)
 
-min_x = min(x for x, y in points)
-min_y = min(y for x, y in points)
-max_x = max(x for x, y in points)
-max_y = max(y for x, y in points)
 
-dists = get_all_dists()
+POINTS = [tuple(map(int, line.split(', '))) for line in sys.stdin]
+POINTS = cast(list[tuple[int, int]], POINTS)
+
+MIN_X = min(x for x, y in POINTS)
+MIN_Y = min(y for x, y in POINTS)
+MAX_X = max(x for x, y in POINTS)
+MAX_Y = max(y for x, y in POINTS)
+
+DISTS = get_all_dists()
 
 a1 = part1()
 print('part1:', a1)
+
+a2 = part2()
+print('part2:', a2)
+
+assert a1 == 3420
+assert a2 == 46667
