@@ -1,5 +1,5 @@
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from itertools import pairwise
 from typing import cast
 
@@ -38,12 +38,8 @@ dists = defaultdict(list)
 
 for i, (x, y) in enumerate(points):
     distto = explore((x, y))
-
     for p, dist in distto.items():
         dists[p].append((dist, i))
-
-    # print(len(distto))
-    # dists.append(distto)
 
 # Find the closest node to each coordinate (ignoring duplicates)
 closest = {}
@@ -52,9 +48,15 @@ for p, items in dists.items():
     if items[0][0] != items[1][0]:
         closest[p] = items[0][1]
 
-p = 1, 4
-p = 1, 1
-# p = 1, 2
+# Count the number of each type of closest node
+c = Counter(closest.values())
 
-print(dists[p])
-print(closest[p])
+# Remove infinite nodes
+for i, (x, y) in enumerate(points):
+    if x in (min_x, max_x) or y in (min_y, max_y):
+        del c[i]
+
+print(c)
+
+a1 = c.most_common()[0][1]
+print('part1:', a1)
