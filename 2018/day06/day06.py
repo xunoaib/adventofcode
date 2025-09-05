@@ -11,23 +11,18 @@ def neighbors4(x, y):
     yield (x, y + 1)
 
 
+def manhattan_dist(p1, p2):
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
+
 def explore(p: tuple[int, int]):
     '''Totally excessive and unnecessary use of BFS'''
-    q = [(p, 0)]
-    distto = {p: 0}
-    while q:
-        p, dist = q.pop(0)
-        for n in neighbors4(*p):
-            if all(
-                [
-                    n[0] in range(MIN_X, MAX_X + 1),
-                    n[1] in range(MIN_Y, MAX_Y + 1),
-                    n not in distto,
-                ]
-            ):
-                distto[n] = dist + 1
-                q.append((n, dist + 1))
-    return distto
+
+    return {
+        (x, y): manhattan_dist((x, y), p)
+        for x in range(MIN_X, MAX_X + 1)
+        for y in range(MIN_Y, MAX_Y + 1)
+    }
 
 
 def get_all_dists():
