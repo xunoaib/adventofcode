@@ -57,12 +57,6 @@ class ZReaction:
     def zproduced(self):
         return self.reaction.output.amount * rcounts[self.name]
 
-    @property
-    def reaction_count_zvar(self):
-        return rcounts[self.name]
-
-
-s = Optimize()
 
 names = [r.output.name for r in recipes]
 
@@ -83,28 +77,48 @@ for r in recipes:
     for name, expr in zreaction.zconsumed.items():
         consumed[name] += expr
 
+s = Optimize()
+
 # Ensure resource consumption never exceeds production
-totals = {}
-for name in {*produced, *consumed}:
-    iproduced = produced.get(name, 0)
-    iconsumed = consumed.get(name, 0)
-    totals[name] = total = iproduced - iconsumed
-    s.add(total >= 0)
-    s.add(iproduced >= 0)
-    s.add(iconsumed >= 0)
+for name in names:
+    s.add(produced[name] - consumed[name] >= 0)
 
 # Ensure reaction counts are positive
 for rcount in rcounts.values():
     s.add(rcount >= 0)
 
-# Specify goal conditions
-s.add(produced['FUEL'] == 1)
-s.minimize(rcounts['ORE'])
-s.check()
 
-if m := s.model():
-    a1 = m.evaluate(produced['ORE'])
-    print('part1:', a1)
-    assert a1 == 720484
-else:
-    print('unsat')
+def part1(s: Optimize):
+    s.push()
+    s.add(produced['FUEL'] == 1)
+    s.minimize(rcounts['ORE'])
+    s.check()
+
+    if m := s.model():
+        s.pop()
+        return m.evaluate(produced['ORE'])
+
+    raise ValueError('Part 1 unsat')
+
+
+def part2(s: Optimize):
+    s.push()
+    s.add(rcounts['ORE'] == 1000000000000)
+    s.maximize(rcounts['FUEL'])
+    s.check()
+
+    if m := s.model():
+        s.pop()
+        return m.evaluate(produced['FUEL'])
+
+    raise ValueError('Part 2 unsat')
+
+
+a1 = part1(s)
+print('part1:', a1)
+
+a2 = part2(s)
+print('part2:', a2)
+
+assert a1 == 720484
+assert a2 == 1993284
