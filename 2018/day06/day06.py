@@ -52,11 +52,21 @@ for p, items in dists.items():
 c = Counter(closest.values())
 
 # Remove infinite nodes
-for i, (x, y) in enumerate(points):
-    if x in (min_x, max_x) or y in (min_y, max_y):
-        del c[i]
+to_rem = set()
 
-print(c)
+for x in range(min_x, max_x + 1):
+    for y in (min_y, max_y):
+        if i := closest.get((x, y)):
+            to_rem.add(i)
+
+for y in range(min_y, max_y + 1):
+    for x in (min_x, max_x):
+        if i := closest.get((x, y)):
+            to_rem.add(i)
+
+for i in to_rem:
+    if i in c:
+        del c[i]
 
 a1 = c.most_common()[0][1]
 print('part1:', a1)
