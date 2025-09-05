@@ -6,8 +6,8 @@
 | [Day 2: Inventory Management System](https://adventofcode.com/2018/day/2) | [Code](day02/day02.py) |
 | [Day 3: No Matter How You Slice It](https://adventofcode.com/2018/day/3) | [Code](day03/day03.py) |
 | [Day 4: Repose Record](https://adventofcode.com/2018/day/4) | [Code](day04/day04.py) |
-| [Day 5: Alchemical Reduction](https://adventofcode.com/2018/day/5) | Code |
-| [Day 6: Chronal Coordinates](https://adventofcode.com/2018/day/6) | Code |
+| [Day 5: Alchemical Reduction](https://adventofcode.com/2018/day/5) | [Code](day05/day05.py) |
+| [Day 6: Chronal Coordinates](https://adventofcode.com/2018/day/6) | [Code](day06/day06.py) |
 | [Day 7: The Sum of Its Parts](https://adventofcode.com/2018/day/7) | Code |
 | [Day 8: Memory Maneuver](https://adventofcode.com/2018/day/8) | Code |
 | [Day 9: Marble Mania](https://adventofcode.com/2018/day/9) | Code |
