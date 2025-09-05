@@ -3,6 +3,10 @@ from collections import Counter, defaultdict
 from itertools import pairwise
 from typing import cast
 
+from joblib import Memory
+
+memory = Memory('cache')
+
 
 def neighbors4(x, y):
     yield (x - 1, y)
@@ -26,6 +30,47 @@ def explore(p: tuple[int, int]):
     return distto
 
 
+@memory.cache
+def get_all_dists():
+    dists = defaultdict(list)
+    for i, (x, y) in enumerate(points):
+        distto = explore((x, y))
+        for p, dist in distto.items():
+            dists[p].append((dist, i))
+    return dists
+
+
+def part1():
+    # Find the closest node to each coordinate (ignoring duplicates)
+    closest = {}
+    for p, items in dists.items():
+        items.sort()
+        if items[0][0] != items[1][0]:
+            closest[p] = items[0][1]
+
+    # Count the number of each type of closest node
+    c = Counter(closest.values())
+
+    # Remove infinite nodes
+    to_rem = set()
+
+    for x in range(min_x, max_x + 1):
+        for y in (min_y, max_y):
+            if i := closest.get((x, y)):
+                to_rem.add(i)
+
+    for y in range(min_y, max_y + 1):
+        for x in (min_x, max_x):
+            if i := closest.get((x, y)):
+                to_rem.add(i)
+
+    for i in to_rem:
+        if i in c:
+            del c[i]
+
+    return c.most_common()[0][1]
+
+
 points = [tuple(map(int, line.split(', '))) for line in sys.stdin]
 points = cast(list[tuple[int, int]], points)
 
@@ -34,39 +79,7 @@ min_y = min(y for x, y in points)
 max_x = max(x for x, y in points)
 max_y = max(y for x, y in points)
 
-dists = defaultdict(list)
+dists = get_all_dists()
 
-for i, (x, y) in enumerate(points):
-    distto = explore((x, y))
-    for p, dist in distto.items():
-        dists[p].append((dist, i))
-
-# Find the closest node to each coordinate (ignoring duplicates)
-closest = {}
-for p, items in dists.items():
-    items.sort()
-    if items[0][0] != items[1][0]:
-        closest[p] = items[0][1]
-
-# Count the number of each type of closest node
-c = Counter(closest.values())
-
-# Remove infinite nodes
-to_rem = set()
-
-for x in range(min_x, max_x + 1):
-    for y in (min_y, max_y):
-        if i := closest.get((x, y)):
-            to_rem.add(i)
-
-for y in range(min_y, max_y + 1):
-    for x in (min_x, max_x):
-        if i := closest.get((x, y)):
-            to_rem.add(i)
-
-for i in to_rem:
-    if i in c:
-        del c[i]
-
-a1 = c.most_common()[0][1]
+a1 = part1()
 print('part1:', a1)
