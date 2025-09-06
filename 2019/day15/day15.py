@@ -169,13 +169,83 @@ def part1(mem):
                 return steps + 1
 
 
+def explore_map(mem):
+    input = Input()
+    output = Output()
+    computer = Computer(mem, input, output)
+
+    q = [(0, 0, 0, computer)]
+    seen = {(0, 0)}
+
+    accessible = {(0, 0)}
+    o2_pos = None
+
+    while q:
+        steps, r, c, computer = q.pop(0)
+        for d, (roff, coff) in zip(DIRS, DIR_OFFSETS):
+            resp, newcomputer = move(computer, d)
+            newpos = (r + roff, c + coff)
+            if newpos in seen:
+                continue
+            seen.add(newpos)
+            if resp == 0:
+                continue
+            if resp == 2:
+                o2_pos = newpos
+
+            accessible.add(newpos)
+            q.append((steps + 1, *newpos, newcomputer))
+
+    return accessible, o2_pos
+
+
+def print_grid(acc: set, o2: tuple):
+    minr = min(r for r, c in acc)
+    minc = min(c for r, c in acc)
+    maxr = max(r for r, c in acc)
+    maxc = max(r for r, c in acc)
+
+    for r in range(minr, maxr + 1):
+        for c in range(minc, maxc + 1):
+            ch = '.' if (r, c) in acc else '#'
+            if (r, c) == o2:
+                ch = 'O'
+            print(ch, end='')
+        print()
+
+
+def part2(mem):
+    acc, o2 = explore_map(mem)
+    assert isinstance(o2, tuple)
+
+    print_grid(acc, o2)
+
+    q = [(0, o2)]
+    fill_time = {o2: 0}
+
+    while q:
+        mins, (r, c) = q.pop(0)
+        for roff, coff in DIR_OFFSETS:
+            newpos = (r + roff, c + coff)
+            if newpos not in acc:
+                continue
+            if newpos not in fill_time:
+                fill_time[newpos] = mins
+                q.append((mins + 1, newpos))
+    return max(fill_time.values()) + 1
+
+
 def main():
     mem = list(map(int, sys.stdin.read().split(',')))
 
     a1 = part1(mem)
     print('part1:', a1)
 
+    a2 = part2(mem)
+    print('part2:', a2)
+
     assert a1 == 234
+    assert a2 == 292
 
 
 if __name__ == '__main__':
