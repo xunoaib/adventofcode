@@ -6,19 +6,7 @@ from itertools import batched, product
 
 POS, IMM, REL = 0, 1, 2
 
-DIRS = [1, 2, 3, 4]
 DIR_OFFSETS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-
-def move(computer: 'Computer', direction: int):
-    assert direction in DIRS
-    computer = deepcopy(computer)
-
-    computer.input.insert(0, direction)
-    while not computer.output:
-        computer.step()
-
-    return computer.output.pop(0), computer
 
 
 class Computer:
@@ -30,8 +18,8 @@ class Computer:
                 for i, val in enumerate(mem)
             }
         )
-        self.input = []
-        self.output = []
+        self.input: list[int] = []
+        self.output: list[int] = []
 
         self.pc = 0
         self.relative_base = 0
@@ -122,6 +110,17 @@ class Computer:
             raise Exception(f'unknown opcode: {opcode}')
 
 
+def move(computer: Computer, direction: int):
+    assert direction in range(1, 5)
+    computer = deepcopy(computer)
+
+    computer.input.insert(0, direction)
+    while not computer.output:
+        computer.step()
+
+    return computer.output.pop(0), computer
+
+
 def part1(mem):
     computer = Computer(mem)
 
@@ -130,7 +129,7 @@ def part1(mem):
 
     while q:
         steps, r, c, computer = q.pop(0)
-        for d, (roff, coff) in zip(DIRS, DIR_OFFSETS):
+        for d, (roff, coff) in enumerate(DIR_OFFSETS, start=1):
             resp, newcomputer = move(computer, d)
             if resp == 1:
                 newpos = (r + roff, c + coff)
@@ -148,11 +147,11 @@ def explore_map(mem):
     seen = {(0, 0)}
 
     accessible = {(0, 0)}
-    o2_pos = None
+    o2 = None
 
     while q:
         steps, r, c, computer = q.pop(0)
-        for d, (roff, coff) in zip(DIRS, DIR_OFFSETS):
+        for d, (roff, coff) in enumerate(DIR_OFFSETS, start=1):
             resp, newcomputer = move(computer, d)
             newpos = (r + roff, c + coff)
             if newpos in seen:
@@ -161,34 +160,17 @@ def explore_map(mem):
             if resp == 0:
                 continue
             if resp == 2:
-                o2_pos = newpos
+                o2 = newpos
 
             accessible.add(newpos)
             q.append((steps + 1, *newpos, newcomputer))
 
-    return accessible, o2_pos
-
-
-def print_grid(acc: set, o2: tuple):
-    minr = min(r for r, c in acc)
-    minc = min(c for r, c in acc)
-    maxr = max(r for r, c in acc)
-    maxc = max(r for r, c in acc)
-
-    for r in range(minr, maxr + 1):
-        for c in range(minc, maxc + 1):
-            ch = '.' if (r, c) in acc else '#'
-            if (r, c) == o2:
-                ch = 'O'
-            print(ch, end='')
-        print()
+    assert isinstance(o2, tuple), o2
+    return accessible, o2
 
 
 def part2(mem):
     acc, o2 = explore_map(mem)
-    assert isinstance(o2, tuple)
-
-    print_grid(acc, o2)
 
     q = [(0, o2)]
     fill_time = {o2: 0}
@@ -202,6 +184,7 @@ def part2(mem):
             if newpos not in fill_time:
                 fill_time[newpos] = mins
                 q.append((mins + 1, newpos))
+
     return max(fill_time.values()) + 1
 
 
