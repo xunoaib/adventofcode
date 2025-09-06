@@ -10,54 +10,28 @@ DIRS = [1, 2, 3, 4]
 DIR_OFFSETS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 
-class Output:
-
-    def __init__(self):
-        self.data = []
-
-    def append(self, value):
-        self.data.append(value)
-
-    def pop(self):
-        return self.data.pop(0)
-
-
-class Input:
-
-    def __init__(self):
-        self.data = []
-
-    def push(self, value):
-        self.data.append(value)
-
-    def pop(self, computer: 'Computer'):
-        if not self.data:
-            raise EOFError('No more input')
-        return self.data.pop(0)
-
-
 def move(computer: 'Computer', direction: int):
     assert direction in DIRS
     computer = deepcopy(computer)
 
-    computer.input.push(direction)
-    while not computer.output.data:
+    computer.input.insert(0, direction)
+    while not computer.output:
         computer.step()
 
-    return computer.output.pop(), computer
+    return computer.output.pop(0), computer
 
 
 class Computer:
 
-    def __init__(self, mem: list[int], input: Input, output: Output):
+    def __init__(self, mem: list[int]):
         self.mem = defaultdict(
             lambda: 0, {
                 i: val
                 for i, val in enumerate(mem)
             }
         )
-        self.input = input
-        self.output = output
+        self.input = []
+        self.output = []
 
         self.pc = 0
         self.relative_base = 0
@@ -98,7 +72,7 @@ class Computer:
         val1 = param1 if mode1 == IMM else self.mem[param1]
 
         if opcode == 3:
-            self.mem[param1] = self.input.pop(self)
+            self.mem[param1] = self.input.pop(0)
             self.pc += 2
             return
 
@@ -149,9 +123,7 @@ class Computer:
 
 
 def part1(mem):
-    input = Input()
-    output = Output()
-    computer = Computer(mem, input, output)
+    computer = Computer(mem)
 
     q = [(0, 0, 0, computer)]
     seen = {(0, 0)}
@@ -170,9 +142,7 @@ def part1(mem):
 
 
 def explore_map(mem):
-    input = Input()
-    output = Output()
-    computer = Computer(mem, input, output)
+    computer = Computer(mem)
 
     q = [(0, 0, 0, computer)]
     seen = {(0, 0)}
