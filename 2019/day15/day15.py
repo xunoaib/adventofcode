@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 import sys
 from collections import defaultdict
-from itertools import batched
+from itertools import batched, product
 
 POS, IMM, REL = 0, 1, 2
 
@@ -12,18 +11,18 @@ class Output:
         self.data = []
 
     def append(self, value):
-        print('Received output')
+        print('Received output:', value)
         self.data.append(value)
 
 
 class Input:
 
-    def next(self, simulator: 'Simulator'):
+    def next(self, computer: 'Computer'):
         print('Read input')
         return 4
 
 
-class Simulator:
+class Computer:
 
     def __init__(self, mem: list[int], input: Input, output: Output):
         self.mem = defaultdict(
@@ -119,8 +118,8 @@ class Simulator:
 def part1(mem):
     input = Input()
     output = Output()
-    simulator = Simulator(mem, input, output)
-    simulator.run()
+    computer = Computer(mem, input, output)
+    computer.run()
 
 
 def main():
