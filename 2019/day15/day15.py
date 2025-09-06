@@ -1,8 +1,12 @@
 import sys
 from collections import defaultdict
+from copy import deepcopy
+from dataclasses import dataclass
 from itertools import batched, product
 
 POS, IMM, REL = 0, 1, 2
+
+DIRS = [1, 2, 3, 4]
 
 
 class Output:
@@ -11,15 +15,35 @@ class Output:
         self.data = []
 
     def append(self, value):
-        print('Received output:', value)
         self.data.append(value)
+
+    def pop(self):
+        return self.data.pop(0)
 
 
 class Input:
 
-    def next(self, computer: 'Computer'):
-        print('Read input')
-        return 4
+    def __init__(self):
+        self.data = []
+
+    def push(self, value):
+        self.data.append(value)
+
+    def pop(self, computer: 'Computer'):
+        if not self.data:
+            raise EOFError('No more input')
+        return self.data.pop(0)
+
+
+def move(computer: Computer, direction: int):
+    assert direction in DIRS
+    computer = deepcopy(computer)
+
+    computer.input.push(direction)
+    while not computer.output.data:
+        computer.step()
+
+    return computer.output.pop(), computer
 
 
 class Computer:
@@ -65,7 +89,7 @@ class Computer:
         val1 = param1 if mode1 == IMM else self.mem[param1]
 
         if opcode == 3:
-            self.mem[param1] = self.input.next(self)
+            self.mem[param1] = self.input.pop(self)
             self.pc += 2
             return
 
@@ -119,7 +143,10 @@ def part1(mem):
     input = Input()
     output = Output()
     computer = Computer(mem, input, output)
-    computer.run()
+
+    resp, new_computer = move(computer, 1)
+
+    print(resp, new_computer)
 
 
 def main():
