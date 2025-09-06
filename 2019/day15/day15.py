@@ -7,6 +7,7 @@ from itertools import batched, product
 POS, IMM, REL = 0, 1, 2
 
 DIRS = [1, 2, 3, 4]
+DIR_OFFSETS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 
 class Output:
@@ -152,26 +153,20 @@ def part1(mem):
     output = Output()
     computer = Computer(mem, input, output)
 
-    q = [(0, computer)]
-    seen = {computer}
+    q = [(0, 0, 0, computer)]
+    seen = {(0, 0)}
 
-    i = 0
     while q:
-        steps, computer = q.pop(0)
-        i += 1
-        if i % 1000 == 0:
-            print(i, steps, len(seen), len(q))
-        for d in DIRS:
+        steps, r, c, computer = q.pop(0)
+        for d, (roff, coff) in zip(DIRS, DIR_OFFSETS):
             resp, newcomputer = move(computer, d)
-            if newcomputer in seen:
-                continue
-            seen.add(newcomputer)
-            if resp == 0:
-                continue
             if resp == 1:
-                q.append((steps + 1, newcomputer))
+                newpos = (r + roff, c + coff)
+                if newpos not in seen:
+                    seen.add(newpos)
+                    q.append((steps + 1, *newpos, newcomputer))
             if resp == 2:
-                return steps
+                return steps + 1
 
 
 def main():
@@ -179,6 +174,8 @@ def main():
 
     a1 = part1(mem)
     print('part1:', a1)
+
+    assert a1 == 234
 
 
 if __name__ == '__main__':
