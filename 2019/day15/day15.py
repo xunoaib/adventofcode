@@ -12,27 +12,41 @@ class Output:
         self.data = []
 
     def append(self, value):
+        print('Received output')
         self.data.append(value)
 
 
 class Input:
 
-    def next(self, output: Output):
-        # TODO: solution moves
-        return -1
+    def next(self, simulator: 'Simulator'):
+        print('Read input')
+        return 4
 
 
-def run_simulation(
-    mem,
-    input: Input,
-    output: Output,
-):
-    mem = defaultdict(lambda: 0, {i: val for i, val in enumerate(mem)})
-    pc = relative_base = 0
-    last_output = None
+class Simulator:
 
-    while True:
-        opcode = mem[pc]
+    def __init__(self, mem: list[int], input: Input, output: Output):
+        self.mem = defaultdict(
+            lambda: 0, {
+                i: val
+                for i, val in enumerate(mem)
+            }
+        )
+        self.input = input
+        self.output = output
+
+        self.pc = 0
+        self.relative_base = 0
+        self.running = True
+
+    def run(self):
+        while self.running:
+            self.step()
+
+    def step(self):
+        assert self.running
+
+        opcode = self.mem[self.pc]
 
         # parameter modes (0 = position, 1 = immediate, 2 = relative)
         mode1 = mode2 = mode3 = 0  # 'mode3' is unused
@@ -43,71 +57,70 @@ def run_simulation(
             opcode %= 100
 
         if opcode == 99:
-            break
+            self.running = False
 
         # 1 parameter
-        param1 = mem[pc + 1]
+        param1 = self.mem[self.pc + 1]
         if mode1 == REL:
-            param1 += relative_base
-        val1 = param1 if mode1 == IMM else mem[param1]
+            param1 += self.relative_base
+        val1 = param1 if mode1 == IMM else self.mem[param1]
 
         if opcode == 3:
-            mem[param1] = input.next(output)
-            pc += 2
-            continue
+            self.mem[param1] = self.input.next(self)
+            self.pc += 2
+            return
 
         if opcode == 4:
-            output.append(val1)
-            last_output = val1
-            pc += 2
-            continue
+            self.output.append(val1)
+            self.pc += 2
+            return
 
         if opcode == 9:
-            relative_base += val1
-            pc += 2
-            continue
+            self.relative_base += val1
+            self.pc += 2
+            return
 
         # 2 parameters
-        param2 = mem[pc + 2]
+        param2 = self.mem[self.pc + 2]
         if mode2 == REL:
-            param2 += relative_base
-        val2 = param2 if mode2 == IMM else mem[param2]
+            param2 += self.relative_base
+        val2 = param2 if mode2 == IMM else self.mem[param2]
 
-        if opcode == 5:  # if v1 != 0, pc = v2 (jump if true)
-            pc = val2 if val1 != 0 else pc + 3
-            continue
+        if opcode == 5:  # if v1 != 0, self.pc = v2 (jump if true)
+            self.pc = val2 if val1 != 0 else self.pc + 3
+            return
 
-        elif opcode == 6:  # if v1 == 0, pc = v2 (jump if false)
-            pc = val2 if val1 == 0 else pc + 3
-            continue
+        elif opcode == 6:  # if v1 == 0, self.pc = v2 (jump if false)
+            self.pc = val2 if val1 == 0 else self.pc + 3
+            return
 
         # 3 parameters
-        param3 = mem[pc + 3]
+        param3 = self.mem[self.pc + 3]
         if mode3 == REL:
-            param3 += relative_base
-        # val3 = param3 if mode3 == IMM else mem[param3]
+            param3 += self.relative_base
+        # val3 = param3 if mode3 == IMM else self.mem[param3]
 
         if opcode == 7:  # if v1 < v2, vals[ind3] = 1, else 0 (less than)
-            mem[param3] = int(val1 < val2)
-            pc += 4
+            self.mem[param3] = int(val1 < val2)
+            self.pc += 4
         elif opcode == 8:  # if v1 == v2, vals[ind3] = 1, else 0 (equals)
-            mem[param3] = int(val1 == val2)
-            pc += 4
+            self.mem[param3] = int(val1 == val2)
+            self.pc += 4
         elif opcode == 1:
-            mem[param3] = val1 + val2
-            pc += 4
+            self.mem[param3] = val1 + val2
+            self.pc += 4
         elif opcode == 2:
-            mem[param3] = val1 * val2
-            pc += 4
+            self.mem[param3] = val1 * val2
+            self.pc += 4
         else:
-            print('unknown opcode:', opcode)
-            return
+            raise Exception(f'unknown opcode: {opcode}')
 
 
 def part1(mem):
     input = Input()
     output = Output()
-    run_simulation(mem, input, output)
+    simulator = Simulator(mem, input, output)
+    simulator.run()
 
 
 def main():
