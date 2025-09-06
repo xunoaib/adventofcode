@@ -6,30 +6,30 @@ from itertools import batched
 POS, IMM, REL = 0, 1, 2
 
 
-class JoystickController:
+class Output:
 
-    def next(self, outputs: list[int]):
-        # find ball and paddle positions
-        ball = [(x, y) for x, y, tid in batched(outputs, 3) if tid == 4][-1]
-        paddle = [(x, y) for x, y, tid in batched(outputs, 3) if tid == 3][-1]
+    def __init__(self):
+        self.data = []
 
-        # move paddle to meet ball
-        if ball[0] < paddle[0]:
-            return -1
-        elif ball[0] > paddle[0]:
-            return 1
-        else:
-            return 0
+    def append(self, value):
+        self.data.append(value)
+
+
+class Input:
+
+    def next(self, output: Output):
+        # TODO: solution moves
+        return -1
 
 
 def run_simulation(
-    mem, input_source: int | JoystickController
-) -> tuple[list[int], int]:
+    mem,
+    input: Input,
+    output: Output,
+):
     mem = defaultdict(lambda: 0, {i: val for i, val in enumerate(mem)})
     pc = relative_base = 0
-    outputs = []
     last_output = None
-    score = 0
 
     while True:
         opcode = mem[pc]
@@ -52,21 +52,12 @@ def run_simulation(
         val1 = param1 if mode1 == IMM else mem[param1]
 
         if opcode == 3:
-            mem[param1] = input_source if isinstance(
-                input_source, int
-            ) else input_source.next(outputs)
+            mem[param1] = input.next(output)
             pc += 2
             continue
 
         if opcode == 4:
-            outputs.append(val1)
-
-            # Detect score output case
-            tail = outputs[-3:]
-            if tail[:2] == [-1, 0]:
-                score = tail[2]
-                outputs = outputs[:-3]
-
+            output.append(val1)
             last_output = val1
             pc += 2
             continue
@@ -112,35 +103,11 @@ def run_simulation(
             print('unknown opcode:', opcode)
             return
 
-    return outputs, score
-
 
 def part1(mem):
-    outputs, score = run_simulation(mem, 1)
-    screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
-    return list(screen.values()).count(2)
-
-
-def part2(mem):
-    mem[0] = 2
-    outputs, score = run_simulation(mem, JoystickController())
-    screen = {(x, y): tid for x, y, tid in batched(outputs, 3)}
-    print_screen(screen)
-    return score
-
-
-def print_screen(screen: dict):
-    min_x = min(x for x, y in screen)
-    min_y = min(y for x, y in screen)
-    max_x = max(x for x, y in screen)
-    max_y = max(y for x, y in screen)
-
-    lookup = ' #x-o'
-
-    for y in range(min_y, max_y + 1):
-        for x in range(min_x, max_x + 1):
-            print(lookup[screen.get((x, y), 0)], end='')
-        print('')
+    input = Input()
+    output = Output()
+    run_simulation(mem, input, output)
 
 
 def main():
@@ -148,12 +115,6 @@ def main():
 
     a1 = part1(mem)
     print('part1:', a1)
-
-    a2 = part2(mem)
-    print('part2:', a2)
-
-    assert a1 == 333
-    assert a2 == 16539
 
 
 if __name__ == '__main__':
