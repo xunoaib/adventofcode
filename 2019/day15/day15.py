@@ -35,7 +35,7 @@ class Input:
         return self.data.pop(0)
 
 
-def move(computer: Computer, direction: int):
+def move(computer: 'Computer', direction: int):
     assert direction in DIRS
     computer = deepcopy(computer)
 
@@ -61,6 +61,14 @@ class Computer:
         self.pc = 0
         self.relative_base = 0
         self.running = True
+
+    def __hash__(self):
+        return hash(
+            (
+                tuple(self.mem.items()), self.pc, self.relative_base,
+                self.running
+            )
+        )
 
     def run(self):
         while self.running:
@@ -144,9 +152,26 @@ def part1(mem):
     output = Output()
     computer = Computer(mem, input, output)
 
-    resp, new_computer = move(computer, 1)
+    q = [(0, computer)]
+    seen = {computer}
 
-    print(resp, new_computer)
+    i = 0
+    while q:
+        steps, computer = q.pop(0)
+        i += 1
+        if i % 1000 == 0:
+            print(i, steps, len(seen), len(q))
+        for d in DIRS:
+            resp, newcomputer = move(computer, d)
+            if newcomputer in seen:
+                continue
+            seen.add(newcomputer)
+            if resp == 0:
+                continue
+            if resp == 1:
+                q.append((steps + 1, newcomputer))
+            if resp == 2:
+                return steps
 
 
 def main():
