@@ -167,17 +167,15 @@ def part1(mem):
                                                  c + 1)}.issubset(scaffolds)
     }
 
-    minr = min(r for r, c in intersections)
-    maxr = max(r for r, c in intersections)
-    minc = min(c for r, c in intersections)
-    maxc = max(c for r, c in intersections)
+    minr = min(r for r, c in scaffolds)
+    maxr = max(r for r, c in scaffolds)
+    minc = min(c for r, c in scaffolds)
+    maxc = max(c for r, c in scaffolds)
 
     rdists = [r - minr for r, c in intersections]
     cdists = [c - minc for r, c in intersections]
 
-    print('scaffolds:', len(scaffolds))
-    print('intersections:', len(intersections))
-    print()
+    return sum(a * b for a, b in zip(rdists, cdists))
 
 
 def main():
