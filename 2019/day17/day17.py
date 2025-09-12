@@ -131,15 +131,15 @@ class SampleComputer(Computer):
 def part1(mem):
     computer = Computer(mem)
 
-    lines = []
-    scaffolds = set()
-    r = c = 0
     while computer.running:
         try:
             computer.step()
         except Exception as exc:
             print(exc)
             break
+
+    r = c = 0
+    scaffolds = set()
 
     while computer.output:
         o = computer.output.pop(0)
