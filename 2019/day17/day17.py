@@ -130,7 +130,6 @@ class SampleComputer(Computer):
 
 def part1(mem):
     computer = Computer(mem)
-    computer = SampleComputer()
 
     lines = []
     scaffolds = set()
