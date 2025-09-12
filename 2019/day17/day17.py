@@ -110,19 +110,27 @@ class Computer:
             raise Exception(f'unknown opcode: {opcode}')
 
 
-# def move(computer: Computer, direction: int):
-#     assert direction in range(1, 5)
-#     computer = deepcopy(computer)
-#
-#     computer.input.insert(0, direction)
-#     while not computer.output:
-#         computer.step()
-#
-#     return computer.output.pop(0), computer
+class SampleComputer(Computer):
+
+    def __init__(self):
+        super().__init__([])
+
+        s = '''
+..#..........
+..#..........
+#######...###
+#.#...#...#.#
+#############
+..#...#...#..
+..#####...^..
+        '''.strip() + '\n'
+
+        self.output = [{'#': 35, '.': 46, '\n': 10, '^': 46}[c] for c in s]
 
 
 def part1(mem):
     computer = Computer(mem)
+    computer = SampleComputer()
 
     lines = []
     scaffolds = set()
@@ -134,23 +142,23 @@ def part1(mem):
             print(exc)
             break
 
-        if computer.output:
-            o = computer.output.pop(0)
-            ch = {
-                35: '#',
-                46: '.',
-                10: '\n',
-                94: '*',
-            }[o]
+    while computer.output:
+        o = computer.output.pop(0)
+        ch = {
+            35: '#',
+            46: '.',
+            10: '\n',
+            94: '*',
+        }[o]
 
-            if ch == '\n':
-                r += 1
-                c = 0
-            elif ch == '#':
-                scaffolds.add((r, c))
-            c += 1
+        if ch == '\n':
+            r += 1
+            c = 0
+        elif ch == '#':
+            scaffolds.add((r, c))
+        c += 1
 
-            print(ch, end='')
+        print(ch, end='')
 
     intersections = {
         (r, c)
@@ -159,8 +167,17 @@ def part1(mem):
                                                  c + 1)}.issubset(scaffolds)
     }
 
+    minr = min(r for r, c in intersections)
+    maxr = max(r for r, c in intersections)
+    minc = min(c for r, c in intersections)
+    maxc = max(c for r, c in intersections)
+
+    rdists = [r - minr for r, c in intersections]
+    cdists = [c - minc for r, c in intersections]
+
     print('scaffolds:', len(scaffolds))
     print('intersections:', len(intersections))
+    print()
 
 
 def main():
