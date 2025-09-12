@@ -110,7 +110,7 @@ class Computer:
             raise Exception(f'unknown opcode: {opcode}')
 
 
-class SampleComputer(Computer):
+class SampleComputer1(Computer):
 
     def __init__(self):
         super().__init__([])
@@ -123,6 +123,32 @@ class SampleComputer(Computer):
 #############
 ..#...#...#..
 ..#####...^..
+        '''.strip() + '\n'
+
+        self.output = [{'#': 35, '.': 46, '\n': 10, '^': 46}[c] for c in s]
+
+
+class SampleComputer2(Computer):
+
+    def __init__(self):
+        super().__init__([])
+
+        s = '''
+#######...#####
+#.....#...#...#
+#.....#...#...#
+......#...#...#
+......#...###.#
+......#.....#.#
+^########...#.#
+......#.#...#.#
+......#########
+........#...#..
+....#########..
+....#...#......
+....#...#......
+....#...#......
+....#####......
         '''.strip() + '\n'
 
         self.output = [{'#': 35, '.': 46, '\n': 10, '^': 46}[c] for c in s]
@@ -161,9 +187,12 @@ def part1(mem):
 
     intersections = {
         (r, c)
-        for r, c in scaffolds
-        if {(r - 1, c), (r + 1, c), (r, c - 1), (r,
-                                                 c + 1)}.issubset(scaffolds)
+        for r, c in scaffolds if {
+            (r - 1, c),
+            (r + 1, c),
+            (r, c - 1),
+            (r, c + 1),
+        }.issubset(scaffolds)
     }
 
     minr = min(r for r, c in scaffolds)
@@ -177,11 +206,74 @@ def part1(mem):
     return sum(a * b for a, b in zip(rdists, cdists))
 
 
+def find_scaffolds(computer: Computer):
+    while computer.running:
+        try:
+            computer.step()
+        except Exception as exc:
+            break
+
+    r = c = 0
+    scaffolds = set()
+    robot = None
+
+    while computer.output:
+        o = computer.output.pop(0)
+        ch = {
+            35: '#',
+            46: '.',
+            10: '\n',
+            94: '*',
+        }[o]
+
+        if ch == '\n':
+            r += 1
+            c = 0
+        elif ch == '#':
+            scaffolds.add((r, c))
+        elif ch == '*':
+            robot = r, c
+        c += 1
+
+    return scaffolds, robot
+
+
+def find_intersections(scaffolds: set[tuple[int, int]]):
+    return {
+        (r, c)
+        for r, c in scaffolds if {
+            (r - 1, c),
+            (r + 1, c),
+            (r, c - 1),
+            (r, c + 1),
+        }.issubset(scaffolds)
+    }
+
+
+def part2(mem):
+    computer = Computer(mem)
+    computer = SampleComputer2()
+
+    scaffolds, robot = find_scaffolds(computer)
+    intersections = find_intersections(scaffolds)
+
+    minr = min(r for r, c in scaffolds)
+    maxr = max(r for r, c in scaffolds)
+    minc = min(c for r, c in scaffolds)
+    maxc = max(c for r, c in scaffolds)
+
+    computer = Computer(mem)
+    computer.mem[0] = 2
+
+
 def main():
     mem = list(map(int, sys.stdin.read().split(',')))
 
     a1 = part1(mem)
     print('part1:', a1)
+
+    a2 = part2(mem)
+    print('part2:', a2)
 
 
 if __name__ == '__main__':
