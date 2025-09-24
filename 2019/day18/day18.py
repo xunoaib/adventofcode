@@ -12,10 +12,10 @@ def neighbors4(r, c):
             yield r + roff, c + coff
 
 
-def reachable_keys(r, c, keys: set[tuple[int, int]] = set()):
+def reachable_keys(r, c, keys: set[str] = set()):
     '''Finds all reachable keys from the current tile'''
 
-    navigable = NAVIGABLE | {DOOR_POS[GRID[p].upper()] for p in keys}
+    navigable = NAVIGABLE | {DOOR_POS[k.upper()] for k in keys}
 
     q = [(r, c, 0)]
     visited = {(r, c)}
@@ -26,9 +26,9 @@ def reachable_keys(r, c, keys: set[tuple[int, int]] = set()):
                 q.append((*np, cost + 1))
                 visited.add(np)
 
-                if np in KEYS - keys:
+                if np in KEYS and GRID[np] not in keys:
                     yield np, GRID[np], cost + 1
-                    keys = keys | {np}
+                    keys = keys | {GRID[np]}
 
 
 lines = sys.stdin.read().strip().split('\n')
@@ -53,7 +53,10 @@ def main():
     a1 = a2 = 0
 
     nodes = list(reachable_keys(*start_pos))
-    keys = {n[0] for n in nodes}
+    keys = {n[1]
+            for n in nodes} | set('ha') | set('lc') | set('ft') | set(
+                'gez'
+            ) | set('oqyu') | set('p') | set('wvx')
 
     for p in reachable_keys(*start_pos, keys):
         print(p)
