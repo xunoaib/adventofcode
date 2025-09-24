@@ -13,12 +13,14 @@ def neighbors4(r, c):
             yield r + roff, c + coff
 
 
-# @cache
+@cache
 def reachable_keys(r, c, keys: frozenset[str] = frozenset()):
     '''Finds all reachable keys from the current tile'''
 
     OPEN_DOORS = {p for p in {DOOR_POS.get(k.upper()) for k in keys} if p}
     navigable = NAVIGABLE | OPEN_DOORS
+
+    results = []
 
     q = [(r, c, 0)]
     visited = {(r, c)}
@@ -30,16 +32,25 @@ def reachable_keys(r, c, keys: frozenset[str] = frozenset()):
                 visited.add(np)
 
                 if np in KEYS and GRID[np] not in keys:
-                    yield np, GRID[np], cost + 1
+                    results.append((np, GRID[np], cost + 1))
                     keys = keys | {GRID[np]}
 
+    return results
 
+
+@cache
 def shortest(r, c, keys: frozenset[str] = frozenset(), totcost=0):
     if len(keys) == len(KEYS):
         print('Done!', totcost)
         return 0
 
     results = list(reachable_keys(r, c, keys))
+    if not results:
+        print({p for p in {DOOR_POS.get(k.upper()) for k in keys} if p})
+        print({DOOR_POS.get(k.upper()) for k in keys})
+        print(keys)
+        exit()
+
     assert results, f'Unsolvable: {(r,c)} with {"".join(sorted(keys))}'
 
     best = float('inf')
