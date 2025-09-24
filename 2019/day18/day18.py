@@ -43,14 +43,10 @@ def shortest(r, c, keys: frozenset[str] = frozenset()):
     if len(keys) == len(KEYS):
         return 0
 
-    results = list(reachable_keys(r, c, keys))
-    assert results, f'Unsolvable: {(r,c)} with {"".join(sorted(keys))}'
-
-    best = float('inf')
-    for np, key, keycost in results:
-        cost = keycost + shortest(*np, keys | {key})
-        best = min(best, cost)
-    return best
+    return min(
+        keycost + shortest(*np, keys | {key})
+        for np, key, keycost in reachable_keys(r, c, keys)
+    )
 
 
 lines = sys.stdin.read().strip().split('\n')
