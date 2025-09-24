@@ -44,12 +44,6 @@ def shortest(r, c, keys: frozenset[str] = frozenset()):
         return 0
 
     results = list(reachable_keys(r, c, keys))
-    if not results:
-        print({p for p in {DOOR_POS.get(k.upper()) for k in keys} if p})
-        print({DOOR_POS.get(k.upper()) for k in keys})
-        print(keys)
-        exit()
-
     assert results, f'Unsolvable: {(r,c)} with {"".join(sorted(keys))}'
 
     best = float('inf')
