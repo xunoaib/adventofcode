@@ -39,9 +39,8 @@ def reachable_keys(r, c, keys: frozenset[str] = frozenset()):
 
 
 @cache
-def shortest(r, c, keys: frozenset[str] = frozenset(), totcost=0):
+def shortest(r, c, keys: frozenset[str] = frozenset()):
     if len(keys) == len(KEYS):
-        print('Done!', totcost)
         return 0
 
     results = list(reachable_keys(r, c, keys))
@@ -55,8 +54,7 @@ def shortest(r, c, keys: frozenset[str] = frozenset(), totcost=0):
 
     best = float('inf')
     for np, key, keycost in results:
-        cost = keycost + shortest(*np, keys | {key}, totcost + keycost)
-        # print(f'Cost = {cost}, Keys: {"".join(sorted(keys))}')
+        cost = keycost + shortest(*np, keys | {key})
         best = min(best, cost)
     return best
 
