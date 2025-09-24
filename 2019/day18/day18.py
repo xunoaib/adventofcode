@@ -81,6 +81,8 @@ def main():
 
     a1 = shortest(*START_POS)
     print('part1:', a1)
+
+    assert a1 == 3512  # lol very inefficient
     exit()
 
 
