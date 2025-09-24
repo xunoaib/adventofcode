@@ -1,5 +1,6 @@
 import sys
 from collections import Counter, defaultdict
+from functools import cache
 from heapq import heappop, heappush
 from itertools import pairwise, permutations, product
 
@@ -12,10 +13,12 @@ def neighbors4(r, c):
             yield r + roff, c + coff
 
 
-def reachable_keys(r, c, keys: set[str] = set()):
+# @cache
+def reachable_keys(r, c, keys: frozenset[str] = frozenset()):
     '''Finds all reachable keys from the current tile'''
 
-    navigable = NAVIGABLE | {DOOR_POS[k.upper()] for k in keys}
+    OPEN_DOORS = {p for p in {DOOR_POS.get(k.upper()) for k in keys} if p}
+    navigable = NAVIGABLE | OPEN_DOORS
 
     q = [(r, c, 0)]
     visited = {(r, c)}
@@ -31,6 +34,22 @@ def reachable_keys(r, c, keys: set[str] = set()):
                     keys = keys | {GRID[np]}
 
 
+def shortest(r, c, keys: frozenset[str] = frozenset(), totcost=0):
+    if len(keys) == len(KEYS):
+        print('Done!', totcost)
+        return 0
+
+    results = list(reachable_keys(r, c, keys))
+    assert results, f'Unsolvable: {(r,c)} with {"".join(sorted(keys))}'
+
+    best = float('inf')
+    for np, key, keycost in results:
+        cost = keycost + shortest(*np, keys | {key}, totcost + keycost)
+        # print(f'Cost = {cost}, Keys: {"".join(sorted(keys))}')
+        best = min(best, cost)
+    return best
+
+
 lines = sys.stdin.read().strip().split('\n')
 GRID = {
     (r, c): ch
@@ -41,25 +60,19 @@ GRID = {
 KEYS = {p for p, ch in GRID.items() if ch.islower()}
 DOORS = {p for p, ch in GRID.items() if ch.isupper()}
 EMPTY = {p for p, ch in GRID.items() if ch == '.'}
-NAVIGABLE = KEYS | EMPTY
+START_POS = next(p for p, ch in GRID.items() if ch == '@')
+NAVIGABLE = KEYS | EMPTY | {START_POS}
 
 DOOR_POS = {GRID[p]: p for p in DOORS}
 KEY_POS = {GRID[p]: p for p in KEYS}
-
-start_pos = next(p for p, ch in GRID.items() if ch == '@')
 
 
 def main():
     a1 = a2 = 0
 
-    nodes = list(reachable_keys(*start_pos))
-    keys = {n[1]
-            for n in nodes} | set('ha') | set('lc') | set('ft') | set(
-                'gez'
-            ) | set('oqyu') | set('p') | set('wvx')
-
-    for p in reachable_keys(*start_pos, keys):
-        print(p)
+    a1 = shortest(*START_POS)
+    print('part1:', a1)
+    exit()
 
 
 if __name__ == '__main__':
