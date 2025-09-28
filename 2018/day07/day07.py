@@ -6,8 +6,7 @@ from dataclasses import dataclass
 
 class Worker:
 
-    def __init__(self, id: int):
-        self.id = id
+    def __init__(self):
         self.node = ''
         self.timeleft = 0
 
@@ -27,7 +26,7 @@ class Worker:
 class WorkerPool:
 
     def __init__(self, num_workers: int, base_time: int):
-        self.workers = [Worker(i) for i in range(num_workers)]
+        self.workers = [Worker() for _ in range(num_workers)]
         self.base_time = base_time
 
     def assign(self, nodes: list[str]):
@@ -35,7 +34,6 @@ class WorkerPool:
         for w in self.workers:
             if nodes and w.completed:
                 n = nodes.pop(0)
-                print(f'Assigning {n} to Worker {w.id}')
                 w.assign(n, self.base_time + ord(n) - ord('A') + 1)
 
     def tick(self):
@@ -59,8 +57,8 @@ def part1(deps):
 
 
 def part2(deps: dict[str, set[str]]):
-    pool = WorkerPool(2, 0)
-    # pool = WorkerPool(5, 60)
+    # pool = WorkerPool(2, 0)
+    pool = WorkerPool(5, 60)
 
     free = find_candidates(deps)
     pool.assign(free)
