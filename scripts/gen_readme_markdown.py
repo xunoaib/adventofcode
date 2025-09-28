@@ -104,6 +104,11 @@ def main():
             with open(year_readme, 'w') as f:
                 f.write(data)
 
+    if '-w' in sys.argv:
+        print('Wrote changes to files')
+    else:
+        print('No changes written. Run with -w flag.')
+
 
 if __name__ == '__main__':
     main()
