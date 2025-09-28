@@ -12,16 +12,8 @@ class Worker:
         self.timeleft = 0
 
     def tick(self):
-        if self.timeleft == 0:
-            return False
-
         self.timeleft -= 1
-
-        if self.timeleft == 0:
-            print(f'Worker {self.id} finished {self.node}')
-            return True
-
-        return False
+        return self.timeleft == 0
 
     def assign(self, node: str, timeleft: int):
         self.node = node
@@ -29,7 +21,7 @@ class Worker:
 
     @property
     def completed(self):
-        return self.timeleft == 0
+        return self.timeleft <= 0
 
 
 class WorkerPool:
@@ -76,7 +68,6 @@ def part2(deps: dict[str, set[str]]):
     ticks = 0
     while deps:
         if completed := pool.tick():
-            print('Completed', completed)
             remove_nodes(deps, completed)
             pool.assign(find_candidates(deps, pool.active_nodes()))
         ticks += 1
