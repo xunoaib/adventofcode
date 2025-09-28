@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import ast
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -11,7 +11,7 @@ TITLES_PATH = Path('titles.json')
 
 @cache
 def titles():
-    return ast.literal_eval(TITLES_PATH.read_text())
+    return json.load(TITLES_PATH.open())
 
 
 @dataclass
@@ -41,7 +41,7 @@ class Day:
 
     @property
     def title(self):
-        return titles()[self.year][self.day]
+        return titles()[str(self.year)][str(self.day)]
 
     @property
     def solution_rel_to_year(self):
