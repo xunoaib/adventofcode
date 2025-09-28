@@ -27,3 +27,4 @@
 | [Day 23: Category Six](https://adventofcode.com/2019/day/23) | Code |
 | [Day 24: Planet of Discord](https://adventofcode.com/2019/day/24) | Code |
 | [Day 25: Cryostasis](https://adventofcode.com/2019/day/25) | Code |
+

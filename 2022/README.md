@@ -27,3 +27,4 @@
 | [Day 23: Unstable Diffusion](https://adventofcode.com/2022/day/23) | [Code](day23/day23.py) |
 | [Day 24: Blizzard Basin](https://adventofcode.com/2022/day/24) | [Code](day24/day24.py) |
 | [Day 25: Full of Hot Air](https://adventofcode.com/2022/day/25) | [Code](day25/day25.py) |
+

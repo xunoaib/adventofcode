@@ -27,3 +27,4 @@
 | [Day 23: LAN Party](https://adventofcode.com/2024/day/23) | [Code](day23/day23.py) |
 | [Day 24: Crossed Wires](https://adventofcode.com/2024/day/24) | [Code](day24/day24.py) |
 | [Day 25: Code Chronicle](https://adventofcode.com/2024/day/25) | [Code](day25/day25.py) |
+

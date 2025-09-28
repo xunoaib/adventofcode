@@ -27,3 +27,4 @@
 | [Day 23: Amphipod](https://adventofcode.com/2021/day/23) | [Code](day23/day23.py) |
 | [Day 24: Arithmetic Logic Unit](https://adventofcode.com/2021/day/24) | [Code](day24/day24.py) |
 | [Day 25: Sea Cucumber](https://adventofcode.com/2021/day/25) | [Code](day25/day25.py) |
+

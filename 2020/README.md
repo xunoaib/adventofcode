@@ -27,3 +27,4 @@
 | [Day 23: Crab Cups](https://adventofcode.com/2020/day/23) | [Code](day23/day23.py) |
 | [Day 24: Lobby Layout](https://adventofcode.com/2020/day/24) | [Code](day24/day24.py) |
 | [Day 25: Combo Breaker](https://adventofcode.com/2020/day/25) | [Code](day25/day25.py) |
+
