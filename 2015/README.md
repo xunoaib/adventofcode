@@ -27,4 +27,3 @@
 | [Day 23: Opening the Turing Lock](https://adventofcode.com/2015/day/23) | Code |
 | [Day 24: It Hangs in the Balance](https://adventofcode.com/2015/day/24) | Code |
 | [Day 25: Let It Snow](https://adventofcode.com/2015/day/25) | Code |
-

@@ -16,9 +16,9 @@
 | [Day 12: The N-Body Problem](https://adventofcode.com/2019/day/12) | [Code](day12/day12.py) |
 | [Day 13: Care Package](https://adventofcode.com/2019/day/13) | [Code](day13/day13.py) |
 | [Day 14: Space Stoichiometry](https://adventofcode.com/2019/day/14) | [Code](day14/day14.py) |
-| [Day 15: Oxygen System](https://adventofcode.com/2019/day/15) | Code |
-| [Day 16: Flawed Frequency Transmission](https://adventofcode.com/2019/day/16) | Code |
-| [Day 17: Set and Forget](https://adventofcode.com/2019/day/17) | Code |
+| [Day 15: Oxygen System](https://adventofcode.com/2019/day/15) | [Code](day15/day15.py) |
+| [Day 16: Flawed Frequency Transmission](https://adventofcode.com/2019/day/16) | [Code](day16/day16.py) |
+| [Day 17: Set and Forget](https://adventofcode.com/2019/day/17) | [Code](day17/day17.py) |
 | [Day 18: Many-Worlds Interpretation](https://adventofcode.com/2019/day/18) | Code |
 | [Day 19: Tractor Beam](https://adventofcode.com/2019/day/19) | Code |
 | [Day 20: Donut Maze](https://adventofcode.com/2019/day/20) | Code |
@@ -27,4 +27,3 @@
 | [Day 23: Category Six](https://adventofcode.com/2019/day/23) | Code |
 | [Day 24: Planet of Discord](https://adventofcode.com/2019/day/24) | Code |
 | [Day 25: Cryostasis](https://adventofcode.com/2019/day/25) | Code |
-

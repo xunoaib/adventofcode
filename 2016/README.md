@@ -27,4 +27,3 @@
 | [Day 23: Safe Cracking](https://adventofcode.com/2016/day/23) | Code |
 | [Day 24: Air Duct Spelunking](https://adventofcode.com/2016/day/24) | Code |
 | [Day 25: Clock Signal](https://adventofcode.com/2016/day/25) | Code |
-
