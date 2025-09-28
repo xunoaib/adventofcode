@@ -39,12 +39,15 @@ class WorkerPool:
     def tick(self):
         return [w.node for w in self.workers if w.tick()]
 
-    def active_nodes(self):
+    @property
+    def working_nodes(self):
         return [w.node for w in self.workers if not w.completed]
 
 
 def find_candidates(deps: dict[str, set[str]], skip: list[str] = []):
-    return sorted(k for k, v in deps.items() if not v and k not in skip)
+    return sorted(
+        node for node, nodes in deps.items() if not nodes and node not in skip
+    )
 
 
 def part1(deps):
@@ -57,17 +60,14 @@ def part1(deps):
 
 
 def part2(deps: dict[str, set[str]]):
-    # pool = WorkerPool(2, 0)
-    pool = WorkerPool(5, 60)
-
-    free = find_candidates(deps)
-    pool.assign(free)
+    # pool = WorkerPool(2, 0)  # Sample input
+    pool = WorkerPool(5, 60)  # Real input
 
     ticks = 0
     while deps:
+        pool.assign(find_candidates(deps, pool.working_nodes))
         if completed := pool.tick():
             remove_nodes(deps, completed)
-            pool.assign(find_candidates(deps, pool.active_nodes()))
         ticks += 1
 
     return ticks
