@@ -8,7 +8,7 @@
 | [Day 4: Repose Record](https://adventofcode.com/2018/day/4) | [Code](day04/day04.py) |
 | [Day 5: Alchemical Reduction](https://adventofcode.com/2018/day/5) | [Code](day05/day05.py) |
 | [Day 6: Chronal Coordinates](https://adventofcode.com/2018/day/6) | [Code](day06/day06.py) |
-| [Day 7: The Sum of Its Parts](https://adventofcode.com/2018/day/7) | Code |
+| [Day 7: The Sum of Its Parts](https://adventofcode.com/2018/day/7) | [Code](day07/day07.py) |
 | [Day 8: Memory Maneuver](https://adventofcode.com/2018/day/8) | Code |
 | [Day 9: Marble Mania](https://adventofcode.com/2018/day/9) | Code |
 | [Day 10: The Stars Align](https://adventofcode.com/2018/day/10) | Code |
