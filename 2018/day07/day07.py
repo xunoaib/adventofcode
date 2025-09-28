@@ -11,13 +11,13 @@ class Worker:
         self.timeleft = 0
 
     def tick(self):
-        if not self.node:
+        if self.timeleft == 0:
             return False
 
         self.timeleft -= 1
+
         if self.timeleft == 0:
             print(f'Worker {self.id} finished {self.node}')
-            self.node = ''
             return True
 
         return False
@@ -46,12 +46,14 @@ class WorkerPool:
                 w.assign(n, self.base_time + ord(n) - ord('A') + 1)
 
     def tick(self):
-        events = [w.tick() for w in self.workers]
-        return events
+        return [w.node for w in self.workers if w.tick()]
+
+    def active_nodes(self):
+        return [w.node for w in self.workers if not w.completed]
 
 
-def find_candidates(deps: dict[str, set[str]]):
-    return sorted(k for k, v in deps.items() if not v)
+def find_candidates(deps: dict[str, set[str]], ignore: list[str] = []):
+    return sorted(k for k, v in deps.items() if not v and k not in ignore)
 
 
 def part1(deps):
@@ -71,17 +73,28 @@ def part2(deps: dict[str, set[str]]):
     # pool = WorkerPool(5, 60)
 
     free = find_candidates(deps)
-    print(free)
-
     pool.assign(free)
 
-    while True:
-        res = pool.tick()
-        print(res)
+    ticks = 0
+    while deps:
+        if completed := pool.tick():
+            print('Completed', completed)
+            remove_nodes(deps, completed)
+            pool.assign(find_candidates(deps, pool.active_nodes()))
+        ticks += 1
 
-    # while deps:
-    #     for w in workers:
-    #         w.tick()
+    return ticks
+
+
+def remove_nodes(deps: dict[str, set[str]], nodes: list[str]):
+    for n in nodes:
+        remove_node(deps, n)
+
+
+def remove_node(deps: dict[str, set[str]], node: str):
+    del deps[node]
+    for v in deps.values():
+        v.discard(node)
 
 
 def main():
@@ -101,4 +114,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
