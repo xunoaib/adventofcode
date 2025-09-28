@@ -6,6 +6,18 @@ def find_candidates(deps: dict[str, set[str]]):
     return sorted(k for k, v in deps.items() if not v)
 
 
+def part1(deps):
+    s = ''
+    while deps:
+        c = find_candidates(deps)[0]
+        s += c
+
+        del deps[c]
+        for k, v in deps.items():
+            v.discard(c)
+    return s
+
+
 def main():
     deps: dict[str, set[str]] = defaultdict(set)
 
@@ -15,18 +27,7 @@ def main():
         deps[a]
         deps[b].add(a)
 
-    deps = dict(deps)
-
-    print([len(v) for k, v in deps.items()])
-
-    a1 = ''
-    while deps:
-        c = find_candidates(deps)[0]
-        a1 += c
-
-        del deps[c]
-        for k, v in deps.items():
-            v.discard(c)
+    a1 = part1(dict(deps))
 
     print('part1:', a1)
 
