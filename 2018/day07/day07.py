@@ -1,5 +1,53 @@
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
+
+
+class Worker:
+
+    def __init__(self, id: int):
+        self.id = id
+        self.node = ''
+        self.timeleft = 0
+
+    def tick(self):
+        if not self.node:
+            return False
+
+        self.timeleft -= 1
+        if self.timeleft == 0:
+            print(f'Worker {self.id} finished {self.node}')
+            self.node = ''
+            return True
+
+        return False
+
+    def assign(self, node: str, timeleft: int):
+        self.node = node
+        self.timeleft = timeleft
+
+    @property
+    def completed(self):
+        return self.timeleft == 0
+
+
+class WorkerPool:
+
+    def __init__(self, num_workers: int, base_time: int):
+        self.workers = [Worker(i) for i in range(num_workers)]
+        self.base_time = base_time
+
+    def assign(self, nodes: list[str]):
+        nodes = list(nodes)
+        for w in self.workers:
+            if nodes and w.completed:
+                n = nodes.pop(0)
+                print(f'Assigning {n} to Worker {w.id}')
+                w.assign(n, self.base_time + ord(n) - ord('A') + 1)
+
+    def tick(self):
+        events = [w.tick() for w in self.workers]
+        return events
 
 
 def find_candidates(deps: dict[str, set[str]]):
@@ -18,6 +66,24 @@ def part1(deps):
     return s
 
 
+def part2(deps: dict[str, set[str]]):
+    pool = WorkerPool(2, 0)
+    # pool = WorkerPool(5, 60)
+
+    free = find_candidates(deps)
+    print(free)
+
+    pool.assign(free)
+
+    while True:
+        res = pool.tick()
+        print(res)
+
+    # while deps:
+    #     for w in workers:
+    #         w.tick()
+
+
 def main():
     deps: dict[str, set[str]] = defaultdict(set)
 
@@ -27,9 +93,11 @@ def main():
         deps[a]
         deps[b].add(a)
 
-    a1 = part1(dict(deps))
+    # a1 = part1(dict(deps))
+    a2 = part2(dict(deps))
 
-    print('part1:', a1)
+    # print('part1:', a1)
+    print('part2:', a2)
 
 
 if __name__ == '__main__':
