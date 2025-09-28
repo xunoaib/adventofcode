@@ -42,51 +42,40 @@ def parse_input(data: str):
     return weights, dict(holding)
 
 
-def walk_anomaly_tree(discs: dict[str, Disc], node):
-    hist = []
+def part2(discs: dict[str, Disc], node):
+    expected_weight = None
+
     while True:
         above = discs[node].above
-        ws = [d.total_weight for d in above]
-        counts = Counter(ws)
-        unique = [d for d in above if counts[d.total_weight] == 1]
-        expected = [d for d in above if counts[d.total_weight] > 1]
+        counts = Counter(d.total_weight for d in above)
+        anomaly = next((d for d in above if counts[d.total_weight] == 1), None)
+        normal = next((d for d in above if counts[d.total_weight] > 1), None)
 
-        print()
-        print('above:  ', [d.id for d in above])
-        print('weights:', ws)
-        # print(uniques)
-
-        if len(unique) != 1:
+        if normal is None or anomaly is None:
             break
 
-        w_e = expected[0].total_weight
-        w_u = unique[0].total_weight
-        hist.append((w_e, w_u, expected[0].id, unique[0].id, w_e - w_u))
-        node = unique[0].id
+        expected_weight = anomaly.weight + normal.total_weight - anomaly.total_weight
+        node = anomaly.id
 
-    return hist
+    return expected_weight
 
 
 def main():
     weights, holding = parse_input(sys.stdin.read())
-    assert len(weights) == len(holding)
 
     a1 = next(k for k, v in holding.items() if not v)
-    print('part1:', a1)
 
     discs = {n: Disc(n, w) for n, w in weights.items()}
-
     for r, ls in holding.items():
         for l in ls:
             discs[l].above.append(discs[r])
 
-    hist = walk_anomaly_tree(discs, a1)
+    a2 = part2(discs, a1)
 
-    we, wu, eid, uid, diff = hist[-1]
-    a2 = discs[uid].weight + diff
-
+    print('part1:', a1)
     print('part2:', a2)
 
+    assert a1 == 'vvsvez'
     assert a2 == 362
 
 
