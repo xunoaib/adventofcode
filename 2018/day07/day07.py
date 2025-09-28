@@ -17,9 +17,11 @@ def main():
 
     deps = dict(deps)
 
+    print([len(v) for k, v in deps.items()])
+
     a1 = ''
-    while res := find_candidates(deps):
-        c = res[0]
+    while deps:
+        c = find_candidates(deps)[0]
         a1 += c
 
         del deps[c]
