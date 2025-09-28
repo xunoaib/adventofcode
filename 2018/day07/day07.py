@@ -69,8 +69,8 @@ def part1(deps):
 
 
 def part2(deps: dict[str, set[str]]):
-    pool = WorkerPool(2, 0)
-    # pool = WorkerPool(5, 60)
+    # pool = WorkerPool(2, 0)
+    pool = WorkerPool(5, 60)
 
     free = find_candidates(deps)
     pool.assign(free)
@@ -106,10 +106,10 @@ def main():
         deps[a]
         deps[b].add(a)
 
-    # a1 = part1(dict(deps))
+    a1 = part1(dict(deps))
     a2 = part2(dict(deps))
 
-    # print('part1:', a1)
+    print('part1:', a1)
     print('part2:', a2)
 
 
