@@ -8,7 +8,7 @@
 | [Day 4: High-Entropy Passphrases](https://adventofcode.com/2017/day/4) | [Code](day04/day04.py) |
 | [Day 5: A Maze of Twisty Trampolines, All Alike](https://adventofcode.com/2017/day/5) | [Code](day05/day05.py) |
 | [Day 6: Memory Reallocation](https://adventofcode.com/2017/day/6) | Code |
-| [Day 7: Recursive Circus](https://adventofcode.com/2017/day/7) | Code |
+| [Day 7: Recursive Circus](https://adventofcode.com/2017/day/7) | [Code](day07/day07.py) |
 | [Day 8: I Heard You Like Registers](https://adventofcode.com/2017/day/8) | Code |
 | [Day 9: Stream Processing](https://adventofcode.com/2017/day/9) | Code |
 | [Day 10: Knot Hash](https://adventofcode.com/2017/day/10) | Code |
