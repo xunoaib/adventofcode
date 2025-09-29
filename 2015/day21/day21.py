@@ -1,6 +1,6 @@
 import re
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from itertools import combinations
 from typing import Literal
 
@@ -32,14 +32,6 @@ class Item:
     name: str
     type: str
     stats: Stats
-
-    def __add__(self, other: 'Item'):
-        return self.stats + other.stats
-
-    def __radd__(self, other: 'Literal[0] | Item'):
-        if other == 0:
-            return self.stats
-        return self.__add__(other)
 
 
 @dataclass
