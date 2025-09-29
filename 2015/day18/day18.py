@@ -23,20 +23,39 @@ grid = {
     for c, ch in enumerate(line)
 }
 
-all_coords = list(grid)
-on: set[tuple[int, int]] = {p for p, ch in grid.items() if ch == '#'}
+orig_on: set[tuple[int, int]] = {p for p, ch in grid.items() if ch == '#'}
 
+# # Part 1
+# on = orig_on.copy()
+# for _ in range(100):
+#     on = {
+#         p
+#         for p in grid if (
+#             (p in on and count_on_neighbors(*p) in [2, 3]) or
+#             (p not in on and count_on_neighbors(*p) == 3)
+#         )
+#     }
+#
+# a1 = len(on)
+# print('part1:', a1)
+# assert a1 == 814
+
+# Part 2
+maxr = max(r for r, c in grid)
+maxc = max(c for r, c in grid)
+
+ALWAYS_ON = {(0, 0), (0, maxc), (maxr, 0), (maxr, maxc)}
+
+on = orig_on.copy() | ALWAYS_ON
 for _ in range(100):
     on = {
         p
-        for p in all_coords if (
+        for p in grid if (
             (p in on and count_on_neighbors(*p) in [2, 3]) or
             (p not in on and count_on_neighbors(*p) == 3)
         )
-    }
+    } | ALWAYS_ON
 
-a1 = len(on)
-
-print('part1:', a1)
-
-assert a1 == 814
+a2 = len(on)
+print('part2:', a2)
+# assert a2 == 814
