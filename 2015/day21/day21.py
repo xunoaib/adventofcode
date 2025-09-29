@@ -24,9 +24,7 @@ class Stats:
         return self + other
 
     def __lt__(self, other: 'Stats'):
-        a = (self.cost, self.damage, other.armor)
-        b = (other.cost, other.damage, other.armor)
-        return a < b
+        return self.cost < other.cost
 
 
 @dataclass
@@ -100,8 +98,8 @@ def parse_shop_items() -> list[Item]:
     return items
 
 
-def combinations_up_to(items: list[Item], max_r):
-    for r in range(0, max_r + 1):
+def range_combinations(items: list[Item], mininum: int, maximum: int):
+    for r in range(mininum, maximum + 1):
         yield from combinations(items, r=r)
 
 
@@ -110,22 +108,21 @@ def iter_inventories():
     rings = [i for i in shop if i.type == 'ring']
     armors = [i for i in shop if i.type == 'armor']
     weapons = [i for i in shop if i.type == 'weapon']
+    empty = (Item('', '', Stats(0, 0, 0)), )
 
-    blank_tuple = (Item('', '', Stats(0, 0, 0)), )
-
-    for rcomb in combinations_up_to(rings, 2):
-        for wcomb in combinations_up_to(weapons, 1):
-            for acomb in combinations_up_to(armors, 1):
-                yield (rcomb + wcomb + acomb) or blank_tuple
+    for wcomb in range_combinations(weapons, 1, 1):
+        for acomb in range_combinations(armors, 0, 1):
+            for rcomb in range_combinations(rings, 0, 2):
+                yield (wcomb + acomb + rcomb) or empty
 
 
-def wins(hero: Player, boss: Player):
-    a, b = hero, boss
-    while a.alive and b.alive:
-        a.attack(b)
-        a, b = b, a
-
-    return (a.alive and a is hero) or (b.alive and b is hero)
+def hero_wins(hero: Player, boss: Player):
+    while hero.alive and boss.alive:
+        hero.attack(boss)
+        if not boss.alive:
+            return True
+        boss.attack(hero)
+    return hero.alive
 
 
 def main():
@@ -135,17 +132,26 @@ def main():
 
     options = []
     for idx, items in enumerate(iter_inventories()):
-        s = sum([i.stats for i in items])
-        options.append((s, idx, items))
-
+        stats = sum([i.stats for i in items])
+        options.append((stats, idx, items))
     options.sort()
+
+    a1 = a2 = None
 
     for stats, _, items in options:
         hero = Player(100, stats)
         boss = Player(boss_hp, boss_stats)
-        if wins(hero, boss):
-            print('part1:', stats.cost)
-            break
+
+        if not hero_wins(hero, boss):
+            a2 = stats.cost
+        elif a1 is None:
+            a1 = stats.cost
+
+    print('part1:', a1)
+    print('part2:', a2)
+
+    assert a1 == 78
+    assert a2 == 148
 
 
 if __name__ == '__main__':
