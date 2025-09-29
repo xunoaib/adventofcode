@@ -26,10 +26,42 @@ class Item:
     def __add__(self, other: 'Item'):
         return self.stats + other.stats
 
+    def __radd__(self, other):
+        if other == 0:
+            return self.stats
+        return self.__add__(other)
+
 
 @dataclass
 class Inventory:
     items: list[Item] = field(default_factory=list)
+
+    def can_buy(self, other: Item):
+        if other.type == 'weapon':
+            return all(item.type != 'weapon' for item in self.items)
+        elif other.type == 'armor':
+            return all(item.type != 'armor' for item in self.items)
+        elif other.type == 'ring':
+            return sum(item.type == 'ring' for item in self.items) < 2
+
+    def stats(self):
+        return sum(self.items)
+
+
+@dataclass
+class Player:
+    inventory: Inventory
+    health: int
+
+    def attack(self):
+        pass
+
+
+class Game:
+
+    def __init__(self):
+        self.health = health
+        self.boss_health = boss_health
 
 
 SHOP_STR = '''
@@ -62,7 +94,7 @@ def parse_shop_items() -> list[Item]:
     itype = ''
     for line in SHOP_STR.strip().splitlines():
         if ':' in line:
-            itype = line.split(':')[0].rstrip('s')
+            itype = line.split(':')[0].rstrip('s').lower()
         elif m := re.match(r'^(.*?)\s+(\d+)\s+(\d+)\s+(\d+)$', line):
             name, *vals = m.groups()
             items.append(Item(name, itype, Stats(*map(int, vals))))
@@ -75,6 +107,9 @@ def main():
 
     for i in items:
         print(i)
+
+    inv.items.append(items[0])
+    print(inv.stats())
 
 
 if __name__ == '__main__':
