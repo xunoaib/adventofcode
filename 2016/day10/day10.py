@@ -2,7 +2,7 @@ import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import override
+from typing import Callable, override
 
 
 @dataclass
@@ -10,6 +10,7 @@ class Bot:
     id: int
     low: 'Bot | Output | None' = None
     high: 'Bot | Output | None' = None
+    inputs: list['Source'] = field(default_factory=list)
 
     @override
     def __repr__(self) -> str:
@@ -19,8 +20,13 @@ class Bot:
 
 
 @dataclass
+class Source:
+    source_func: Callable[..., 'Bot']
+
+
+@dataclass
 class Value:
-    val: int
+    id: int
     out: Bot
 
 
@@ -29,12 +35,20 @@ class Output:
     id: int
 
 
-def get_bot(id_: int):
-    return bots.setdefault(id_, Bot(id_))
+def get_bot(bid: int):
+    return bots.setdefault(bid, Bot(bid))
 
 
-def get_output(id_: int):
-    return outputs.setdefault(id_, Output(id_))
+def get_output(oid: int):
+    return outputs.setdefault(oid, Output(oid))
+
+
+def get_value(vid: int, bid: int | None):
+    if bid is None:
+        return values[vid]
+
+    bot = get_bot(bid)
+    return values.setdefault(vid, Value(vid, bot))
 
 
 def lookup_object(spec: str):
@@ -50,23 +64,33 @@ def lookup_object(spec: str):
 
 lines = sys.stdin.read().splitlines()
 
-val_rules = {}
-bot_rules = {}
-
 bots: dict[int, Bot] = {}
 outputs: dict[int, Output] = {}
+values: dict[int, Value] = {}
 
 for line in lines:
     if m := re.match(r'^value (.*) goes to bot (.*)$', line):
-        val, bid = map(int, m.groups())
-        val_rules[val] = bid
+        vid, bid = map(int, m.groups())
+        bot = get_bot(bid)
+        val = get_value(vid, bid)
+
+        bot.inputs.append(Source(lambda val=val: val.id))
+
     elif m := re.match(r'^bot (.*) gives low to (.*) and high to (.*)$', line):
         bid, low, high = m.groups()
         bid = int(bid)
-        bot_rules[bid] = (low, high)
 
         bot = get_bot(bid)
-        bot.low = lookup_object(low)
-        bot.high = lookup_object(high)
+        l = bot.low = lookup_object(low)
+        h = bot.high = lookup_object(high)
 
-        print(bot)
+        if isinstance(l, Bot):
+            l.inputs.append(Source(lambda bot=bot: bot.low))
+        if isinstance(h, Bot):
+            h.inputs.append(Source(lambda bot=bot: bot.high))
+
+for bot in bots.values():
+    print(f'Bot {bot.id}:')
+    for i in bot.inputs:
+        print('   ', i.source_func())
+    print()
