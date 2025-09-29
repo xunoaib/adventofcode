@@ -41,12 +41,24 @@ class CPU:
 
         return True
 
+    def run(self):
+        while self.step():
+            pass
+
 
 cmds = sys.stdin.read().replace(',', '').splitlines()
 
 cpu = CPU(cmds)
+cpu.run()
+a1 = cpu.regs['b']
 
-while cpu.step():
-    pass
+cpu = CPU(cmds)
+cpu.regs['a'] = 1
+cpu.run()
+a2 = cpu.regs['b']
 
-print('part1:', cpu.regs['b'])
+print('part1:', a1)
+print('part2:', a2)
+
+assert a1 == 184
+assert a2 == 231
