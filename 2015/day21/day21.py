@@ -20,8 +20,13 @@ class Stats:
 
     def __radd__(self, other: 'Literal[0] | Stats') -> 'Stats':
         if other == 0:
-            return Stats(0, 0, 0)
+            return self
         return self + other
+
+    def __lt__(self, other: 'Stats'):
+        a = (self.cost, self.damage, other.armor)
+        b = (other.cost, other.damage, other.armor)
+        return a < b
 
 
 @dataclass
@@ -143,17 +148,18 @@ def main():
     data = sys.stdin.read()
     boss_hp, boss_damage, boss_armor = map(int, re.findall(r'\d+', data))
 
-    options = [
-        (sum(i.stats.cost for i in items), idx, items)
-        for idx, items in enumerate(map(list, iter_inventories()))
-    ]
+    options = []
+    for idx, items in enumerate(iter_inventories()):
+        s = sum([i.stats for i in items] + [Stats(0, 0, 0)])
+        options.append((s, idx, items))
 
     options.sort()
 
-    for totcost, _, items in options:
+    for stats, _, items in options:
         # print(totcost, items)
-        stats = sum(item.stats for item in items)
-        print(totcost, stats)
+        # stats = sum(item.stats for item in items)
+        # print(totcost, stats)
+        print(stats, s)
 
 
 if __name__ == '__main__':
