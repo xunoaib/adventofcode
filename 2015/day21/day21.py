@@ -138,10 +138,12 @@ def iter_inventories():
     armors = [i for i in shop if i.type == 'armor']
     weapons = [i for i in shop if i.type == 'weapon']
 
+    blank_tuple = (Item('', '', Stats(0, 0, 0)), )
+
     for rcomb in combinations_up_to(rings, 2):
         for wcomb in combinations_up_to(weapons, 1):
             for acomb in combinations_up_to(armors, 1):
-                yield (rcomb + wcomb + acomb) or Stats(0, 0, 0)
+                yield (rcomb + wcomb + acomb) or blank_tuple
 
 
 def main():
