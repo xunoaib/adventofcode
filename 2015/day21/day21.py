@@ -1,13 +1,35 @@
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+
+@dataclass
+class Stats:
+    cost: int
+    damage: int
+    armor: int
+
+    def __add__(self, other: 'Stats'):
+        return Stats(
+            self.cost + other.cost,
+            self.damage + other.damage,
+            self.armor + other.armor,
+        )
 
 
 @dataclass
 class Item:
-    cost: int
-    damage: int
-    armor: int
+    name: str
+    type: str
+    stats: Stats
+
+    def __add__(self, other: 'Item'):
+        return self.stats + other.stats
+
+
+@dataclass
+class Inventory:
+    items: list[Item] = field(default_factory=list)
 
 
 SHOP_STR = '''
@@ -35,16 +57,24 @@ Defense +3   80     0       3
 '''
 
 
-def parse_shop_items():
+def parse_shop_items() -> list[Item]:
     items = []
+    itype = ''
     for line in SHOP_STR.strip().splitlines():
-        if m := re.match(r'^(.*?)\s+(\d+)\s+(\d+)\s+(\d+)$', line):
-            print(m.groups())
-        # ds = list(map(int, re.findall(r'\s+\d+', line)))
+        if ':' in line:
+            itype = line.split(':')[0].rstrip('s')
+        elif m := re.match(r'^(.*?)\s+(\d+)\s+(\d+)\s+(\d+)$', line):
+            name, *vals = m.groups()
+            items.append(Item(name, itype, Stats(*map(int, vals))))
+    return items
 
 
 def main():
-    parse_shop_items()
+    items = parse_shop_items()
+    inv = Inventory()
+
+    for i in items:
+        print(i)
 
 
 if __name__ == '__main__':
