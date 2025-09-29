@@ -1,6 +1,7 @@
 import re
 import sys
 from dataclasses import dataclass, field
+from itertools import combinations
 from typing import Literal
 
 
@@ -54,7 +55,7 @@ class Inventory:
 
 @dataclass
 class Player:
-    health: int = 100
+    health: int
     inventory: Inventory = field(default_factory=Inventory)
 
     @property
@@ -75,8 +76,8 @@ class Player:
 
 class Game:
 
-    def __init__(self):
-        self.players = [Player() for _ in range(2)]
+    def __init__(self, players: list[Player]):
+        self.players = players
 
 
 SHOP_STR = '''
@@ -116,15 +117,41 @@ def parse_shop_items() -> list[Item]:
     return items
 
 
+def combinations_up_to(items: list[Item], max_r):
+    for r in range(0, max_r + 1):
+        yield from combinations(items, r=r)
+
+
+def iter_inventories():
+    shop = parse_shop_items()
+    rings = [i for i in shop if i.type == 'ring']
+    armors = [i for i in shop if i.type == 'armor']
+    weapons = [i for i in shop if i.type == 'weapon']
+
+    for rcomb in combinations_up_to(rings, 2):
+        for wcomb in combinations_up_to(weapons, 1):
+            for acomb in combinations_up_to(armors, 1):
+                yield rcomb + wcomb + acomb
+
+
 def main():
-    items = parse_shop_items()
-    inv = Inventory()
+    data = sys.stdin.read()
+    boss_hp, boss_damage, boss_armor = map(int, re.findall(r'\d+', data))
 
-    for i in items:
-        print(i)
+    for x in iter_inventories():
+        print([i.name for i in x])
 
-    inv.items.append(items[0])
-    print(inv.stats())
+    # shop = parse_shop_items()
+
+    # boss_stats = Stats(0, boss_damage, boss_armor)
+    # inv_hero = Inventory()
+
+    # boss = Player(health, Inventory([Item('', '', Stats(0, damage, armor))]))
+    # hero = Player(100)
+
+    # print(hero.health)
+    # hero.attack(boss)
+    # print(hero.health)
 
 
 if __name__ == '__main__':
