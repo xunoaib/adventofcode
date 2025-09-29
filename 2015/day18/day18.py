@@ -1,8 +1,6 @@
 import sys
+from collections.abc import Generator
 from itertools import product
-from typing import Generator
-
-DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 
 def neighbors8(r: int, c: int) -> Generator[tuple[int, int]]:
@@ -11,51 +9,62 @@ def neighbors8(r: int, c: int) -> Generator[tuple[int, int]]:
             yield r + roff, c + coff
 
 
-def count_on_neighbors(r: int, c: int):
+def count_on_neighbors(r: int, c: int, on: set[tuple[int, int]]):
     return len(set(neighbors8(r, c)) & on)
 
 
-lines = sys.stdin.read().strip().split('\n')
+def part1(on: set[tuple[int, int]]):
+    for _ in range(100):
+        on = {
+            p
+            for p in grid
+            if (p in on and count_on_neighbors(*p, on) in [2, 3]) or
+            (p not in on and count_on_neighbors(*p, on) == 3)
+        }
 
-grid = {
-    (r, c): ch
-    for r, line in enumerate(lines)
-    for c, ch in enumerate(line)
-}
+    return len(on)
 
-orig_on: set[tuple[int, int]] = {p for p, ch in grid.items() if ch == '#'}
 
-# # Part 1
-# on = orig_on.copy()
-# for _ in range(100):
-#     on = {
-#         p
-#         for p in grid if (
-#             (p in on and count_on_neighbors(*p) in [2, 3]) or
-#             (p not in on and count_on_neighbors(*p) == 3)
-#         )
-#     }
-#
-# a1 = len(on)
-# print('part1:', a1)
-# assert a1 == 814
+def part2(on: set[tuple[int, int]]):
+    maxr = max(r for r, _ in grid)
+    maxc = max(c for _, c in grid)
 
-# Part 2
-maxr = max(r for r, c in grid)
-maxc = max(c for r, c in grid)
+    ALWAYS_ON = {(0, 0), (0, maxc), (maxr, 0), (maxr, maxc)}
 
-ALWAYS_ON = {(0, 0), (0, maxc), (maxr, 0), (maxr, maxc)}
+    on |= ALWAYS_ON
+    for _ in range(100):
+        on = {
+            p
+            for p in grid
+            if (p in on and count_on_neighbors(*p, on) in [2, 3]) or
+            (p not in on and count_on_neighbors(*p, on) == 3)
+        } | ALWAYS_ON
 
-on = orig_on.copy() | ALWAYS_ON
-for _ in range(100):
-    on = {
-        p
-        for p in grid if (
-            (p in on and count_on_neighbors(*p) in [2, 3]) or
-            (p not in on and count_on_neighbors(*p) == 3)
-        )
-    } | ALWAYS_ON
+    return len(on)
 
-a2 = len(on)
-print('part2:', a2)
-# assert a2 == 814
+
+def main():
+    global grid
+
+    lines = sys.stdin.read().strip().split('\n')
+
+    grid = {
+        (r, c): ch
+        for r, line in enumerate(lines)
+        for c, ch in enumerate(line)
+    }
+
+    on: set[tuple[int, int]] = {p for p, ch in grid.items() if ch == '#'}
+
+    a1 = part1(on.copy())
+    a2 = part2(on.copy())
+
+    print('part1:', a1)
+    print('part2:', a2)
+
+    assert a1 == 814
+    assert a2 == 924
+
+
+if __name__ == '__main__':
+    main()
