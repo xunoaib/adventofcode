@@ -1,5 +1,6 @@
 import re
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from itertools import combinations
 from typing import Literal
@@ -28,13 +29,6 @@ class Stats:
 
 
 @dataclass
-class Item:
-    name: str
-    type: str
-    stats: Stats
-
-
-@dataclass
 class Player:
     health: int
     stats: Stats
@@ -45,12 +39,6 @@ class Player:
     @property
     def alive(self):
         return self.health > 0
-
-
-class Game:
-
-    def __init__(self, players: list[Player]):
-        self.players = players
 
 
 SHOP_STR = '''
@@ -78,33 +66,30 @@ Defense +3   80     0       3
 '''
 
 
-def parse_shop_items() -> list[Item]:
-    items = []
+def parse_shop_items() -> dict[str, list[Stats]]:
+    items = defaultdict(list)
     itype = ''
     for line in SHOP_STR.strip().splitlines():
         if ':' in line:
             itype = line.split(':')[0].rstrip('s').lower()
         elif m := re.match(r'^(.*?)\s+(\d+)\s+(\d+)\s+(\d+)$', line):
-            name, *vals = m.groups()
-            items.append(Item(name, itype, Stats(*map(int, vals))))
-    return items
+            _name, *vals = m.groups()
+            items[itype].append(Stats(*map(int, vals)))
+    return dict(items)
 
 
-def range_combinations(items: list[Item], mininum: int, maximum: int):
+def range_combinations(items: list[Stats], mininum: int, maximum: int):
     for r in range(mininum, maximum + 1):
         yield from combinations(items, r=r)
 
 
-def iter_inventories():
+def gear_combinations():
     shop = parse_shop_items()
-    rings = [i for i in shop if i.type == 'ring']
-    armors = [i for i in shop if i.type == 'armor']
-    weapons = [i for i in shop if i.type == 'weapon']
-    empty = (Item('', '', Stats(0, 0, 0)), )
+    empty = (Stats(0, 0, 0), )
 
-    for wcomb in range_combinations(weapons, 1, 1):
-        for acomb in range_combinations(armors, 0, 1):
-            for rcomb in range_combinations(rings, 0, 2):
+    for wcomb in range_combinations(shop['weapon'], 1, 1):
+        for acomb in range_combinations(shop['armor'], 0, 1):
+            for rcomb in range_combinations(shop['ring'], 0, 2):
                 yield (wcomb + acomb + rcomb) or empty
 
 
@@ -123,9 +108,8 @@ def main():
     boss_stats = Stats(0, boss_damage, boss_armor)
 
     options = []
-    for idx, items in enumerate(iter_inventories()):
-        stats = sum([i.stats for i in items])
-        options.append((stats, idx, items))
+    for idx, items in enumerate(gear_combinations()):
+        options.append((sum(items), idx, items))
     options.sort()
 
     a1 = a2 = None
