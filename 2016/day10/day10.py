@@ -86,6 +86,7 @@ for line in lines:
 
         if isinstance(l, Bot):
             l.inputs.append(Source(lambda bot=bot: bot.low))
+
         if isinstance(h, Bot):
             h.inputs.append(Source(lambda bot=bot: bot.high))
 
@@ -94,3 +95,5 @@ for bot in bots.values():
     for i in bot.inputs:
         print('   ', i.source_func())
     print()
+
+# Part 1 in progress
