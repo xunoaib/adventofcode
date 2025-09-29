@@ -45,43 +45,16 @@ class Item:
 
 
 @dataclass
-class Inventory:
-    items: list[Item] = field(default_factory=list)
-
-    def can_buy(self, other: Item):
-        if other.type == 'weapon':
-            return all(item.type != 'weapon' for item in self.items)
-        elif other.type == 'armor':
-            return all(item.type != 'armor' for item in self.items)
-        elif other.type == 'ring':
-            return sum(item.type == 'ring' for item in self.items) < 2
-
-    def stats(self) -> Stats:
-        s = Stats(0, 0, 0)
-        for i in self.items:
-            s = s + i.stats
-        return s
-
-
-@dataclass
 class Player:
     health: int
-    inventory: Inventory = field(default_factory=Inventory)
-
-    @property
-    def stats(self) -> Stats:
-        return self.inventory.stats()
-
-    @property
-    def armor(self):
-        return self.stats.armor
-
-    @property
-    def damage(self):
-        return self.stats.damage
+    stats: Stats
 
     def attack(self, other: 'Player'):
-        other.health -= max(1, self.damage - other.armor)
+        other.health -= max(1, self.stats.damage - other.stats.armor)
+
+    @property
+    def alive(self):
+        return self.health > 0
 
 
 class Game:
@@ -146,9 +119,19 @@ def iter_inventories():
                 yield (rcomb + wcomb + acomb) or blank_tuple
 
 
+def wins(hero: Player, boss: Player):
+    a, b = hero, boss
+    while a.alive and b.alive:
+        a.attack(b)
+        a, b = b, a
+
+    return (a.alive and a is hero) or (b.alive and b is hero)
+
+
 def main():
     data = sys.stdin.read()
     boss_hp, boss_damage, boss_armor = map(int, re.findall(r'\d+', data))
+    boss_stats = Stats(0, boss_damage, boss_armor)
 
     options = []
     for idx, items in enumerate(iter_inventories()):
@@ -158,10 +141,11 @@ def main():
     options.sort()
 
     for stats, _, items in options:
-        # print(totcost, items)
-        # stats = sum(item.stats for item in items)
-        # print(totcost, stats)
-        print(stats, s)
+        hero = Player(100, stats)
+        boss = Player(boss_hp, boss_stats)
+        if wins(hero, boss):
+            print('part1:', stats.cost)
+            break
 
 
 if __name__ == '__main__':
