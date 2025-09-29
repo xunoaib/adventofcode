@@ -138,8 +138,18 @@ def main():
     data = sys.stdin.read()
     boss_hp, boss_damage, boss_armor = map(int, re.findall(r'\d+', data))
 
-    for x in iter_inventories():
-        print([i.name for i in x])
+    options = [
+        (sum(i.stats.cost for i in items), idx, items)
+        for idx, items in enumerate(iter_inventories())
+    ]
+
+    options.sort()
+
+    # for x in iter_inventories():
+    #     print(cost, [i.name for i in x])
+
+    for o in options:
+        print(o)
 
     # shop = parse_shop_items()
 
