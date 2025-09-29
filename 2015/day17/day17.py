@@ -26,3 +26,6 @@ a2 = part2(150)
 
 print('part1:', a1)
 print('part2:', a2)
+
+assert a1 == 4372
+assert a2 == 4
