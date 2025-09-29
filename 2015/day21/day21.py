@@ -18,6 +18,11 @@ class Stats:
             self.armor + other.armor,
         )
 
+    def __radd__(self, other: 'Literal[0] | Stats') -> 'Stats':
+        if other == 0:
+            return Stats(0, 0, 0)
+        return self + other
+
 
 @dataclass
 class Item:
@@ -140,28 +145,15 @@ def main():
 
     options = [
         (sum(i.stats.cost for i in items), idx, items)
-        for idx, items in enumerate(iter_inventories())
+        for idx, items in enumerate(map(list, iter_inventories()))
     ]
 
     options.sort()
 
-    # for x in iter_inventories():
-    #     print(cost, [i.name for i in x])
-
-    for o in options:
-        print(o)
-
-    # shop = parse_shop_items()
-
-    # boss_stats = Stats(0, boss_damage, boss_armor)
-    # inv_hero = Inventory()
-
-    # boss = Player(health, Inventory([Item('', '', Stats(0, damage, armor))]))
-    # hero = Player(100)
-
-    # print(hero.health)
-    # hero.attack(boss)
-    # print(hero.health)
+    for totcost, _, items in options:
+        # print(totcost, items)
+        stats = sum(item.stats for item in items)
+        print(totcost, stats)
 
 
 if __name__ == '__main__':
