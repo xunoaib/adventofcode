@@ -1,6 +1,7 @@
 import re
 import sys
 from dataclasses import dataclass, field
+from typing import Literal
 
 
 @dataclass
@@ -26,7 +27,7 @@ class Item:
     def __add__(self, other: 'Item'):
         return self.stats + other.stats
 
-    def __radd__(self, other):
+    def __radd__(self, other: 'Literal[0] | Item'):
         if other == 0:
             return self.stats
         return self.__add__(other)
@@ -44,24 +45,38 @@ class Inventory:
         elif other.type == 'ring':
             return sum(item.type == 'ring' for item in self.items) < 2
 
-    def stats(self):
-        return sum(self.items)
+    def stats(self) -> Stats:
+        s = Stats(0, 0, 0)
+        for i in self.items:
+            s = s + i.stats
+        return s
 
 
 @dataclass
 class Player:
-    inventory: Inventory
-    health: int
+    health: int = 100
+    inventory: Inventory = field(default_factory=Inventory)
 
-    def attack(self):
-        pass
+    @property
+    def stats(self) -> Stats:
+        return self.inventory.stats()
+
+    @property
+    def armor(self):
+        return self.stats.armor
+
+    @property
+    def damage(self):
+        return self.stats.damage
+
+    def attack(self, other: 'Player'):
+        other.health -= max(1, self.damage - other.armor)
 
 
 class Game:
 
     def __init__(self):
-        self.health = health
-        self.boss_health = boss_health
+        self.players = [Player() for _ in range(2)]
 
 
 SHOP_STR = '''
