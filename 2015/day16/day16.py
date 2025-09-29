@@ -6,15 +6,14 @@ def part1():
     candidates: list[int] = []
 
     for i, line in enumerate(lines):
-        l, r = line.split(': ', 1)
+        _, r = line.split(': ', 1)
         counts = [g.split(': ') for g in r.split(', ')]
         counts = {k: int(v) for k, v in counts}
 
-        if all(v == legend[k] for k, v in counts.items()):
+        if all(v == LEGEND[k] for k, v in counts.items()):
             candidates.append(i + 1)
 
     assert len(candidates) == 1
-
     return candidates[0]
 
 
@@ -29,22 +28,21 @@ def part2():
     }
 
     for i, line in enumerate(lines):
-        l, r = line.split(': ', 1)
+        _, r = line.split(': ', 1)
         counts = [g.split(': ') for g in r.split(', ')]
         counts = {k: int(v) for k, v in counts}
 
         if all(
-            operators.get(k, operator.eq)(v, legend[k])
+            operators.get(k, operator.eq)(v, LEGEND[k])
             for k, v in counts.items()
         ):
             candidates.append(i + 1)
 
     assert len(candidates) == 1
-
     return candidates[0]
 
 
-legend = {
+LEGEND = {
     'children': 3,
     'cats': 7,
     'samoyeds': 2,
