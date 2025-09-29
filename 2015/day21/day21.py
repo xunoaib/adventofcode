@@ -141,7 +141,7 @@ def iter_inventories():
     for rcomb in combinations_up_to(rings, 2):
         for wcomb in combinations_up_to(weapons, 1):
             for acomb in combinations_up_to(armors, 1):
-                yield rcomb + wcomb + acomb
+                yield (rcomb + wcomb + acomb) or Stats(0, 0, 0)
 
 
 def main():
@@ -150,7 +150,7 @@ def main():
 
     options = []
     for idx, items in enumerate(iter_inventories()):
-        s = sum([i.stats for i in items] + [Stats(0, 0, 0)])
+        s = sum([i.stats for i in items])
         options.append((s, idx, items))
 
     options.sort()
