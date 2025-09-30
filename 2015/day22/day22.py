@@ -64,6 +64,10 @@ class Game:
             (self.boss.health, self.player.health, self.player.mana) + tup
         )
 
+    @override
+    def __eq__(self, other: object):
+        return hash(self) == hash(other)
+
     def missile(self):
         self.player.mana -= 53
         self.boss.health -= 4
