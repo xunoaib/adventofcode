@@ -1,71 +1,98 @@
-#!/usr/bin/env python3
+import math
 import re
 import sys
-from functools import reduce
-from itertools import permutations
-from operator import mul
 
-import numpy as np
+from z3 import Int, Solver, sat
 
-
-def calc_score(effects, config):
-    matrix = [np.array(effects[i], dtype=int) * count for i, count in config.items()]
-    matrix = np.stack(matrix)
-    sums = np.sum(matrix, axis=0)  # add columns
-    return max(reduce(mul, sums), 0)
-
-def best_neighbor(effects, config):
-    score = calc_score(effects, config)
-    for k1, k2 in permutations(config, 2):
-        if config[k2] - 1 < 0:
-            continue
-        new_conf = config.copy()
-        new_conf[k1] += 1
-        new_conf[k2] -= 1
-        new_score = calc_score(effects, new_conf)
-        if new_score > score:
-            return new_conf, new_score
-    return config, score
-
-def best_calorie_neighbor(effects, config):
-    score = calc_score(effects, config)
-    for k1, k2 in permutations(config, 2):
-        if config[k2] - 1 < 0:
-            continue
-        new_conf = config.copy()
-        new_conf[k1] += effects[k2]  # TODO
-        new_conf[k2] -= 1
-        new_score = calc_score(effects, new_conf)
-        if new_score > score:
-            return new_conf, new_score
-    return config, score
 
 def main():
-    effects = {}
-    for line in sys.stdin:
-        name, props = line.split(':')
-        effects[name] = list(map(int, re.findall('-?[0-9]+', props)))[:-1]
+    lines = sys.stdin.read().splitlines()
 
-    # initial guess to climb from
-    teaspoons = 100
-    config = {key: teaspoons // len(effects) for key in effects}
+    tuples: list[tuple[int, ...]] = []
+    for line in lines:
+        _, props = line.split(':')
+        tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    # everest ho!
-    last_score = None
-    while True:
-        config, score = best_neighbor(effects, config)
-        if score == last_score:
-            break
-        last_score = score
+    # Use original part1 code (before z3)
+    from day15_part1 import part1
+    a1 = part1(lines)
 
-    print(config, score)
-    print('part1:', score)
+    # The z3 version DOES eventually find the part1 solution, but it's slow,
+    # requires fine-tuning, and fails to exit immediately after finding it:
+    # a1 = part1_inf_loop(tuples)
 
-    # ans2 = part2(lines)
-    # print('part2:', ans2)
+    print('part1:', a1)
 
-    # assert ans1 == 18965440
-    # assert ans2 == 0
+    # Part 2 is actually easier, having more constraints
+    a2 = part2(tuples)
+    print('part2:', a2)
+
+    assert a1 == 18965440
+    assert a2 == 15862900
+
+
+def part2(tuples: list[tuple[int, ...]]):
+    tuples = [t for t in tuples]  # drop calories
+
+    ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
+    prop_totals = [Int(f'propTotal{i}') for i in range(len(tuples[0]))]
+    prop_tuples = list(zip(*tuples))
+
+    s = Solver()
+
+    for prop_total, prop_tuple in zip(prop_totals, prop_tuples):
+        s.add(
+            prop_total == sum(i * v for i, v in zip(ingd_counts, prop_tuple))
+        )
+        s.add(prop_total > 0)
+
+    score = Int('score')
+    s.add(score == math.prod(prop_totals[:-1]))
+    s.add(sum(ingd_counts) == 100)
+    s.add(prop_totals[-1] == 500)  # part 2 constraint
+
+    while s.check() == sat:
+        m = s.model()
+        ans = m[score].as_long()
+        s.add(score > ans)
+
+    return ans
+
+
+def part1_inf_loop(tuples: list[tuple[int, ...]]):
+    tuples = [t[:-1] for t in tuples]  # drop calories
+
+    ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
+    prop_totals = [Int(f'propTotal{i}') for i in range(len(tuples[0]))]
+    prop_tuples = list(zip(*tuples))
+
+    s = Solver()
+
+    for prop_total, prop_tuple in zip(prop_totals, prop_tuples):
+        s.add(
+            prop_total == sum(i * v for i, v in zip(ingd_counts, prop_tuple))
+        )
+        s.add(prop_total > 0)
+
+    score = Int('score')
+    s.add(score == math.prod(prop_totals))
+    s.add(sum(ingd_counts) == 100)
+
+    # FIXME: avoid manually-narrowing down bounds
+    # s.add(score >= 17939952)
+    # s.add(score >= 18643968)
+    # s.add(score >= 18957312)
+    s.add(score >= 18965440)
+    s.add(score < 18970000)
+
+    while s.check() == sat:
+        m = s.model()
+        ans = m[score].as_long()
+        print(ans)
+        s.add(score > ans)
+
+    return ans
+
 
 if __name__ == '__main__':
     main()
