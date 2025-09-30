@@ -131,7 +131,7 @@ class Game:
 
     def castable_spells(self) -> list[str]:
         active_spells = {e.__class__.__name__.lower() for e in self.effects}
-        spells = []
+        spells: list[str] = []
         for spell, cost in SPELL_COSTS.items():
             if self.player.mana >= cost and spell not in active_spells:
                 spells.append(spell)
@@ -159,7 +159,7 @@ class Game:
 def part1(player: Player, boss: Boss):
     game = Game(player, boss)
     q = [(0, game)]
-    seen = {game: []}
+    seen: dict[Game, list[str]] = {game: []}
 
     while q:
         cost, game = heappop(q)
