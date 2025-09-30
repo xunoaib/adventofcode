@@ -3,7 +3,7 @@ import sys
 from copy import deepcopy
 from dataclasses import dataclass, field
 from heapq import heappop, heappush
-from typing import override
+from typing import Literal, override
 
 SPELL_COSTS = {
     'missile': 53,
@@ -62,7 +62,6 @@ class Game:
                 self.boss.health,
                 self.player.health,
                 self.player.mana,
-                # self.mana_used,
             ) + tuple(
                 sorted(
                     (e.timeleft, e.__class__.__name__) for e in self.effects
@@ -107,83 +106,44 @@ class Game:
             e.timeleft -= 1
         self.effects = [e for e in self.effects if e.timeleft > 0]
 
-    def print_status(self, turn: str):
-        print(f'-- {turn} turn --')
-        print(
-            f'- Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
-        )
-        print(f'- Boss has {self.boss.health} hit points')
-
     def player_turn(self, action: str):
-        if self.game_over:
-            return
-
-        if SPELL_COSTS[action] > self.player.mana:
-            raise ValueError(f'Insufficient mana for {action}')
-
-        actions = {
-            'missile': self.missile,
-            'drain': self.drain,
-            'shield': self.shield,
-            'poison': self.poison,
-            'recharge': self.recharge,
-        }
-
-        actions[action]()
-        self.mana_used += SPELL_COSTS[action]
+        if not self.game_over:
+            getattr(self, action)()
+            self.mana_used += SPELL_COSTS[action]
 
     def boss_turn(self):
-        if self.game_over:
-            return
-        self.player.health -= max(1, self.boss.damage - self.player.armor)
+        if not self.game_over:
+            self.player.health -= max(1, self.boss.damage - self.player.armor)
 
     def castable_spells(self) -> list[str]:
-        active_spells = {e.__class__.__name__.lower(): e for e in self.effects}
+        active_spells = {e.__class__.__name__.lower() for e in self.effects}
         spells: list[str] = []
         for spell, cost in SPELL_COSTS.items():
             if self.player.mana >= cost and spell not in active_spells:
                 spells.append(spell)
         return spells
 
-    def action(self, spell: str):
-
-        # assert spell not in {
-        #     e.__class__.__name__.lower()
-        #     for e in self.effects
-        # }
-
-        game = deepcopy(self)
-        game.player_turn(spell)
-        game.boss_turn()
-        return game
-
     @property
-    def won(self):
+    def player_won(self):
         return self.boss.health <= 0
 
     @property
-    def lost(self):
+    def player_lost(self):
         return self.player.health <= 0
 
     @property
     def game_over(self):
-        return self.won or self.lost
-
-    @property
-    def game_active(self):
-        return not self.game_over
+        return self.player_won or self.player_lost
 
 
-def part1(player: Player, boss: Boss):
+def solve(player: Player, boss: Boss, part: Literal[1, 2]):
     game = Game(player, boss)
     q = [game]
     seen: dict[Game, list[str]] = {game: []}
 
-    best = float('inf')
-
     while q:
         game = heappop(q)
-        if game.won:
+        if game.player_won:
             return game.mana_used
 
         for spell in game.castable_spells():
@@ -194,11 +154,12 @@ def part1(player: Player, boss: Boss):
             g.boss_turn()
             g.apply_effects()
 
-            if not g.lost and g not in seen:
+            if part == 2:
+                g.player.health -= 1
+
+            if not g.player_lost and g not in seen:
                 seen[g] = seen[game] + [spell]
                 heappush(q, g)
-
-    return best
 
 
 def main():
@@ -207,16 +168,14 @@ def main():
     boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
     boss = Boss(boss_hp, boss_dmg)
 
-    if '-s' in sys.argv:
-        player = Player(10, 250)
-        boss = Boss(13, 8)  # 226
+    a1 = solve(player, boss, 1)
+    a2 = solve(player, boss, 2)
 
-    if '-t' in sys.argv:
-        player = Player(10, 250)
-        boss = Boss(14, 8)  # 641
-
-    a1 = part1(player, boss)
     print('part1:', a1)
+    print('part2:', a2)
+
+    assert a1 == 1269
+    assert a2 == 1309
 
 
 if __name__ == '__main__':
