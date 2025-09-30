@@ -89,13 +89,10 @@ class Game:
         self.player.armor = 0
         for e in self.effects:
             if isinstance(e, Shield):
-                # print('>> Shield active')
                 self.player.armor += 7
             elif isinstance(e, Poison):
-                # print('>> Poison active')
                 self.boss.health -= 3
-            elif isinstance(e, Recharge):
-                # print('>> Recharge active')
+            else:
                 self.player.mana += 101
             e.timeleft -= 1
         self.prune_effects()
@@ -110,12 +107,6 @@ class Game:
         if self.game_over:
             return
 
-        # print('-- Player turn --')
-        # print(
-        #     f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
-        # )
-        # print(f'- Boss has {self.boss.health} hit points')
-
         if SPELL_COSTS[action] > self.player.mana:
             raise ValueError(f'Insufficient mana for {action}')
 
@@ -127,8 +118,6 @@ class Game:
             'recharge': self.recharge,
         }
 
-        # print(f'Player casts {action}.\n')
-
         actions[action]()
 
     def boss_turn(self):
@@ -137,13 +126,6 @@ class Game:
         self.apply_effects()
         if self.game_over:
             return
-
-        # print('-- Boss turn --')
-        # print(
-        #     f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
-        # )
-        # print(f'- Boss has {self.boss.health} hit points')
-        # print(f'Boss attacks for {self.boss.damage} damage.\n')
 
         self.player.health -= max(1, self.boss.damage - self.player.armor)
 
