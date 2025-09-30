@@ -3,6 +3,7 @@ import sys
 from copy import deepcopy
 from dataclasses import dataclass, field
 from heapq import heappop, heappush
+from typing import override
 
 SPELL_COSTS = {
     'missile': 53,
@@ -53,6 +54,15 @@ class Game:
 
     def __lt__(self, other: 'Game'):
         return self.boss.health < other.boss.health
+
+    @override
+    def __hash__(self):
+        tup = tuple(
+            sorted((e.timeleft, e.__class__.__name__) for e in self.effects)
+        )
+        return hash(
+            (self.boss.health, self.player.health, self.player.mana) + tup
+        )
 
     def missile(self):
         self.player.mana -= 53
@@ -162,6 +172,7 @@ class Game:
 def part1(player: Player, boss: Boss):
     game = Game(player, boss)
     q = [(0, game)]
+    seen = {game}
 
     while q:
         cost, game = heappop(q)
@@ -171,9 +182,11 @@ def part1(player: Player, boss: Boss):
             continue
 
         for spell in game.castable_spells():
-            ngame = game.player_turn(spell).boss_turn()
             ncost = cost + SPELL_COSTS[spell]
-            heappush(q, (ncost, ngame))
+            ngame = game.player_turn(spell).boss_turn()
+            if ngame not in seen:
+                seen.add(ngame)
+                heappush(q, (ncost, ngame))
 
 
 def main():
