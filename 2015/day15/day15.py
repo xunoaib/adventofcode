@@ -2,7 +2,7 @@ import math
 import re
 import sys
 
-from z3 import Int, Optimize, Solver, sat
+from z3 import Int, Solver, sat
 
 
 def main():
@@ -12,11 +12,14 @@ def main():
         _, props = line.split(':')
         tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    # a1 = part1(tuples)
-    # print('part1:', a1)
+    a1 = part1_hacky(tuples)
+    print('part1:', a1)
 
     a2 = part2(tuples)
     print('part2:', a2)
+
+    assert a1 == 18965440
+    assert a2 == 15862900
 
 
 def part2(tuples: list[tuple[int, ...]]):
@@ -47,14 +50,13 @@ def part2(tuples: list[tuple[int, ...]]):
     return ans
 
 
-def part1(tuples: list[tuple[int, ...]]):
+def part1_hacky(tuples: list[tuple[int, ...]]):
     tuples = [t[:-1] for t in tuples]  # drop calories
 
     ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
     prop_totals = [Int(f'propTotal{i}') for i in range(len(tuples[0]))]
     prop_tuples = list(zip(*tuples))
 
-    # s = Optimize()
     s = Solver()
 
     for prop_total, prop_tuple in zip(prop_totals, prop_tuples):
@@ -66,10 +68,12 @@ def part1(tuples: list[tuple[int, ...]]):
     score = Int('score')
     s.add(score == math.prod(prop_totals))
     s.add(sum(ingd_counts) == 100)
-    # s.maximize(score)
 
-    # manually-narrow down bounds
-    s.add(score > 18960000)
+    # FIXME: avoid manually-narrowing down bounds
+    # s.add(score >= 17939952)
+    # s.add(score >= 18643968)
+    # s.add(score >= 18957312)
+    s.add(score >= 18965440)
     s.add(score < 18970000)
 
     while s.check() == sat:
