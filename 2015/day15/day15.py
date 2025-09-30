@@ -12,8 +12,39 @@ def main():
         _, props = line.split(':')
         tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    a1 = part1(tuples)
-    print('part1:', a1)
+    # a1 = part1(tuples)
+    # print('part1:', a1)
+
+    a2 = part2(tuples)
+    print('part2:', a2)
+
+
+def part2(tuples: list[tuple[int, ...]]):
+    tuples = [t for t in tuples]  # drop calories
+
+    ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
+    prop_totals = [Int(f'propTotal{i}') for i in range(len(tuples[0]))]
+    prop_tuples = list(zip(*tuples))
+
+    s = Solver()
+
+    for prop_total, prop_tuple in zip(prop_totals, prop_tuples):
+        s.add(
+            prop_total == sum(i * v for i, v in zip(ingd_counts, prop_tuple))
+        )
+        s.add(prop_total > 0)
+
+    score = Int('score')
+    s.add(score == math.prod(prop_totals[:-1]))
+    s.add(sum(ingd_counts) == 100)
+    s.add(prop_totals[-1] == 500)  # part 2 constraint
+
+    while s.check() == sat:
+        m = s.model()
+        ans = m[score].as_long()
+        s.add(score > ans)
+
+    return ans
 
 
 def part1(tuples: list[tuple[int, ...]]):
@@ -43,11 +74,11 @@ def part1(tuples: list[tuple[int, ...]]):
 
     while s.check() == sat:
         m = s.model()
-        a1 = m[score].as_long()
-        print(a1)
-        s.add(score > a1)
+        ans = m[score].as_long()
+        print(ans)
+        s.add(score > ans)
 
-    return a1
+    return ans
 
 
 if __name__ == '__main__':
