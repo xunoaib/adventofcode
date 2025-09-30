@@ -110,6 +110,8 @@ class Game:
         print(f'Boss attacks for {self.boss.damage} damage.')
         print()
 
+        self.player.health -= max(1, self.boss.damage - self.player.armor)
+
 
 def main():
 
