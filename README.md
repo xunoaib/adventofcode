@@ -22,6 +22,6 @@ Below are my solutions for each year, along with total ⭐ counts.
 | 2018 | ⭐ 14 | [Solutions](2018/README.md) |
 | 2017 | ⭐ 16 | [Solutions](2017/README.md) |
 | 2016 | ⭐ 18 | [Solutions](2016/README.md) |
-| 2015 | ⭐ 35 | [Solutions](2015/README.md) |
+| 2015 | ⭐ 39 | [Solutions](2015/README.md) |
 
-Total stars: ⭐ 366
+Total stars: ⭐ 370
