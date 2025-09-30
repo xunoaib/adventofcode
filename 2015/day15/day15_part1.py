@@ -45,9 +45,9 @@ def best_calorie_neighbor(effects, config):
     return config, score
 
 
-def main():
+def part1(lines: list[str]):
     effects = {}
-    for line in sys.stdin:
+    for line in lines:
         name, props = line.split(':')
         effects[name] = list(map(int, re.findall('-?[0-9]+', props)))[:-1]
 
@@ -64,7 +64,12 @@ def main():
         last_score = score
 
     print(config, score)
-    print('part1:', score)
+    return score
+
+
+def main():
+    lines = sys.stdin.read().splitlines()
+    print('part1:', part1(lines))
 
 
 if __name__ == '__main__':
