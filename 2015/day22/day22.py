@@ -117,9 +117,6 @@ class Game:
     def player_turn(self, action: str):
         if self.game_over:
             return
-        self.apply_effects()
-        if self.game_over:
-            return
 
         if SPELL_COSTS[action] > self.player.mana:
             raise ValueError(f'Insufficient mana for {action}')
@@ -138,30 +135,22 @@ class Game:
     def boss_turn(self):
         if self.game_over:
             return
-        self.apply_effects()
-        if self.game_over:
-            return
-
         self.player.health -= max(1, self.boss.damage - self.player.armor)
 
     def castable_spells(self) -> list[str]:
         active_spells = {e.__class__.__name__.lower(): e for e in self.effects}
-        extra_mana = 101 if 'recharge' in active_spells else 0
         spells: list[str] = []
         for spell, cost in SPELL_COSTS.items():
-            if self.player.mana + extra_mana >= cost and (
-                spell not in active_spells
-                or active_spells[spell].timeleft == 0
-            ):
+            if self.player.mana >= cost and spell not in active_spells:
                 spells.append(spell)
         return spells
 
     def action(self, spell: str):
 
-        assert spell not in {
-            e.__class__.__name__.lower()
-            for e in self.effects
-        }
+        # assert spell not in {
+        #     e.__class__.__name__.lower()
+        #     for e in self.effects
+        # }
 
         game = deepcopy(self)
         game.player_turn(spell)
@@ -195,16 +184,19 @@ def part1(player: Player, boss: Boss):
     while q:
         game = heappop(q)
         if game.won:
-            best = min(best, game.mana_used)
-            print(game.mana_used, seen[game])
-            # return best
-            continue
+            return game.mana_used
 
         for spell in game.castable_spells():
-            ngame = game.action(spell)
-            if not ngame.lost and ngame not in seen:
-                seen[ngame] = seen[game] + [spell]
-                heappush(q, ngame)
+
+            g = deepcopy(game)
+            g.player_turn(spell)
+            g.apply_effects()
+            g.boss_turn()
+            g.apply_effects()
+
+            if not g.lost and g not in seen:
+                seen[g] = seen[game] + [spell]
+                heappush(q, g)
 
     return best
 
