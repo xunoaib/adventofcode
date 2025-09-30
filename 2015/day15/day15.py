@@ -1,71 +1,52 @@
-#!/usr/bin/env python3
+import math
 import re
 import sys
-from functools import reduce
-from itertools import permutations
-from operator import mul
 
-import numpy as np
+from z3 import Int, Optimize, Solver, sat
 
-
-def calc_score(effects, config):
-    matrix = [np.array(effects[i], dtype=int) * count for i, count in config.items()]
-    matrix = np.stack(matrix)
-    sums = np.sum(matrix, axis=0)  # add columns
-    return max(reduce(mul, sums), 0)
-
-def best_neighbor(effects, config):
-    score = calc_score(effects, config)
-    for k1, k2 in permutations(config, 2):
-        if config[k2] - 1 < 0:
-            continue
-        new_conf = config.copy()
-        new_conf[k1] += 1
-        new_conf[k2] -= 1
-        new_score = calc_score(effects, new_conf)
-        if new_score > score:
-            return new_conf, new_score
-    return config, score
-
-def best_calorie_neighbor(effects, config):
-    score = calc_score(effects, config)
-    for k1, k2 in permutations(config, 2):
-        if config[k2] - 1 < 0:
-            continue
-        new_conf = config.copy()
-        new_conf[k1] += effects[k2]  # TODO
-        new_conf[k2] -= 1
-        new_score = calc_score(effects, new_conf)
-        if new_score > score:
-            return new_conf, new_score
-    return config, score
 
 def main():
-    effects = {}
+
+    tuples: list[tuple[int, ...]] = []
     for line in sys.stdin:
-        name, props = line.split(':')
-        effects[name] = list(map(int, re.findall('-?[0-9]+', props)))[:-1]
+        _, props = line.split(':')
+        tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    # initial guess to climb from
-    teaspoons = 100
-    config = {key: teaspoons // len(effects) for key in effects}
+    # cals = [t[-1] for t in tuples]
+    tuples = [t[:-1] for t in tuples]  # drop calories
 
-    # everest ho!
-    last_score = None
-    while True:
-        config, score = best_neighbor(effects, config)
-        if score == last_score:
-            break
-        last_score = score
+    ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
+    prop_totals = [Int(f'propTotal{i}') for i in range(len(tuples[0]))]
+    prop_tuples = list(zip(*tuples))
 
-    print(config, score)
-    print('part1:', score)
+    # s = Optimize()
+    s = Solver()
 
-    # ans2 = part2(lines)
-    # print('part2:', ans2)
+    for prop_total, prop_tuple in zip(prop_totals, prop_tuples):
+        s.add(
+            prop_total == sum(i * v for i, v in zip(ingd_counts, prop_tuple))
+        )
+        s.add(prop_total > 0)
 
-    # assert ans1 == 18965440
-    # assert ans2 == 0
+    score = Int('score')
+    s.add(score == math.prod(prop_totals))
+    s.add(sum(ingd_counts) == 100)
+    # s.maximize(score)
+
+    # manually-narrow down bounds
+    s.add(score > 18960000)
+    s.add(score < 18970000)
+
+    # part 2 constraints
+
+    while s.check() == sat:
+        m = s.model()
+        a1 = m[score].as_long()
+        print(a1)
+        s.add(score > a1)
+
+    print('part1:', a1)
+
 
 if __name__ == '__main__':
     main()
