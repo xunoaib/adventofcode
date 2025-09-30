@@ -50,11 +50,7 @@ class Game:
                 self.boss.health,
                 self.player.health,
                 self.player.mana,
-            ) + tuple(
-                sorted(
-                    (e.timeleft, e.__class__.__name__) for e in self.effects
-                )
-            )
+            ) + tuple(sorted((e.timeleft, e.name) for e in self.effects))
         )
 
     @override
@@ -92,8 +88,6 @@ class Game:
                     self.boss.health -= 3
                 case 'recharge':
                     self.player.mana += 101
-                case _:
-                    raise ValueError()
             e.timeleft -= 1
         self.effects = [e for e in self.effects if e.timeleft > 0]
 
@@ -106,13 +100,11 @@ class Game:
         if not self.game_over:
             self.player.health -= max(1, self.boss.damage - self.player.armor)
 
-    def castable_spells(self) -> list[str]:
-        active_spells = {e.__class__.__name__.lower() for e in self.effects}
-        spells: list[str] = []
+    def castable_spells(self):
+        active_spells = {e.name for e in self.effects}
         for spell, cost in SPELL_COSTS.items():
             if self.player.mana >= cost and spell not in active_spells:
-                spells.append(spell)
-        return spells
+                yield spell
 
     @property
     def player_won(self):
@@ -134,7 +126,6 @@ def solve(game: Game, part: Literal[1, 2]):
     while q:
         game = heappop(q)
         if game.player_won:
-            print(seen[game])
             return game.mana_used
 
         for spell in game.castable_spells():
@@ -156,12 +147,10 @@ def solve(game: Game, part: Literal[1, 2]):
 def main():
 
     boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
-    boss = Boss(boss_hp, boss_dmg)
-    player = Player(50, 500)
-    game = Game(player, boss)
+    game = Game(Player(50, 500), Boss(boss_hp, boss_dmg))
 
-    a1 = solve(deepcopy(game), 1)
-    a2 = solve(deepcopy(game), 2)
+    a1 = solve(game, 1)
+    a2 = solve(game, 2)
 
     print('part1:', a1)
     print('part2:', a2)
