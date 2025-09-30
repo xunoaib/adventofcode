@@ -2,7 +2,13 @@ import re
 import sys
 from dataclasses import dataclass, field
 
-SPELLS = ['missile', 'drain', 'shield', 'poison', 'recharge']
+SPELL_COSTS = {
+    'missile': 53,
+    'drain': 73,
+    'shield': 113,
+    'poison': 173,
+    'recharge': 229,
+}
 
 
 @dataclass
@@ -87,6 +93,9 @@ class Game:
         )
         print(f'- Boss has {self.boss.health} hit points')
 
+        if SPELL_COSTS[action] > self.player.mana:
+            raise ValueError(f'Insufficient mana for {action}')
+
         actions = {
             'missile': self.missile,
             'drain': self.drain,
@@ -95,8 +104,7 @@ class Game:
             'recharge': self.recharge,
         }
 
-        print(f'Player casts {action}.')
-        print()
+        print(f'Player casts {action}.\n')
 
         return actions[action]()
 
@@ -107,8 +115,7 @@ class Game:
             f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
         )
         print(f'- Boss has {self.boss.health} hit points')
-        print(f'Boss attacks for {self.boss.damage} damage.')
-        print()
+        print(f'Boss attacks for {self.boss.damage} damage.\n')
 
         self.player.health -= max(1, self.boss.damage - self.player.armor)
 
