@@ -28,21 +28,9 @@ class Player:
 
 
 @dataclass
-class Shield:
-    timeleft: int = 6
-
-
-@dataclass
-class Poison:
-    timeleft: int = 6
-
-
-@dataclass
-class Recharge:
-    timeleft: int = 5
-
-
-Effect = Shield | Poison | Recharge
+class Effect:
+    name: str
+    timeleft: int
 
 
 @dataclass
@@ -84,25 +72,28 @@ class Game:
 
     def shield(self):
         self.player.mana -= 113
-        self.effects.append(Shield())
+        self.effects.append(Effect('shield', 6))
 
     def poison(self):
         self.player.mana -= 173
-        self.effects.append(Poison())
+        self.effects.append(Effect('poison', 6))
 
     def recharge(self):
         self.player.mana -= 229
-        self.effects.append(Recharge())
+        self.effects.append(Effect('recharge', 5))
 
     def apply_effects(self):
         self.player.armor = 0
         for e in self.effects:
-            if isinstance(e, Shield):
-                self.player.armor += 7
-            elif isinstance(e, Poison):
-                self.boss.health -= 3
-            else:  # Recharge
-                self.player.mana += 101
+            match e.name:
+                case 'shield':
+                    self.player.armor += 7
+                case 'poison':
+                    self.boss.health -= 3
+                case 'recharge':
+                    self.player.mana += 101
+                case _:
+                    raise ValueError()
             e.timeleft -= 1
         self.effects = [e for e in self.effects if e.timeleft > 0]
 
@@ -136,14 +127,14 @@ class Game:
         return self.player_won or self.player_lost
 
 
-def solve(player: Player, boss: Boss, part: Literal[1, 2]):
-    game = Game(player, boss)
+def solve(game: Game, part: Literal[1, 2]):
     q = [game]
     seen: dict[Game, list[str]] = {game: []}
 
     while q:
         game = heappop(q)
         if game.player_won:
+            print(seen[game])
             return game.mana_used
 
         for spell in game.castable_spells():
@@ -164,12 +155,13 @@ def solve(player: Player, boss: Boss, part: Literal[1, 2]):
 
 def main():
 
-    player = Player(50, 500)
     boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
     boss = Boss(boss_hp, boss_dmg)
+    player = Player(50, 500)
+    game = Game(player, boss)
 
-    a1 = solve(player, boss, 1)
-    a2 = solve(player, boss, 2)
+    a1 = solve(deepcopy(game), 1)
+    a2 = solve(deepcopy(game), 2)
 
     print('part1:', a1)
     print('part2:', a2)
