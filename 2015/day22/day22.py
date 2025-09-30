@@ -105,11 +105,10 @@ class Game:
 
     def player_turn(self, action: str):
         if self.game_over:
-            return self
-        self = deepcopy(self)
+            return
         self.apply_effects()
         if self.game_over:
-            return self
+            return
 
         # print('-- Player turn --')
         # print(
@@ -131,15 +130,13 @@ class Game:
         # print(f'Player casts {action}.\n')
 
         actions[action]()
-        return self
 
     def boss_turn(self):
         if self.game_over:
-            return self
-        self = deepcopy(self)
+            return
         self.apply_effects()
         if self.game_over:
-            return self
+            return
 
         # print('-- Boss turn --')
         # print(
@@ -149,7 +146,6 @@ class Game:
         # print(f'Boss attacks for {self.boss.damage} damage.\n')
 
         self.player.health -= max(1, self.boss.damage - self.player.armor)
-        return self
 
     def castable_spells(self) -> list[str]:
         active_spells = {e.__class__.__name__.lower() for e in self.effects}
@@ -158,6 +154,12 @@ class Game:
             if self.player.mana >= cost and spell not in active_spells:
                 spells.append(spell)
         return spells
+
+    def action(self, spell: str):
+        game = deepcopy(self)
+        game.player_turn(spell)
+        game.boss_turn()
+        return game
 
     @property
     def won(self):
@@ -175,20 +177,21 @@ class Game:
 def part1(player: Player, boss: Boss):
     game = Game(player, boss)
     q = [(0, game)]
-    seen = {game}
+    seen = {game: []}
 
     while q:
         cost, game = heappop(q)
         if game.won:
+            print(seen[game])
             return cost
         if game.lost:
             continue
 
         for spell in game.castable_spells():
             ncost = cost + SPELL_COSTS[spell]
-            ngame = game.player_turn(spell).boss_turn()
+            ngame = game.action(spell)
             if ngame not in seen:
-                seen.add(ngame)
+                seen[ngame] = seen[game] + [spell]
                 heappush(q, (ncost, ngame))
 
 
