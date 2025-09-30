@@ -1,6 +1,8 @@
 import re
 import sys
+from copy import deepcopy
 from dataclasses import dataclass, field
+from heapq import heappop, heappush
 
 SPELL_COSTS = {
     'missile': 53,
@@ -49,6 +51,9 @@ class Game:
     boss: Boss
     effects: list[Effect] = field(default_factory=list)
 
+    def __lt__(self, other: 'Game'):
+        return self.boss.health < other.boss.health
+
     def missile(self):
         self.player.mana -= 53
         self.boss.health -= 4
@@ -74,24 +79,28 @@ class Game:
         self.player.armor = 0
         for e in self.effects:
             if isinstance(e, Shield):
-                print('>> Shield active')
+                # print('>> Shield active')
                 self.player.armor += 7
             elif isinstance(e, Poison):
-                print('>> Poison active')
+                # print('>> Poison active')
                 self.boss.health -= 3
             elif isinstance(e, Recharge):
-                print('>> Recharge active')
+                # print('>> Recharge active')
                 self.player.mana += 101
             e.timeleft -= 1
         self.effects = [e for e in self.effects if e.timeleft > 0]
 
-    def player_step(self, action: str):
+    def player_turn(self, action: str):
+        self = deepcopy(self)
+        if self.game_over:
+            return self
         self.apply_effects()
-        print('-- Player turn --')
-        print(
-            f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
-        )
-        print(f'- Boss has {self.boss.health} hit points')
+
+        # print('-- Player turn --')
+        # print(
+        #     f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
+        # )
+        # print(f'- Boss has {self.boss.health} hit points')
 
         if SPELL_COSTS[action] > self.player.mana:
             raise ValueError(f'Insufficient mana for {action}')
@@ -104,20 +113,63 @@ class Game:
             'recharge': self.recharge,
         }
 
-        print(f'Player casts {action}.\n')
+        # print(f'Player casts {action}.\n')
 
-        return actions[action]()
+        actions[action]()
+        return self
 
-    def boss_step(self):
+    def boss_turn(self):
+        self = deepcopy(self)
+        if self.game_over:
+            return self
         self.apply_effects()
-        print('-- Boss turn --')
-        print(
-            f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
-        )
-        print(f'- Boss has {self.boss.health} hit points')
-        print(f'Boss attacks for {self.boss.damage} damage.\n')
+
+        # print('-- Boss turn --')
+        # print(
+        #     f'Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
+        # )
+        # print(f'- Boss has {self.boss.health} hit points')
+        # print(f'Boss attacks for {self.boss.damage} damage.\n')
 
         self.player.health -= max(1, self.boss.damage - self.player.armor)
+        return self
+
+    def castable_spells(self) -> list[str]:
+        active_spells = {e.__class__.__name__.lower() for e in self.effects}
+        spells = []
+        for spell, cost in SPELL_COSTS.items():
+            if self.player.mana >= cost and spell not in active_spells:
+                spells.append(spell)
+        return spells
+
+    @property
+    def won(self):
+        return self.boss.health <= 0
+
+    @property
+    def lost(self):
+        return self.player.health <= 0
+
+    @property
+    def game_over(self):
+        return self.won or self.lost
+
+
+def part1(player: Player, boss: Boss):
+    game = Game(player, boss)
+    q = [(0, game)]
+
+    while q:
+        cost, game = heappop(q)
+        if game.won:
+            return cost
+        if game.lost:
+            continue
+
+        for spell in game.castable_spells():
+            ngame = game.player_turn(spell).boss_turn()
+            ncost = cost + SPELL_COSTS[spell]
+            heappush(q, (ncost, ngame))
 
 
 def main():
@@ -131,13 +183,8 @@ def main():
     # boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
     # boss = Boss(boss_hp, boss_dmg)
 
-    game = Game(player, boss)
-
-    game.player_step('poison')
-    game.boss_step()
-
-    game.player_step('missile')
-    game.boss_step()
+    a1 = part1(player, boss)
+    print('part1:', a1)
 
 
 if __name__ == '__main__':
