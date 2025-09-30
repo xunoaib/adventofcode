@@ -6,15 +6,24 @@ from z3 import Int, Solver, sat
 
 
 def main():
+    lines = sys.stdin.read().splitlines()
 
     tuples: list[tuple[int, ...]] = []
-    for line in sys.stdin:
+    for line in lines:
         _, props = line.split(':')
         tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    a1 = part1_inf_loop(tuples)
+    # Use original part1 code (before z3)
+    from day15_part1 import part1
+    a1 = part1(lines)
+
+    # The z3 version DOES eventually find the part1 solution, but it's slow,
+    # requires fine-tuning, and fails to exit immediately after finding it:
+    # a1 = part1_inf_loop(tuples)
+
     print('part1:', a1)
 
+    # Part 2 is actually easier, having more constraints
     a2 = part2(tuples)
     print('part2:', a2)
 
