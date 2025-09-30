@@ -70,8 +70,8 @@ class Game:
 
     def drain(self):
         self.player.mana -= 73
-        self.player.health += 2
         self.boss.health -= 2
+        self.player.health += 2
 
     def shield(self):
         self.player.mana -= 113
@@ -98,12 +98,15 @@ class Game:
                 # print('>> Recharge active')
                 self.player.mana += 101
             e.timeleft -= 1
+        self.prune_effects()
+
+    def prune_effects(self):
         self.effects = [e for e in self.effects if e.timeleft > 0]
 
     def player_turn(self, action: str):
-        self = deepcopy(self)
         if self.game_over:
             return self
+        self = deepcopy(self)
         self.apply_effects()
         if self.game_over:
             return self
@@ -131,9 +134,9 @@ class Game:
         return self
 
     def boss_turn(self):
-        self = deepcopy(self)
         if self.game_over:
             return self
+        self = deepcopy(self)
         self.apply_effects()
         if self.game_over:
             return self
@@ -194,11 +197,12 @@ def main():
     # Sample input
     player = Player(10, 250)
     boss = Boss(13, 8)
+    boss = Boss(14, 8)
 
-    # # Real input
-    # player = Player(50, 500)
-    # boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
-    # boss = Boss(boss_hp, boss_dmg)
+    # Real input
+    player = Player(50, 500)
+    boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
+    boss = Boss(boss_hp, boss_dmg)
 
     a1 = part1(player, boss)
     print('part1:', a1)
