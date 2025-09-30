@@ -12,7 +12,11 @@ def main():
         _, props = line.split(':')
         tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    # cals = [t[-1] for t in tuples]
+    a1 = part1(tuples)
+    print('part1:', a1)
+
+
+def part1(tuples: list[tuple[int, ...]]):
     tuples = [t[:-1] for t in tuples]  # drop calories
 
     ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
@@ -37,15 +41,13 @@ def main():
     s.add(score > 18960000)
     s.add(score < 18970000)
 
-    # part 2 constraints
-
     while s.check() == sat:
         m = s.model()
         a1 = m[score].as_long()
         print(a1)
         s.add(score > a1)
 
-    print('part1:', a1)
+    return a1
 
 
 if __name__ == '__main__':
