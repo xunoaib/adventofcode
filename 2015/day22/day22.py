@@ -95,6 +95,8 @@ class Game:
         if self.game_over:
             return self
         self.apply_effects()
+        if self.game_over:
+            return self
 
         # print('-- Player turn --')
         # print(
@@ -123,6 +125,8 @@ class Game:
         if self.game_over:
             return self
         self.apply_effects()
+        if self.game_over:
+            return self
 
         # print('-- Boss turn --')
         # print(
