@@ -12,7 +12,7 @@ def main():
         _, props = line.split(':')
         tuples.append(tuple(map(int, re.findall(r'-?\d+', props))))
 
-    a1 = part1_hacky(tuples)
+    a1 = part1_inf_loop(tuples)
     print('part1:', a1)
 
     a2 = part2(tuples)
@@ -50,7 +50,7 @@ def part2(tuples: list[tuple[int, ...]]):
     return ans
 
 
-def part1_hacky(tuples: list[tuple[int, ...]]):
+def part1_inf_loop(tuples: list[tuple[int, ...]]):
     tuples = [t[:-1] for t in tuples]  # drop calories
 
     ingd_counts = [Int(f'ingdCount{i}') for i in range(len(tuples))]
