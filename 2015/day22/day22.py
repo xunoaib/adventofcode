@@ -18,7 +18,6 @@ SPELL_COSTS = {
 class Boss:
     health: int
     damage: int
-    effects: list['Effect'] = field(default_factory=list)
 
 
 @dataclass
@@ -50,18 +49,25 @@ Effect = Shield | Poison | Recharge
 class Game:
     player: Player
     boss: Boss
+    mana_used: int = 0
     effects: list[Effect] = field(default_factory=list)
 
     def __lt__(self, other: 'Game'):
-        return self.boss.health < other.boss.health
+        return self.mana_used < other.mana_used
 
     @override
     def __hash__(self):
-        tup = tuple(
-            sorted((e.timeleft, e.__class__.__name__) for e in self.effects)
-        )
         return hash(
-            (self.boss.health, self.player.health, self.player.mana) + tup
+            (
+                self.boss.health,
+                self.player.health,
+                self.player.mana,
+                # self.mana_used,
+            ) + tuple(
+                sorted(
+                    (e.timeleft, e.__class__.__name__) for e in self.effects
+                )
+            )
         )
 
     @override
@@ -96,13 +102,17 @@ class Game:
                 self.player.armor += 7
             elif isinstance(e, Poison):
                 self.boss.health -= 3
-            else:
+            else:  # Recharge
                 self.player.mana += 101
             e.timeleft -= 1
-        self.prune_effects()
-
-    def prune_effects(self):
         self.effects = [e for e in self.effects if e.timeleft > 0]
+
+    def print_status(self, turn: str):
+        print(f'-- {turn} turn --')
+        print(
+            f'- Player has {self.player.health} hit points, {self.player.armor} armor, {self.player.mana} mana'
+        )
+        print(f'- Boss has {self.boss.health} hit points')
 
     def player_turn(self, action: str):
         if self.game_over:
@@ -123,6 +133,7 @@ class Game:
         }
 
         actions[action]()
+        self.mana_used += SPELL_COSTS[action]
 
     def boss_turn(self):
         if self.game_over:
@@ -134,14 +145,24 @@ class Game:
         self.player.health -= max(1, self.boss.damage - self.player.armor)
 
     def castable_spells(self) -> list[str]:
-        active_spells = {e.__class__.__name__.lower() for e in self.effects}
+        active_spells = {e.__class__.__name__.lower(): e for e in self.effects}
+        extra_mana = 101 if 'recharge' in active_spells else 0
         spells: list[str] = []
         for spell, cost in SPELL_COSTS.items():
-            if self.player.mana >= cost and spell not in active_spells:
+            if self.player.mana + extra_mana >= cost and (
+                spell not in active_spells
+                or active_spells[spell].timeleft == 0
+            ):
                 spells.append(spell)
         return spells
 
     def action(self, spell: str):
+
+        assert spell not in {
+            e.__class__.__name__.lower()
+            for e in self.effects
+        }
+
         game = deepcopy(self)
         game.player_turn(spell)
         game.boss_turn()
@@ -159,39 +180,48 @@ class Game:
     def game_over(self):
         return self.won or self.lost
 
+    @property
+    def game_active(self):
+        return not self.game_over
+
 
 def part1(player: Player, boss: Boss):
     game = Game(player, boss)
-    q = [(0, game)]
+    q = [game]
     seen: dict[Game, list[str]] = {game: []}
 
+    best = float('inf')
+
     while q:
-        cost, game = heappop(q)
+        game = heappop(q)
         if game.won:
-            print(seen[game])
-            return cost
-        if game.lost:
+            best = min(best, game.mana_used)
+            print(game.mana_used, seen[game])
+            # return best
             continue
 
         for spell in game.castable_spells():
-            ncost = cost + SPELL_COSTS[spell]
             ngame = game.action(spell)
-            if ngame not in seen:
+            if not ngame.lost and ngame not in seen:
                 seen[ngame] = seen[game] + [spell]
-                heappush(q, (ncost, ngame))
+                heappush(q, ngame)
+
+    return best
 
 
 def main():
 
-    # Sample input
-    player = Player(10, 250)
-    boss = Boss(13, 8)
-    boss = Boss(14, 8)
-
-    # Real input
     player = Player(50, 500)
     boss_hp, boss_dmg = map(int, re.findall(r'\d+', sys.stdin.read()))
     boss = Boss(boss_hp, boss_dmg)
+
+    if '-s' in sys.argv:
+        player = Player(10, 250)
+        boss = Boss(13, 8)  # 226
+
+    if '-t' in sys.argv:
+        player = Player(10, 250)
+        boss = Boss(14, 8)  # 641
 
     a1 = part1(player, boss)
     print('part1:', a1)
