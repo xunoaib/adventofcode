@@ -52,3 +52,5 @@ while s.check() == sat:
     s.add(qe < min_qe)
 
     print(min_qe, create_groups(m))
+
+print('part1:', min_qe)
