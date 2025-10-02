@@ -21,14 +21,22 @@ def part2(molecule='e'):
     - collapse input -> e (instead of the other way around)?
     - prioritize big replacments over small
     - leverage low frequency of lowercase characters on certain sides (ie: n)
+    - try to construct the string from left to right.
     '''
 
+    left = set(c for sr in repls for c in sr[0])
+    right = set(c for sr in repls for c in sr[1])
 
-a1 = part1()
-print('part1:', a1)
+    print('shared =', ''.join(sorted(left & right)))
+    print('unique_r =', ''.join(sorted(right - left)))
+    print('unique_l =', ''.join(sorted(left - right)))
+
+
+# a1 = part1()
+# print('part1:', a1)
 
 a2 = part2()
-print('part2:', a2)
+# print('part2:', a2)
 
-assert a1 == 518
+# assert a1 == 518
 # assert a2 == ?
