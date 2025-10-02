@@ -13,7 +13,7 @@ gwts3 = [Int(f'gwts3_{i}') for i in range(len(ws))]
 gwtss = [gwts1, gwts2, gwts3]
 
 s = Solver()
-s = Optimize()
+# s = Optimize()
 
 for gwts in [gwts1, gwts2, gwts3]:
     for gw in gwts:
@@ -28,7 +28,7 @@ s.add(npkgs[0] < npkgs[1])
 s.add(npkgs[0] < npkgs[2])
 
 
-def qe_expr(gwts):
+def make_qe_expr(gwts):
     return math.prod([If(gw == 1, w, 1) for w, gw in zip(ws, gwts)])
 
 
@@ -38,9 +38,17 @@ def create_groups(m):
     ]
 
 
-s.minimize(qe_expr(gwts1))
+# s.minimize(qe_expr(gwts1))
+
+min_qe = float('inf')
+qe = make_qe_expr(gwts1)
+s.add(qe <= 11846773891)
 
 while s.check() == sat:
     m = s.model()
     s.add(Or([z() != m[z] for z in m]))
-    print(m.eval(qe_expr(gwts1)), create_groups(m))
+
+    min_qe = m.eval(qe)
+    s.add(qe < min_qe)
+
+    print(min_qe, create_groups(m))
