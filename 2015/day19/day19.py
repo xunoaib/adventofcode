@@ -2,15 +2,21 @@ import re
 import sys
 
 repl_strs, input_str = sys.stdin.read().strip().split('\n\n')
-
 repls = [s.split(' => ') for s in repl_strs.splitlines()]
 
-distinct = set()
 
-for srch, repl in repls:
-    for i, m in enumerate(re.finditer(srch, input_str)):
-        s = input_str[:m.start()] + repl + input_str[m.end():]
-        print(s, 'after', srch, repl, 'on', i)
-        distinct.add(s)
+def part1():
+    distinct = set()
 
-print('part1:', len(distinct))
+    for srch, repl in repls:
+        for i, m in enumerate(re.finditer(srch, input_str)):
+            s = input_str[:m.start()] + repl + input_str[m.end():]
+            distinct.add(s)
+
+    return len(distinct)
+
+
+a1 = part1()
+print('part1:', a1)
+
+assert a1 == 518
