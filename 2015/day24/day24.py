@@ -13,6 +13,7 @@ gwts3 = [Int(f'gwts3_{i}') for i in range(len(ws))]
 gwtss = [gwts1, gwts2, gwts3]
 
 s = Solver()
+s = Optimize()
 
 for gwts in [gwts1, gwts2, gwts3]:
     for gw in gwts:
@@ -37,20 +38,9 @@ def create_groups(m):
     ]
 
 
+s.minimize(qe_expr(gwts1))
+
 while s.check() == sat:
     m = s.model()
-
     s.add(Or([z() != m[z] for z in m]))
-    sels = tuple(tuple(m[gw].as_long() for gw in gwts) for gwts in gwtss)
-    # print(hash(sels))
-
-    # print([m.eval(np) for np in npkgs])
     print(m.eval(qe_expr(gwts1)), create_groups(m))
-
-    # sel1 = [m[gw].as_long() for gw in gwts1]
-    # sel2 = [m[gw].as_long() for gw in gwts2]
-    # sel3 = [m[gw].as_long() for gw in gwts3]
-    #
-    # print(sel1)
-    # print(sel2)
-    # print(sel3)
