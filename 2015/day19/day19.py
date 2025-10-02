@@ -16,7 +16,19 @@ def part1():
     return len(distinct)
 
 
+def part2(molecule='e'):
+    '''
+    - collapse input -> e (instead of the other way around)?
+    - prioritize big replacments over small
+    - leverage low frequency of lowercase characters on certain sides (ie: n)
+    '''
+
+
 a1 = part1()
 print('part1:', a1)
 
+a2 = part2()
+print('part2:', a2)
+
 assert a1 == 518
+# assert a2 == ?
