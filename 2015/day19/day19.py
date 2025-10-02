@@ -6,10 +6,10 @@ repls = [s.split(' => ') for s in repl_strs.splitlines()]
 
 
 def part1():
-    distinct = set()
+    distinct: set[str] = set()
 
     for srch, repl in repls:
-        for i, m in enumerate(re.finditer(srch, input_str)):
+        for m in re.finditer(srch, input_str):
             s = input_str[:m.start()] + repl + input_str[m.end():]
             distinct.add(s)
 
