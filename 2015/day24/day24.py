@@ -10,7 +10,7 @@ def make_qe_expr(gwts):
     return math.prod([If(gw == 1, w, 1) for w, gw in zip(ws, gwts)])
 
 
-def solve(ngroups=3):
+def solve(ngroups=3, max_qe=None):
     target_group_weight = sum(ws) // ngroups
 
     gwtss = [
@@ -34,6 +34,9 @@ def solve(ngroups=3):
 
     qe = make_qe_expr(gwtss[0])
     min_qe = float('inf')
+
+    if max_qe:
+        s.add(qe <= max_qe)
 
     while s.check() == sat:
         m = s.model()
