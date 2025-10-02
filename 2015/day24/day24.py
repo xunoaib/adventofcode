@@ -1,6 +1,7 @@
+import math
 import sys
 
-from z3 import And, Int, Optimize, Or, Solver, sat
+from z3 import And, If, Int, Optimize, Or, Solver, sat
 
 ws = list(map(int, sys.stdin))
 
@@ -12,7 +13,6 @@ gwts3 = [Int(f'gwts3_{i}') for i in range(len(ws))]
 gwtss = [gwts1, gwts2, gwts3]
 
 s = Solver()
-# s = Optimize()
 
 for gwts in [gwts1, gwts2, gwts3]:
     for gw in gwts:
@@ -23,12 +23,12 @@ for v1, v2, v3 in zip(gwts1, gwts2, gwts3):
     s.add(v1 + v2 + v3 == 1)
 
 npkgs = [sum(gwts) for gwts in gwtss]
-# for gwts in gwtss:
-#     s.add(sum(gwts) ==)
-
-# s.minimize(npkgs[0])
 s.add(npkgs[0] < npkgs[1])
 s.add(npkgs[0] < npkgs[2])
+
+
+def qe_expr(gwts):
+    return math.prod([If(gw == 1, w, 1) for w, gw in zip(ws, gwts)])
 
 
 def create_groups(m):
@@ -45,8 +45,7 @@ while s.check() == sat:
     # print(hash(sels))
 
     # print([m.eval(np) for np in npkgs])
-
-    print(create_groups(m))
+    print(m.eval(qe_expr(gwts1)), create_groups(m))
 
     # sel1 = [m[gw].as_long() for gw in gwts1]
     # sel2 = [m[gw].as_long() for gw in gwts2]
