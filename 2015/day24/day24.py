@@ -55,14 +55,12 @@ def part1():
     return min_qe
 
 
-def part2():
-    target_group_weight = sum(ws) // 4
+def solve(ngroups=3):
+    target_group_weight = sum(ws) // ngroups
 
-    gwts1 = [Int(f'gwts1_{i}') for i in range(len(ws))]
-    gwts2 = [Int(f'gwts2_{i}') for i in range(len(ws))]
-    gwts3 = [Int(f'gwts3_{i}') for i in range(len(ws))]
-    gwts4 = [Int(f'gwts4_{i}') for i in range(len(ws))]
-    gwtss = [gwts1, gwts2, gwts3, gwts4]
+    gwtss = [
+        [Int(f'gwts{g}_{i}') for i in range(len(ws))] for g in range(ngroups)
+    ]
 
     s = Solver()
 
@@ -87,7 +85,7 @@ def part2():
             [w for w, gw in zip(ws, gwts) if m.eval(gw) == 1] for gwts in gwtss
         ]
 
-    qe = make_qe_expr(gwts1)
+    qe = make_qe_expr(gwtss[0])
     s.add(qe <= 80393059)
     min_qe = float('inf')
 
@@ -106,5 +104,5 @@ def part2():
 # a1 = part1()
 # print('part1:', a1)
 
-a2 = part2()
+a2 = solve(4)
 print('part2:', a2)
