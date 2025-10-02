@@ -55,5 +55,56 @@ def part1():
     return min_qe
 
 
-a1 = part1()
-print('part1:', a1)
+def part2():
+    target_group_weight = sum(ws) // 4
+
+    gwts1 = [Int(f'gwts1_{i}') for i in range(len(ws))]
+    gwts2 = [Int(f'gwts2_{i}') for i in range(len(ws))]
+    gwts3 = [Int(f'gwts3_{i}') for i in range(len(ws))]
+    gwts4 = [Int(f'gwts4_{i}') for i in range(len(ws))]
+    gwtss = [gwts1, gwts2, gwts3, gwts4]
+
+    s = Solver()
+
+    for gwts in gwtss:
+        for gw in gwts:
+            s.add(Or(gw == 0, gw == 1))
+        s.add(sum(w * gw for w, gw in zip(ws, gwts)) == target_group_weight)
+
+    for vs in zip(*gwtss):
+        s.add(sum(vs) == 1)
+
+    npkgs = [sum(gwts) for gwts in gwtss]
+    s.add(npkgs[0] < npkgs[1])
+    s.add(npkgs[0] < npkgs[2])
+    s.add(npkgs[0] < npkgs[3])
+
+    def make_qe_expr(gwts):
+        return math.prod([If(gw == 1, w, 1) for w, gw in zip(ws, gwts)])
+
+    def create_groups(m):
+        return [
+            [w for w, gw in zip(ws, gwts) if m.eval(gw) == 1] for gwts in gwtss
+        ]
+
+    qe = make_qe_expr(gwts1)
+    s.add(qe <= 80393059)
+    min_qe = float('inf')
+
+    while s.check() == sat:
+        m = s.model()
+        s.add(Or([z() != m[z] for z in m]))
+
+        min_qe = m.eval(qe)
+        s.add(qe < min_qe)
+
+        print(min_qe, create_groups(m))
+
+    return min_qe
+
+
+# a1 = part1()
+# print('part1:', a1)
+
+a2 = part2()
+print('part2:', a2)
