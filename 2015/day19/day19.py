@@ -45,7 +45,8 @@ def part2():
         s = s[:m.start()] + '...' + s[m.end():]
         # print(len(s), m)
         # print(x)
-        print(reverse(x))
+        rs = reverse(x)
+        print(len(rs), x, min(len(v) for v in rs), max(len(v) for v in rs))
         # print(s)
 
         # if s == last_s:
