@@ -17,14 +17,17 @@ def part1():
 
 
 def part2():
-    pattern = r'^(.*)Rn(.*?)Ar(.*)$'
+    # pattern = r'^(.*)Rn(.*?)Ar(.*)$'
+    # pattern = r'Rn(.*?)Ar'
+    pattern = r'Rn((?:(?!Rn|Ar).)*?)Ar'
     s = input_str
 
-    while m := re.match(pattern, s):
-        l, m, r = m.groups()
-        s = l + '...' + r
+    while m := re.search(pattern, s):
+        x = m.groups(1)[0]
+        s = s[:m.start()] + s[m.end():]
         # print(len(s), m)
-        print(s)
+        print(x)
+        # print(s)
 
     print(s)
 
