@@ -46,11 +46,8 @@ def part2():
             s = s[:m.start()] + '...' + s[m.end():]
             rs = reverse(x)
             min_caps = min(count_caps(v) for v in rs)
-            max_caps = max(count_caps(v) for v in rs)
             unique_min = sum(count_caps(v) == 1 for v in rs)
-            print(
-                f'Min: {min_caps} ({unique_min})  Max: {max_caps:>2}  N: {len(rs):>3}    {x}'
-            )
+            print(f'Min: {min_caps} ({unique_min})  N: {len(rs):>3}    {x}')
 
     print(s)
 
