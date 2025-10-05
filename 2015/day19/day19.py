@@ -19,7 +19,7 @@ def part1():
 def part2():
     # pattern = r'^(.*)Rn(.*?)Ar(.*)$'
     # pattern = r'Rn(.*?)Ar'
-    pattern = r'Rn((?:(?!Rn|Ar).)*?)Ar'
+    pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
     s = input_str
 
     last_s = s
