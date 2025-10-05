@@ -22,12 +22,18 @@ def part2():
     pattern = r'Rn((?:(?!Rn|Ar).)*?)Ar'
     s = input_str
 
+    last_s = s
     while m := re.search(pattern, s):
         x = m.groups(1)[0]
-        s = s[:m.start()] + s[m.end():]
+        # s = s[:m.start()] + 'Rn...Ar' + s[m.end():]
+        s = s[:m.start()] + '...' + s[m.end():]
         # print(len(s), m)
         print(x)
         # print(s)
+
+        # if s == last_s:
+        #     break
+        # last_s = s
 
     print(s)
 
