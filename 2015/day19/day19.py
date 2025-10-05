@@ -42,6 +42,8 @@ def part2():
 
     while m := re.search(pattern, s):
         y = m.group(1)
+        y_segments = []
+
         for x in y.split('Y'):
             rs = reverse(x)
             min_vals = [v for v in rs if count_elements(v) == 1]
@@ -56,7 +58,9 @@ def part2():
                     # f'Min: {min_caps} ({len(min_vals)})  N: {len(rs):>3}    {x} => {min_val}'
                     f'L1: {len(min_vals)}   {x} => {min_val}'
                 )
-            s = s[:m.start()] + min_val + s[m.end():]
+            y_segments.append(min_val)
+
+        s = s[:m.start()] + 'Y'.join(y_segments) + s[m.end():]
 
     print(s)
 
