@@ -56,7 +56,6 @@ def part2():
                     f'L1: {len(min_vals)}   {x} => {min_val}'
                 )
             s = s[:m.start()] + min_val + s[m.end():]
-        print()
 
     print(s)
 
