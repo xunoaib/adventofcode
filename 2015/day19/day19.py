@@ -2,18 +2,34 @@ import re
 import sys
 
 REPL_STRS, INPUT_STR = sys.stdin.read().strip().split('\n\n')
-REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
+_REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
+REPLS: list[tuple[str, str]] = [(l, r) for l, r in _REPLS]
+REV_REPLS = [(r, l) for l, r in REPLS]
+
+
+def distinct_repls(input: str, repl_rules: list[tuple[str, str]]):
+    distinct: set[str] = set()
+    for srch, repl in repl_rules:
+        for m in re.finditer(srch, input):
+            s = input[:m.start()] + repl + input[m.end():]
+            distinct.add(s)
+    return distinct
 
 
 def part1():
-    distinct: set[str] = set()
+    return len(distinct_repls(INPUT_STR, REPLS))
 
-    for srch, repl in REPLS:
-        for m in re.finditer(srch, INPUT_STR):
-            s = INPUT_STR[:m.start()] + repl + INPUT_STR[m.end():]
-            distinct.add(s)
 
-    return len(distinct)
+def reverse(output: str):
+    q = [output]
+    seen = {output}
+    while q:
+        s = q.pop()
+        for t in distinct_repls(s, REV_REPLS):
+            if t not in seen:
+                q.append(t)
+                seen.add(t)
+    return seen
 
 
 def part2():
@@ -24,11 +40,12 @@ def part2():
 
     last_s = s
     while m := re.search(pattern, s):
-        x = m.groups(1)[0]
+        x = m.group(1)
         # s = s[:m.start()] + 'Rn...Ar' + s[m.end():]
         s = s[:m.start()] + '...' + s[m.end():]
         # print(len(s), m)
-        print(x)
+        # print(x)
+        print(reverse(x))
         # print(s)
 
         # if s == last_s:
