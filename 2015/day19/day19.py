@@ -32,6 +32,10 @@ def reverse(output: str):
     return seen
 
 
+def count_caps(output: str):
+    return sum(c.isupper() for c in output)
+
+
 def part2():
     # pattern = r'^(.*)Rn(.*?)Ar(.*)$'
     # pattern = r'Rn(.*?)Ar'
@@ -40,18 +44,24 @@ def part2():
 
     last_s = s
     while m := re.search(pattern, s):
-        x = m.group(1)
-        # s = s[:m.start()] + 'Rn...Ar' + s[m.end():]
-        s = s[:m.start()] + '...' + s[m.end():]
-        # print(len(s), m)
-        # print(x)
-        rs = reverse(x)
-        print(len(rs), x, min(len(v) for v in rs), max(len(v) for v in rs))
-        # print(s)
+        y = m.group(1)
+        for x in y.split('Y'):
+            # s = s[:m.start()] + 'Rn...Ar' + s[m.end():]
+            s = s[:m.start()] + '...' + s[m.end():]
+            # print(len(s), m)
+            # print(x)
+            rs = reverse(x)
+            min_caps = min(count_caps(v) for v in rs)
+            max_caps = max(count_caps(v) for v in rs)
+            unique_min = sum(count_caps(v) == 1 for v in rs)
+            print(
+                f'Min: {min_caps} ({unique_min})  Max: {max_caps:>2}  N: {len(rs):>3}    {x}'
+            )
+            # print(s)
 
-        # if s == last_s:
-        #     break
-        # last_s = s
+            # if s == last_s:
+            #     break
+            # last_s = s
 
     print(s)
 
