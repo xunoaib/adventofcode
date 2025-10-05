@@ -16,14 +16,30 @@ def part1():
     return len(distinct)
 
 
-def part2(molecule='e'):
+def part2():
     '''
     - collapse input -> e (instead of the other way around)?
-    - prioritize big replacments over small
+    - prioritize big replacements over small
     - leverage low frequency of lowercase characters on certain sides (ie: n)
     - try to construct the string from left to right.
+    - some chars are unique to the right (and cannot be replaced once created).
+    - lowercase chars are never created on their own.
     '''
 
+    pattern = r'Rn(.*?)Ar'
+    s = input_str
+
+    while m := re.search(pattern, s):
+        repl = m.group(1)
+        s = s[:m.start()] + s[m.end():]
+        print(len(s), repl)
+
+    print(s)
+
+    return len(s)
+
+
+def analyze():
     left = set(c for sr in repls for c in sr[0])
     right = set(c for sr in repls for c in sr[1])
 
