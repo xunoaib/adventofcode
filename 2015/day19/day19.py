@@ -37,19 +37,13 @@ def count_caps(output: str):
 
 
 def part2():
-    # pattern = r'^(.*)Rn(.*?)Ar(.*)$'
-    # pattern = r'Rn(.*?)Ar'
     pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
     s = INPUT_STR
 
-    last_s = s
     while m := re.search(pattern, s):
         y = m.group(1)
         for x in y.split('Y'):
-            # s = s[:m.start()] + 'Rn...Ar' + s[m.end():]
             s = s[:m.start()] + '...' + s[m.end():]
-            # print(len(s), m)
-            # print(x)
             rs = reverse(x)
             min_caps = min(count_caps(v) for v in rs)
             max_caps = max(count_caps(v) for v in rs)
@@ -57,24 +51,10 @@ def part2():
             print(
                 f'Min: {min_caps} ({unique_min})  Max: {max_caps:>2}  N: {len(rs):>3}    {x}'
             )
-            # print(s)
-
-            # if s == last_s:
-            #     break
-            # last_s = s
 
     print(s)
 
     return len(s)
-
-
-def analyze():
-    left = set(c for sr in REPLS for c in sr[0])
-    right = set(c for sr in REPLS for c in sr[1])
-
-    print('shared =', ''.join(sorted(left & right)))
-    print('unique_r =', ''.join(sorted(right - left)))
-    print('unique_l =', ''.join(sorted(left - right)))
 
 
 # a1 = part1()
