@@ -17,22 +17,14 @@ def part1():
 
 
 def part2():
-    '''
-    - collapse input -> e (instead of the other way around)?
-    - prioritize big replacements over small
-    - leverage low frequency of lowercase characters on certain sides (ie: n)
-    - try to construct the string from left to right.
-    - some chars are unique to the right (and cannot be replaced once created).
-    - lowercase chars are never created on their own.
-    '''
-
-    pattern = r'Rn(.*?)Ar'
+    pattern = r'^(.*)Rn(.*?)Ar(.*)$'
     s = input_str
 
-    while m := re.search(pattern, s):
-        repl = m.group(1)
-        s = s[:m.start()] + s[m.end():]
-        print(len(s), repl)
+    while m := re.match(pattern, s):
+        l, m, r = m.groups()
+        s = l + '...' + r
+        # print(len(s), m)
+        print(s)
 
     print(s)
 
