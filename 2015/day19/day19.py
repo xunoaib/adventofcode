@@ -64,9 +64,13 @@ def part2():
 
     print()
     print(s)
-    print()
+
     t = s.replace('(', 'Rn').replace(')', 'Ar')
+    print('\nAfter:')
     print(t)
+
+    print('\nBefore:')
+    print(INPUT_STR)
 
     return len(s)
 
