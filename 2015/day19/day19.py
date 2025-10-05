@@ -49,7 +49,8 @@ def part2():
             assert len(min_vals) <= 1
 
             if x == min_val:
-                print(f'L1: {len(min_vals)}   {x} unchanged')
+                # print(f'L1: {len(min_vals)}   {x} unchanged')
+                pass
             else:
                 print(
                     # f'Min: {min_caps} ({len(min_vals)})  N: {len(rs):>3}    {x} => {min_val}'
