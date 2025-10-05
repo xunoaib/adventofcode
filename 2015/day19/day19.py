@@ -60,7 +60,7 @@ def part2():
                 )
             y_segments.append(min_val)
 
-        s = s[:m.start()] + 'Y'.join(y_segments) + s[m.end():]
+        s = s[:m.start()] + '(' + 'Y'.join(y_segments) + ')' + s[m.end():]
 
     print(s)
 
