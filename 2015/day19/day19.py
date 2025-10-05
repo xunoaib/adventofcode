@@ -32,7 +32,7 @@ def reverse(output: str):
     return seen
 
 
-def count_caps(output: str):
+def count_elements(output: str):
     return sum(c.isupper() for c in output)
 
 
@@ -43,11 +43,20 @@ def part2():
     while m := re.search(pattern, s):
         y = m.group(1)
         for x in y.split('Y'):
-            s = s[:m.start()] + '...' + s[m.end():]
             rs = reverse(x)
-            min_caps = min(count_caps(v) for v in rs)
-            unique_min = sum(count_caps(v) == 1 for v in rs)
-            print(f'Min: {min_caps} ({unique_min})  N: {len(rs):>3}    {x}')
+            min_vals = [v for v in rs if count_elements(v) == 1]
+            min_val = (min_vals + [x])[0]
+            assert len(min_vals) <= 1
+
+            if x == min_val:
+                print(f'L1: {len(min_vals)}   {x} unchanged')
+            else:
+                print(
+                    # f'Min: {min_caps} ({len(min_vals)})  N: {len(rs):>3}    {x} => {min_val}'
+                    f'L1: {len(min_vals)}   {x} => {min_val}'
+                )
+            s = s[:m.start()] + min_val + s[m.end():]
+        print()
 
     print(s)
 
