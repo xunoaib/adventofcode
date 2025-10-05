@@ -62,7 +62,11 @@ def part2():
 
         s = s[:m.start()] + '(' + 'Y'.join(y_segments) + ')' + s[m.end():]
 
+    print()
     print(s)
+    print()
+    t = s.replace('(', 'Rn').replace(')', 'Ar')
+    print(t)
 
     return len(s)
 
