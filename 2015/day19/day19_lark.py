@@ -46,10 +46,12 @@ for m in ms:
         grammar += f'{m.lower()} : "{m}"\n'
 # print(grammar)
 
-parser = Lark(grammar, start="e")
+parser = Lark(grammar, start="e", ambiguity="explicit")
 
-tree = parser.parse(INPUT_STR)
-print(tree.pretty())
+print('Parsing...')
+forest = parser.parse(INPUT_STR)
+
+# print(tree.pretty())
 # print(dir(tree))
 
 # print(tree.data)
@@ -60,7 +62,12 @@ def tree_depth(t):
     if isinstance(t, Tree):
         if not t.children:
             return 1
-        return 1 + max(
+
+        cjoin = ''.join(c.data for c in t.children)
+        cost = t.data != cjoin
+        # print(t.data, cjoin)
+
+        return cost + max(
             tree_depth(child)
             for child in t.children if isinstance(child, Tree)
         )
@@ -68,4 +75,21 @@ def tree_depth(t):
         return 1
 
 
-print(tree_depth(tree))
+def find_shallowest(t):
+    if t.data == '_ambig':
+        shallowest = min(t.children, key=tree_depth)
+        return find_shallowest(shallowest)
+    else:
+        new_children = [
+            find_shallowest(c) if isinstance(c, Tree) else c
+            for c in t.children
+        ]
+        return Tree(t.data, new_children)
+
+
+# print('Prettifying...')
+# print(forest.pretty())
+
+print('Finding shallowest...')
+s = find_shallowest(forest)
+print(tree_depth(s) - 1)
