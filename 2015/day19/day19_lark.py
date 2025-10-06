@@ -112,10 +112,26 @@ def find_shallowest(t):
         return Tree(t.data, new_children)
 
 
-print(forest.data)
+maxdepth = float('inf')
+
+
+def explore(t: Tree, d=0):
+    global maxdepth
+
+    if not t.children:
+        print(d, t.data)
+        maxdepth = min(maxdepth, d)
+
+    for c in t.children:
+        if d < maxdepth:
+            explore(c, d + 1)
+
+
 print(forest.data)
 for c in forest.children:
     print(c.data)
+
+explore(forest)
 
 exit()
 
