@@ -1,56 +1,78 @@
+import pickle
 import re
 import sys
 from collections import defaultdict
 from functools import cache
+from pathlib import Path
 
+from joblib import Memory
 from lark import Lark, Tree
 
-
-def molecules(s: str):
-    return re.findall(r'[A-Z][a-z]?', s)
-
+memory = Memory('./joblib-cache', verbose=False)
 
 REPL_STRS, INPUT_STR = sys.stdin.read().strip().split('\n\n')
 _REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
 REPLS: list[tuple[str, str]] = [(l, r) for l, r in _REPLS]
 REV_REPLS = [(r, l) for l, r in REPLS]
 
-revs = defaultdict(set)
-exprs = defaultdict(set)
 
-for l, r in REPLS:
-    # revs[l].add(l)
-    revs[l].add(r)
+def molecules(s: str):
+    return re.findall(r'[A-Z][a-z]?', s)
 
-for l, rs in list(revs.items()):
-    for r in rs:
-        # s = ' '.join(f'"{m}"' for m in molecules(r))
-        s = ' '.join(f'{m.lower()}' for m in molecules(r))
-        exprs[r].add(s)
-        # revs[r].add(f'"{r}"')
 
-# for m in set(molecules(REPL_STRS)):
-#     revs[m.lower()].add(f'"{m}"')
+def construct_grammar():
+    revs = defaultdict(set)
+    exprs = defaultdict(set)
 
-grammar = ''
-for r, ss in exprs.items():
-    grammar += f'{r.lower()} : {" | ".join(ss)}\n'
+    for l, r in REPLS:
+        # revs[l].add(l)
+        revs[l].add(r)
 
-grammar += '\n'
-for l, rs in revs.items():
-    grammar += f'{l.lower()} : "{l}" | {" | ".join(rs).lower()}\n'
+    for l, rs in list(revs.items()):
+        for r in rs:
+            # s = ' '.join(f'"{m}"' for m in molecules(r))
+            s = ' '.join(f'{m.lower()}' for m in molecules(r))
+            exprs[r].add(s)
+            # revs[r].add(f'"{r}"')
 
-grammar += '\n'
-ms = set(molecules(REPL_STRS))
-for m in ms:
-    if m not in set(exprs) | set(revs):
-        grammar += f'{m.lower()} : "{m}"\n'
-# print(grammar)
+    # for m in set(molecules(REPL_STRS)):
+    #     revs[m.lower()].add(f'"{m}"')
 
-parser = Lark(grammar, start="e", ambiguity="explicit")
+    grammar = ''
+    for r, ss in exprs.items():
+        grammar += f'{r.lower()} : {" | ".join(ss)}\n'
 
-print('Parsing...')
-forest = parser.parse(INPUT_STR)
+    grammar += '\n'
+    for l, rs in revs.items():
+        grammar += f'{l.lower()} : "{l}" | {" | ".join(rs).lower()}\n'
+
+    grammar += '\n'
+    ms = set(molecules(REPL_STRS))
+    for m in ms:
+        if m not in set(exprs) | set(revs):
+            grammar += f'{m.lower()} : "{m}"\n'
+
+    return grammar
+
+
+def parse_tree(inp: str):
+    grammar = construct_grammar()
+    parser = Lark(grammar, start="e", ambiguity="explicit")
+    print('Parsing...')
+    forest = parser.parse(inp)
+    return forest
+
+
+cachefile = Path('cache.pkl')
+
+if not cachefile.exists():
+    with open(cachefile, 'wb') as f:
+        forest = parse_tree(INPUT_STR)
+        pickle.dump(forest, f)
+else:
+    with open(cachefile, 'rb') as f:
+        forest = pickle.load(f)
+        assert isinstance(forest, Tree)
 
 # print(tree.pretty())
 # print(dir(tree))
@@ -90,7 +112,11 @@ def find_shallowest(t):
         return Tree(t.data, new_children)
 
 
-print(len(forest.children))
+print(forest.data)
+print(forest.data)
+for c in forest.children:
+    print(c.data)
+
 exit()
 
 # print('Prettifying...')
