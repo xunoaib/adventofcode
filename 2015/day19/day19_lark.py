@@ -44,13 +44,28 @@ ms = set(molecules(REPL_STRS))
 for m in ms:
     if m not in set(exprs) | set(revs):
         grammar += f'{m.lower()} : "{m}"\n'
-print(grammar)
+# print(grammar)
 
 parser = Lark(grammar, start="e")
 
 tree = parser.parse(INPUT_STR)
 print(tree.pretty())
-print(dir(tree))
+# print(dir(tree))
 
-print(tree.data)
-print(tree.children)
+# print(tree.data)
+# print(tree.children)
+
+
+def tree_depth(t):
+    if isinstance(t, Tree):
+        if not t.children:
+            return 1
+        return 1 + max(
+            tree_depth(child)
+            for child in t.children if isinstance(child, Tree)
+        )
+    else:
+        return 1
+
+
+print(tree_depth(tree))
