@@ -12,7 +12,8 @@ o : "O" | hh
 
 parser = Lark(grammar, start="e", ambiguity="explicit")
 
-tree = parser.parse('HOH')
+# tree = parser.parse('HOH')
+tree = parser.parse('HOHOHO')
 
 # print(tree.pretty())
 # print(dir(tree))

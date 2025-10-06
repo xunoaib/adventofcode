@@ -90,6 +90,9 @@ def find_shallowest(t):
         return Tree(t.data, new_children)
 
 
+print(len(forest.children))
+exit()
+
 # print('Prettifying...')
 # print(forest.pretty())
 
