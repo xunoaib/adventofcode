@@ -1,6 +1,7 @@
 import re
 import sys
 from collections import defaultdict
+from functools import cache
 
 from lark import Lark, Tree
 
@@ -58,6 +59,7 @@ forest = parser.parse(INPUT_STR)
 # print(tree.children)
 
 
+@cache
 def tree_depth(t):
     if isinstance(t, Tree):
         if not t.children:
@@ -75,6 +77,7 @@ def tree_depth(t):
         return 1
 
 
+@cache
 def find_shallowest(t):
     if t.data == '_ambig':
         shallowest = min(t.children, key=tree_depth)
