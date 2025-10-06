@@ -62,7 +62,11 @@ def part2():
 
         s = s[:m.start()] + '(' + 'Y'.join(y_segments) + ')' + s[m.end():]
 
-    print()
+    # TODO:
+    # - Now find and perform candidate Rn/Ar substitutions (those with 100% certainty)
+    # - Consider partial Rn/Ar template matches to deduce further constraints.
+
+    print('\nHardened:')
     print(s)
 
     t = s.replace('(', 'Rn').replace(')', 'Ar')
