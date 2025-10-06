@@ -19,17 +19,16 @@ tree = parser.parse('HOH')
 # print(tree.data)
 # print(tree.children)
 
-
-def tree_depth(t):
-    if isinstance(t, Tree):
-        if not t.children:
-            return 1
-        return 1 + max(
-            tree_depth(child)
-            for child in t.children if isinstance(child, Tree)
-        )
-    else:
-        return 1
+# def tree_depth(t):
+#     if isinstance(t, Tree):
+#         if not t.children:
+#             return 1
+#         return 1 + max(
+#             tree_depth(child)
+#             for child in t.children if isinstance(child, Tree)
+#         )
+#     else:
+#         return 1
 
 
 def find_shallowest(t):
@@ -44,6 +43,22 @@ def find_shallowest(t):
         return Tree(t.data, new_children)
 
 
+# Avoids counting splits like HH => H H
+def tree_depth(t):
+    if isinstance(t, Tree):
+        if not t.children:
+            return 1
+
+        cost = t.data != ''.join(c.data for c in t.children)
+
+        return cost + max(
+            tree_depth(child)
+            for child in t.children if isinstance(child, Tree)
+        )
+    else:
+        return 1
+
+
 for t in tree.children:
     print(tree_depth(t))
 
@@ -51,4 +66,4 @@ print(tree.pretty())
 
 s = find_shallowest(tree)
 print(s.pretty())
-print(tree_depth(s))
+print(tree_depth(s) - 1)
