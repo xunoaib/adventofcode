@@ -18,12 +18,12 @@
 | [Day 14: Reindeer Olympics](https://adventofcode.com/2015/day/14) | [Code](day14/day14.py) |
 | [Day 15: Science for Hungry People](https://adventofcode.com/2015/day/15) | [Code](day15/day15.py) |
 | [Day 16: Aunt Sue](https://adventofcode.com/2015/day/16) | [Code](day16/day16.py) |
-| [Day 17: No Such Thing as Too Much](https://adventofcode.com/2015/day/17) | Code |
-| [Day 18: Like a GIF For Your Yard](https://adventofcode.com/2015/day/18) | Code |
-| [Day 19: Medicine for Rudolph](https://adventofcode.com/2015/day/19) | Code |
-| [Day 20: Infinite Elves and Infinite Houses](https://adventofcode.com/2015/day/20) | Code |
-| [Day 21: RPG Simulator 20XX](https://adventofcode.com/2015/day/21) | Code |
-| [Day 22: Wizard Simulator 20XX](https://adventofcode.com/2015/day/22) | Code |
-| [Day 23: Opening the Turing Lock](https://adventofcode.com/2015/day/23) | Code |
-| [Day 24: It Hangs in the Balance](https://adventofcode.com/2015/day/24) | Code |
-| [Day 25: Let It Snow](https://adventofcode.com/2015/day/25) | Code |
+| [Day 17: No Such Thing as Too Much](https://adventofcode.com/2015/day/17) | [Code](day17/day17.py) |
+| [Day 18: Like a GIF For Your Yard](https://adventofcode.com/2015/day/18) | [Code](day18/day18.py) |
+| [Day 19: Medicine for Rudolph](https://adventofcode.com/2015/day/19) | [Code](day19/day19.py) |
+| [Day 20: Infinite Elves and Infinite Houses](https://adventofcode.com/2015/day/20) | [Code](day20/day20.py) |
+| [Day 21: RPG Simulator 20XX](https://adventofcode.com/2015/day/21) | [Code](day21/day21.py) |
+| [Day 22: Wizard Simulator 20XX](https://adventofcode.com/2015/day/22) | [Code](day22/day22.py) |
+| [Day 23: Opening the Turing Lock](https://adventofcode.com/2015/day/23) | [Code](day23/day23.py) |
+| [Day 24: It Hangs in the Balance](https://adventofcode.com/2015/day/24) | [Code](day24/day24.py) |
+| [Day 25: Let It Snow](https://adventofcode.com/2015/day/25) | [Code](day25/day25.py) |
