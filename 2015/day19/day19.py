@@ -130,30 +130,20 @@ def part2():
             s = s.replace('CRnFYMgAr', 'H', 1)
             repl_count += 1
 
-        print('\n' + highlight(s))
-
-    print('Final Reversal:')
+        # print('\n' + highlight(s))
 
     s, steps = reverse_to_one(s)
     repl_count += steps
 
     assert s == 'e'
-
-    print()
-    print(f'final reverse_to_one took {steps} steps')
-    print('replacements:', repl_count)
-
     return repl_count
 
 
-# print(reverse_to_one('HCaCaCaCaCaSiThCaCaCaCaCaPBCaPBCaCaSiAl'))
-# exit()
-
-# a1 = part1()
-# print('part1:', a1)
+a1 = part1()
+print('part1:', a1)
 
 a2 = part2()
 print('part2:', a2)
 
-# assert a1 == 518
-# assert a2 == ?
+assert a1 == 518
+assert a2 == 200
