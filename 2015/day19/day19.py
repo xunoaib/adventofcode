@@ -2,6 +2,9 @@ import re
 import sys
 from heapq import heappop, heappush
 
+# WARN: Some strings are specific to my input. Adapt as needed.
+
+# Hardcoded threshold to terminate BFS in a reasonable time
 ABORT_BFS_THRESHOLD = 500
 
 REPL_STRS, INPUT_STR = sys.stdin.read().strip().split('\n\n')
@@ -9,7 +12,8 @@ _REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
 REPLS: list[tuple[str, str]] = [(l, r) for l, r in _REPLS]
 REV_REPLS = [(r, l) for l, r in REPLS]
 
-repl_count = 0
+# Number of replacements
+a2_count = 0
 
 
 def distinct_repls(input: str, repl_rules: list[tuple[str, str]]):
@@ -25,21 +29,8 @@ def part1():
     return len(distinct_repls(INPUT_STR, REPLS))
 
 
-def reverse(output: str):
-    q = [output]
-    seen = {output}
-    while q:
-        s = q.pop()
-        for t in distinct_repls(s, REV_REPLS):
-            if t not in seen:
-                q.append(t)
-                seen.add(t)
-    return seen
-
-
 def reverse_to_one(output: str):
-    '''This returns the first element that output can be compressed into (but
-    is not guaranteed to be unique)'''
+    '''Compress a string into a single character with the fewest substitutions'''
 
     best = (float('inf'), None)
     q = [(count_elements(output), 0, output)]
@@ -51,7 +42,7 @@ def reverse_to_one(output: str):
         if n == 1:
             best = min(best, (steps, s))
 
-        # Return the first result found for long strings with an unreasonably large search space
+        # Eagerly return the best result found if the search space is too large
         if len(seen) > ABORT_BFS_THRESHOLD and best[1] is not None:
             break
 
@@ -76,7 +67,7 @@ def highlight(s: str):
 
 
 def compress_inner_rn_ars(s: str):
-    global repl_count
+    global a2_count
 
     pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
     while m := re.search(pattern, s):
@@ -84,15 +75,14 @@ def compress_inner_rn_ars(s: str):
         for y in m.group(1).split('Y'):
             compressed, steps = reverse_to_one(y)
             if compressed != y:
-                repl_count += steps
+                a2_count += steps
             segments.append(compressed)
-
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
 def replace_rnfyfars(s: str):
-    global repl_count
+    global a2_count
 
     for l, r in [
         ('SiRnFYFAr', 'Ca'),
@@ -102,23 +92,23 @@ def replace_rnfyfars(s: str):
     ]:
         while l in s:
             s = s.replace(l, r, 1)
-            repl_count += 1
+            a2_count += 1
 
     return s
 
 
 def replace_rnars(s: str):
-    global repl_count
+    global a2_count
     for l, r in REPLS:
         if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
             while m.group() in s:
                 s = s.replace(m.group(), l, 1)
-                repl_count += 1
+                a2_count += 1
     return s
 
 
 def part2():
-    global repl_count
+    global a2_count
     s = INPUT_STR
 
     while 'Rn' in s:
@@ -128,15 +118,15 @@ def part2():
 
         while 'CRnFYMgAr' in s:
             s = s.replace('CRnFYMgAr', 'H', 1)
-            repl_count += 1
+            a2_count += 1
 
         # print('\n' + highlight(s))
 
     s, steps = reverse_to_one(s)
-    repl_count += steps
+    a2_count += steps
 
     assert s == 'e'
-    return repl_count
+    return a2_count
 
 
 a1 = part1()
