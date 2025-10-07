@@ -1,5 +1,6 @@
 import re
 import sys
+from heapq import heappop, heappush
 
 REPL_STRS, INPUT_STR = sys.stdin.read().strip().split('\n\n')
 _REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
@@ -32,6 +33,23 @@ def reverse(output: str):
     return seen
 
 
+def reverse_to_one(output: str):
+    '''This returns the first element that output can be compressed into (but
+    is not guaranteed to be unique)'''
+
+    q = [(count_elements(output), output)]
+    seen = {output}
+    while q:
+        n, s = heappop(q)
+        if n == 1:
+            return [s]
+        for t in distinct_repls(s, REV_REPLS):
+            if t not in seen:
+                heappush(q, (count_elements(t), t))
+                seen.add(t)
+    return seen
+
+
 def count_elements(output: str):
     return sum(c.isupper() for c in output)
 
@@ -45,14 +63,14 @@ def compress_inner_rn_ars(s: str):
     # pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
     pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
     while m := re.search(pattern, s):
-        ys = m.group(1).split('Y')
         segments = []
-        for y in ys:
-            compressed = [v for v in reverse(y) if count_elements(v) == 1]
+        for y in m.group(1).split('Y'):
+            compressed = [
+                v for v in reverse_to_one(y) if count_elements(v) == 1
+            ]
             assert len(compressed) == 1
             segments.append(compressed[0])
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
-
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
@@ -76,7 +94,6 @@ def part2():
 
     # Compress innermost Rn..Ar segments into single molecules
     s = compress_inner_rn_ars(s)
-
     print('\n' + highlight(s))
 
     s = replace_rnfyfars(s)
@@ -94,6 +111,11 @@ def part2():
 
     s = compress_inner_rn_ars(s)
     print('\n' + highlight(s))
+
+    s = s.replace('CRnFYMgAr', 'H')
+    print('\n' + highlight(s))
+
+    print(min(reverse_to_one(s), key=count_elements))
 
     exit()
 
