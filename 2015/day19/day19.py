@@ -38,16 +38,21 @@ def count_elements(output: str):
 
 def part2():
     pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
+    pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
     s = INPUT_STR
 
-    for x in re.finditer(pattern, s):
-        ys = x.group(1).split('Y')
+    # Compress innermost Rn..Ar segments into single molecules
+    while m := re.search(pattern, s):
+        ys = m.group(1).split('Y')
         segments = []
         for y in ys:
             compressed = [v for v in reverse(y) if count_elements(v) == 1]
             assert len(compressed) == 1
             segments.append(compressed[0])
-        print(g, '=>', 'Y'.join(segments))
+        s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
+
+    s = s.replace('(', 'Rn').replace(')', 'Ar')
+    print(s)
     exit()
 
     while m := re.search(pattern, s):
