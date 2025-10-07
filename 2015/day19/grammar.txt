@@ -1,0 +1,63 @@
+thrnfar : th rn f ar
+thf : th f
+bca : b ca
+tib : ti b
+tirnfar : ti rn f ar
+sirnfyfar : si rn f y f ar
+caca : ca ca
+sirnmgar : si rn mg ar
+prnfar : p rn f ar
+pb : p b
+sith : si th
+caf : ca f
+pmg : p mg
+sial : si al
+crnmgyfar : c rn mg y f ar
+crnalar : c rn al ar
+nth : n th
+ornfar : o rn f ar
+hca : h ca
+ob : o b
+nrnmgar : n rn mg ar
+nrnfyfar : n rn f y f ar
+crnfymgar : c rn f y mg ar
+crnfyfyfar : c rn f y f y f ar
+bf : b f
+timg : ti mg
+hsi : h si
+crnfar : c rn f ar
+nrnfar : n rn f ar
+hp : h p
+crnmgar : c rn mg ar
+crnfyfar : c rn f y f ar
+oti : o ti
+cap : ca p
+pti : p ti
+sirnfar : si rn f ar
+casi : ca si
+thca : th ca
+bp : b p
+titi : ti ti
+nal : n al
+hf : h f
+omg : o mg
+
+al : "Al" | thrnfar | thf
+b : "B" | bca | tib | tirnfar
+ca : "Ca" | sirnfyfar | caca | sirnmgar | prnfar | pb | sith
+f : "F" | caf | pmg | sial
+h : "H" | crnmgyfar | crnalar | nth | ornfar | hca | ob | nrnmgar | nrnfyfar | crnfymgar | crnfyfyfar
+mg : "Mg" | bf | timg
+n : "N" | hsi | crnfar
+o : "O" | nrnfar | hp | crnmgar | crnfyfar | oti
+p : "P" | cap | pti | sirnfar
+si : "Si" | casi
+th : "Th" | thca
+ti : "Ti" | bp | titi
+e : "e" | nal | hf | omg
+
+rn : "Rn"
+ar : "Ar"
+c : "C"
+y : "Y"
+
