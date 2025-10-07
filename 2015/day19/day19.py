@@ -129,6 +129,8 @@ def part2():
     return a2_count
 
 
+print('WARN: These algorithms are (mostly) specific to my input')
+
 a1 = part1()
 print('part1:', a1)
 
