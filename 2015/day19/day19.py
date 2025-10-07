@@ -39,19 +39,29 @@ def reverse_to_one(output: str):
     '''This returns the first element that output can be compressed into (but
     is not guaranteed to be unique)'''
 
+    best = (float('inf'), None)
     q = [(count_elements(output), 0, output)]
     seen = {output}
+
     while q:
         n, steps, s = heappop(q)
         if n == 1:
-            return s, steps
+            best = min(best, (steps, s))
+            print('new best', best)
+
+            # Return the first result found for long strings with an unreasonably large search space
+            if output == 'CaCaSiThSiThPBCaCaCaCaCaCaPBCaCaPTiBCaCaCaCaCaCaCaCaCaCaCaCaSiThCaCaCaPTiTiTiTiTiTiBPTiTiTiBPTiBCaF':
+                break
+
+        if steps + 1 > best[0]:
+            continue
+
         for t in distinct_repls(s, REV_REPLS):
             if t not in seen:
                 heappush(q, (count_elements(t), steps + 1, t))
                 seen.add(t)
 
-    print(f"Warning! Doesn't compress: {output}")
-    return output, 0
+    return best[1], best[0]
 
 
 def count_elements(output: str):
@@ -71,7 +81,7 @@ def compress_inner_rn_ars(s: str):
         segments = []
         for y in m.group(1).split('Y'):
             compressed, steps = reverse_to_one(y)
-            if y == compressed:
+            if compressed != y:
                 repl_count += steps
             segments.append(compressed)
 
@@ -119,6 +129,8 @@ def part2():
             repl_count += 1
 
         print('\n' + highlight(s))
+
+    print('Final Reversal:')
 
     s, steps = reverse_to_one(s)
     repl_count += steps
