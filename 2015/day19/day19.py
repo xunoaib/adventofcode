@@ -37,7 +37,8 @@ def count_elements(output: str):
 
 
 def highlight(s: str):
-    return re.sub(r'(Rn|Ar|C(?!a))', r'\033[93m\1\033[0m', s)
+    s = re.sub(r'(Rn|Ar|C(?!a))', r'\033[93m\1\033[0m', s)
+    return re.sub(r'(Y)', r'\033[91m\1\033[0m', s)
 
 
 def part2():
@@ -56,12 +57,16 @@ def part2():
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
 
     s = s.replace('(', 'Rn').replace(')', 'Ar')
-    print(highlight(s))
+    print('\n' + highlight(s))
+
+    s = s.replace('SiRnFYFAr', 'Ca')
+    s = s.replace('NRnFYFAr', 'H')
+    print('\n' + highlight(s))
 
     # gs = [g for g in re.split(r'([A-Z][a-z]?)', s) if g]
     # gs = [g for g in re.split(r'((?:(?!Rn|Ar|\(|\)).)*?)Ar', s) if g]
     gs = [g for g in re.split(r'(Rn|Ar|Y)', s) if g]
-    print(gs)
+    # print(gs)
 
     output = []
     for g in gs:
@@ -71,16 +76,14 @@ def part2():
             continue
 
         if len(compressed) == 1:
-            print(g, '=>', compressed)
+            # print(g, '=>', compressed)
             output.append(compressed[0])
         else:
-            print(g, '=>', 'no compression')
+            # print(g, '=>', 'no compression')
             output.append(g)
 
     s = ''.join(output)
-    print()
-    print(s)
-
+    print('\n' + highlight(s))
     exit()
 
     # # Compress isolated segments into single molecules
