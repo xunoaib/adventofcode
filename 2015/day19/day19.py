@@ -71,9 +71,6 @@ def compress_inner_rn_ars(s: str):
         segments = []
         for y in m.group(1).split('Y'):
             compressed, steps = reverse_to_one(y)
-            if compressed is None:
-                print('>>>', y)
-                exit()
             if y == compressed:
                 repl_count += steps
             segments.append(compressed)
@@ -91,17 +88,20 @@ def replace_rnfyfars(s: str):
         ('SiRnMgAr', 'Ca'),
         ('NRnMgAr', 'H'),
     ]:
-        if l in s:
-            s = s.replace(l, r)
+        while l in s:
+            s = s.replace(l, r, 1)
             repl_count += 1
 
     return s
 
 
 def replace_rnars(s: str):
+    global repl_count
     for l, r in REPLS:
         if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
-            s = s.replace(m.group(), l)
+            while m.group() in s:
+                s = s.replace(m.group(), l, 1)
+                repl_count += 1
     return s
 
 
@@ -113,7 +113,11 @@ def part2():
         s = compress_inner_rn_ars(s)
         s = replace_rnfyfars(s)
         s = replace_rnars(s)
-        s = s.replace('CRnFYMgAr', 'H')
+
+        while 'CRnFYMgAr' in s:
+            s = s.replace('CRnFYMgAr', 'H', 1)
+            repl_count += 1
+
         print('\n' + highlight(s))
 
     s, steps = reverse_to_one(s)
@@ -124,6 +128,8 @@ def part2():
     print('final:', s)
     print('replacements:', repl_count)
 
+    return repl_count
+
 
 # print(reverse_to_one('HCaCaCaCaCaSiThCaCaCaCaCaPBCaPBCaCaSiAl'))
 # exit()
@@ -132,7 +138,7 @@ def part2():
 # print('part1:', a1)
 
 a2 = part2()
-# print('part2:', a2)
+print('part2:', a2)
 
 # assert a1 == 518
 # assert a2 == ?
