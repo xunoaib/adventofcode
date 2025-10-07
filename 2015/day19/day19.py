@@ -56,6 +56,21 @@ def compress_inner_rn_ars(s: str):
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
+def replace_rnfyfars(s: str):
+    s = s.replace('SiRnFYFAr', 'Ca')
+    s = s.replace('NRnFYFAr', 'H')
+    s = s.replace('SiRnMgAr', 'Ca')
+    s = s.replace('NRnMgAr', 'H')
+    return s
+
+
+def replace_rnars(s: str):
+    for l, r in REPLS:
+        if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
+            s = s.replace(m.group(), l)
+    return s
+
+
 def part2():
     s = INPUT_STR
 
@@ -64,23 +79,22 @@ def part2():
 
     print('\n' + highlight(s))
 
-    s = s.replace('SiRnFYFAr', 'Ca')
-    s = s.replace('NRnFYFAr', 'H')
-    print('\n' + highlight(s))
-
-    s = s.replace('SiRnMgAr', 'Ca')
-    s = s.replace('NRnMgAr', 'H')
-    print('\n' + highlight(s))
-
-    for l, r in REPLS:
-        if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
-            s = s.replace(m.group(), l)
-
+    s = replace_rnfyfars(s)
+    s = replace_rnars(s)
     print('\n' + highlight(s))
 
     s = compress_inner_rn_ars(s)
-
     print('\n' + highlight(s))
+
+    s = replace_rnfyfars(s)
+    print('\n' + highlight(s))
+
+    s = replace_rnars(s)
+    print('\n' + highlight(s))
+
+    s = compress_inner_rn_ars(s)
+    print('\n' + highlight(s))
+
     exit()
 
     # gs = [g for g in re.split(r'([A-Z][a-z]?)', s) if g]
