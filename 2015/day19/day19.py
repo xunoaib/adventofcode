@@ -44,7 +44,7 @@ def reverse_to_one(output: str):
     while q:
         n, s = heappop(q)
         if n == 1:
-            return [s]
+            return s
         for t in distinct_repls(s, REV_REPLS):
             if t not in seen:
                 heappush(q, (count_elements(t), t))
@@ -68,11 +68,8 @@ def compress_inner_rn_ars(s: str):
     while m := re.search(pattern, s):
         segments = []
         for y in m.group(1).split('Y'):
-            compressed = [
-                v for v in reverse_to_one(y) if count_elements(v) == 1
-            ]
-            assert len(compressed) == 1
-            seg = compressed[0]
+            compressed = reverse_to_one(y)
+            seg = compressed
             if y == seg:
                 repl_count += 1  # TODO: must count reverse_to_one
             segments.append(seg)
