@@ -63,15 +63,23 @@ def part2():
     gs = [g for g in re.split(r'(Rn|Ar|Y)', s) if g]
     print(gs)
 
+    output = []
     for g in gs:
         compressed = [v for v in reverse(g) if count_elements(v) == 1]
         if g in ('Rn', 'Ar', 'Y'):
+            output.append(g)
             continue
 
         if len(compressed) == 1:
             print(g, '=>', compressed)
+            output.append(compressed[0])
         else:
             print(g, '=>', 'no compression')
+            output.append(g)
+
+    s = ''.join(output)
+    print()
+    print(s)
 
     exit()
 
