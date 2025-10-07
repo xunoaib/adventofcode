@@ -42,10 +42,12 @@ def part2():
 
     for x in re.finditer(pattern, s):
         ys = x.group(1).split('Y')
-        print(' Y '.join(ys))
-
+        segments = []
         for y in ys:
-            print('   ', [v for v in reverse(y) if count_elements(v) == 1])
+            compressed = [v for v in reverse(y) if count_elements(v) == 1]
+            assert len(compressed) == 1
+            segments.append(compressed[0])
+        print(g, '=>', 'Y'.join(segments))
     exit()
 
     while m := re.search(pattern, s):
