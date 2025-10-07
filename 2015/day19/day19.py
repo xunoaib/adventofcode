@@ -7,6 +7,8 @@ _REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
 REPLS: list[tuple[str, str]] = [(l, r) for l, r in _REPLS]
 REV_REPLS = [(r, l) for l, r in REPLS]
 
+repl_count = 0
+
 
 def distinct_repls(input: str, repl_rules: list[tuple[str, str]]):
     distinct: set[str] = set()
@@ -60,7 +62,8 @@ def highlight(s: str):
 
 
 def compress_inner_rn_ars(s: str):
-    # pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
+    global repl_count
+
     pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
     while m := re.search(pattern, s):
         segments = []
@@ -69,7 +72,11 @@ def compress_inner_rn_ars(s: str):
                 v for v in reverse_to_one(y) if count_elements(v) == 1
             ]
             assert len(compressed) == 1
-            segments.append(compressed[0])
+            seg = compressed[0]
+            if y == seg:
+                repl_count += 1
+            segments.append(seg)
+
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
@@ -92,30 +99,15 @@ def replace_rnars(s: str):
 def part2():
     s = INPUT_STR
 
-    # Compress innermost Rn..Ar segments into single molecules
-    s = compress_inner_rn_ars(s)
-    print('\n' + highlight(s))
-
-    s = replace_rnfyfars(s)
-    s = replace_rnars(s)
-    print('\n' + highlight(s))
-
-    s = compress_inner_rn_ars(s)
-    print('\n' + highlight(s))
-
-    s = replace_rnfyfars(s)
-    print('\n' + highlight(s))
-
-    s = replace_rnars(s)
-    print('\n' + highlight(s))
-
-    s = compress_inner_rn_ars(s)
-    print('\n' + highlight(s))
-
-    s = s.replace('CRnFYMgAr', 'H')
-    print('\n' + highlight(s))
+    while 'Rn' in s:
+        s = compress_inner_rn_ars(s)
+        s = replace_rnfyfars(s)
+        s = replace_rnars(s)
+        s = s.replace('CRnFYMgAr', 'H')
+        print('\n' + highlight(s))
 
     print(min(reverse_to_one(s), key=count_elements))
+    print(repl_count)
 
 
 # a1 = part1()
