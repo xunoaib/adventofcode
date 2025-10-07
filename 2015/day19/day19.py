@@ -106,6 +106,7 @@ def replace_rnars(s: str):
 
 
 def part2():
+    global repl_count
     s = INPUT_STR
 
     while 'Rn' in s:
@@ -115,12 +116,17 @@ def part2():
         s = s.replace('CRnFYMgAr', 'H')
         print('\n' + highlight(s))
 
-    print('rev2one:', reverse_to_one(s))
+    s, steps = reverse_to_one(s)
+    repl_count += steps
+
+    print()
+    print(f'final reverse_to_one took {steps} steps')
+    print('final:', s)
     print('replacements:', repl_count)
 
 
-print(reverse_to_one('HCaCaCaCaCaSiThCaCaCaCaCaPBCaPBCaCaSiAl'))
-exit()
+# print(reverse_to_one('HCaCaCaCaCaSiThCaCaCaCaCaPBCaPBCaCaSiAl'))
+# exit()
 
 # a1 = part1()
 # print('part1:', a1)
