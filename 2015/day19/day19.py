@@ -40,6 +40,14 @@ def part2():
     pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
     s = INPUT_STR
 
+    for x in re.finditer(pattern, s):
+        ys = x.group(1).split('Y')
+        print(' Y '.join(ys))
+
+        for y in ys:
+            print('   ', [v for v in reverse(y) if count_elements(v) == 1])
+    exit()
+
     while m := re.search(pattern, s):
         y = m.group(1)
         y_segments = []
