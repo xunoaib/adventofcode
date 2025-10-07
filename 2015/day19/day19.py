@@ -36,6 +36,10 @@ def count_elements(output: str):
     return sum(c.isupper() for c in output)
 
 
+def highlight(s: str):
+    return re.sub(r'(Rn|Ar|C(?!a))', r'\033[93m\1\033[0m', s)
+
+
 def part2():
     pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
     pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
@@ -52,7 +56,44 @@ def part2():
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
 
     s = s.replace('(', 'Rn').replace(')', 'Ar')
+    print(highlight(s))
+
+    # gs = [g for g in re.split(r'([A-Z][a-z]?)', s) if g]
+    # gs = [g for g in re.split(r'((?:(?!Rn|Ar|\(|\)).)*?)Ar', s) if g]
+    gs = [g for g in re.split(r'(Rn|Ar|Y)', s) if g]
+    print(gs)
+
+    for g in gs:
+        compressed = [v for v in reverse(g) if count_elements(v) == 1]
+        if g in ('Rn', 'Ar', 'Y'):
+            continue
+
+        if len(compressed) == 1:
+            print(g, '=>', compressed)
+        else:
+            print(g, '=>', 'no compression')
+
+    exit()
+
+    # # Compress isolated segments into single molecules
+    # pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
+    # while m := re.search(pattern, s):
+    #     ys = m.group(1).split('Y')
+    #     segments = []
+    #     for y in ys:
+    #         compressed = [v for v in reverse(y) if count_elements(v) == 1]
+    #         assert len(compressed) == 1
+    #         segments.append(compressed[0])
+    #     s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
+
+    s = s.replace('(', 'Rn').replace(')', 'Ar')
+    print(highlight(s))
+
     print(s)
+    print()
+
+    s = s.replace('(', 'Rn').replace(')', 'Ar')
+    print(highlight(s))
     exit()
 
     while m := re.search(pattern, s):
