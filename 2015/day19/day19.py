@@ -74,7 +74,7 @@ def compress_inner_rn_ars(s: str):
             assert len(compressed) == 1
             seg = compressed[0]
             if y == seg:
-                repl_count += 1
+                repl_count += 1  # TODO: must count reverse_to_one
             segments.append(seg)
 
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
@@ -82,10 +82,18 @@ def compress_inner_rn_ars(s: str):
 
 
 def replace_rnfyfars(s: str):
-    s = s.replace('SiRnFYFAr', 'Ca')
-    s = s.replace('NRnFYFAr', 'H')
-    s = s.replace('SiRnMgAr', 'Ca')
-    s = s.replace('NRnMgAr', 'H')
+    global repl_count
+
+    for l, r in [
+        ('SiRnFYFAr', 'Ca'),
+        ('NRnFYFAr', 'H'),
+        ('SiRnMgAr', 'Ca'),
+        ('NRnMgAr', 'H'),
+    ]:
+        if l in s:
+            s = s.replace(l, r)
+            repl_count += 1
+
     return s
 
 
