@@ -3,6 +3,7 @@ import re
 import sys
 from collections import defaultdict
 from functools import cache
+from heapq import heappop, heappush
 from pathlib import Path
 
 from joblib import Memory
@@ -25,18 +26,12 @@ def construct_grammar():
     exprs = defaultdict(set)
 
     for l, r in REPLS:
-        # revs[l].add(l)
         revs[l].add(r)
 
     for l, rs in list(revs.items()):
         for r in rs:
-            # s = ' '.join(f'"{m}"' for m in molecules(r))
             s = ' '.join(f'{m.lower()}' for m in molecules(r))
             exprs[r].add(s)
-            # revs[r].add(f'"{r}"')
-
-    # for m in set(molecules(REPL_STRS)):
-    #     revs[m.lower()].add(f'"{m}"')
 
     grammar = ''
     for r, ss in exprs.items():
@@ -61,24 +56,6 @@ def parse_tree(inp: str):
     print('Parsing...')
     forest = parser.parse(inp)
     return forest
-
-
-cachefile = Path('cache.pkl')
-
-if not cachefile.exists():
-    with open(cachefile, 'wb') as f:
-        forest = parse_tree(INPUT_STR)
-        pickle.dump(forest, f)
-else:
-    with open(cachefile, 'rb') as f:
-        forest = pickle.load(f)
-        assert isinstance(forest, Tree)
-
-# print(tree.pretty())
-# print(dir(tree))
-
-# print(tree.data)
-# print(tree.children)
 
 
 @cache
@@ -112,26 +89,46 @@ def find_shallowest(t):
         return Tree(t.data, new_children)
 
 
+def explore(t: Tree[str], d=0):
+    for c in t.children:
+        explore(c, d + 1)
+
+
+# def min_replacements(t: Tree[str], d=0):
+#     if d > 25:
+#         return float('inf')
+#     return (t.data
+#             != '_ambig') + sum(min_replacements(c, d + 1) for c in t.children)
+
+# def min_replacements(forest: Tree[str]):
+#     q = [(0, forest)]
+#     seen = {}
+#     while q:
+#         cost, tree = heappop(q)
+
+cachefile = Path('cache.pkl')
+if '-r' in sys.argv or not cachefile.exists():
+    with open(cachefile, 'wb') as f:
+        forest = parse_tree(INPUT_STR)
+        pickle.dump(forest, f)
+else:
+    with open(cachefile, 'rb') as f:
+        forest = pickle.load(f)
+        assert isinstance(forest, Tree)
+
 maxdepth = float('inf')
 
+# print(forest.data)
+# for c in forest.children:
+#     print([x.data for x in c.children])
 
-def explore(t: Tree, d=0):
-    global maxdepth
+# explore(forest)
 
-    if not t.children:
-        print(d, t.data)
-        maxdepth = min(maxdepth, d)
+# print('replacing')
+# for t in forest.children:
+#     print(min_replacements(t))
 
-    for c in t.children:
-        if d < maxdepth:
-            explore(c, d + 1)
-
-
-print(forest.data)
-for c in forest.children:
-    print(c.data)
-
-explore(forest)
+print(min_replacements(forest))
 
 exit()
 
