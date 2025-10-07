@@ -41,12 +41,9 @@ def highlight(s: str):
     return re.sub(r'(Y)', r'\033[91m\1\033[0m', s)
 
 
-def part2():
-    pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
+def compress_inner_rn_ars(s: str):
+    # pattern = r'Rn((?:(?!Rn|Ar|\.\.\.).)*?)Ar'
     pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
-    s = INPUT_STR
-
-    # Compress innermost Rn..Ar segments into single molecules
     while m := re.search(pattern, s):
         ys = m.group(1).split('Y')
         segments = []
@@ -55,6 +52,14 @@ def part2():
             assert len(compressed) == 1
             segments.append(compressed[0])
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
+    return s
+
+
+def part2():
+    s = INPUT_STR
+
+    # Compress innermost Rn..Ar segments into single molecules
+    s = compress_inner_rn_ars(s)
 
     s = s.replace('(', 'Rn').replace(')', 'Ar')
     print('\n' + highlight(s))
