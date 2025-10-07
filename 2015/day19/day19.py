@@ -63,6 +63,17 @@ def part2():
     s = s.replace('NRnFYFAr', 'H')
     print('\n' + highlight(s))
 
+    s = s.replace('SiRnMgAr', 'Ca')
+    s = s.replace('NRnMgAr', 'H')
+    print('\n' + highlight(s))
+
+    for l, r in REPLS:
+        if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
+            s = s.replace(m.group(), l)
+
+    print('\n' + highlight(s))
+    exit()
+
     # gs = [g for g in re.split(r'([A-Z][a-z]?)', s) if g]
     # gs = [g for g in re.split(r'((?:(?!Rn|Ar|\(|\)).)*?)Ar', s) if g]
     gs = [g for g in re.split(r'(Rn|Ar|Y)', s) if g]
