@@ -52,7 +52,8 @@ def compress_inner_rn_ars(s: str):
             assert len(compressed) == 1
             segments.append(compressed[0])
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
-    return s
+
+    return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
 def part2():
@@ -61,7 +62,6 @@ def part2():
     # Compress innermost Rn..Ar segments into single molecules
     s = compress_inner_rn_ars(s)
 
-    s = s.replace('(', 'Rn').replace(')', 'Ar')
     print('\n' + highlight(s))
 
     s = s.replace('SiRnFYFAr', 'Ca')
@@ -75,6 +75,10 @@ def part2():
     for l, r in REPLS:
         if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
             s = s.replace(m.group(), l)
+
+    print('\n' + highlight(s))
+
+    s = compress_inner_rn_ars(s)
 
     print('\n' + highlight(s))
     exit()
