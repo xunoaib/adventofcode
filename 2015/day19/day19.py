@@ -2,6 +2,8 @@ import re
 import sys
 from heapq import heappop, heappush
 
+ABORT_BFS_THRESHOLD = 500
+
 REPL_STRS, INPUT_STR = sys.stdin.read().strip().split('\n\n')
 _REPLS = [s.split(' => ') for s in REPL_STRS.splitlines()]
 REPLS: list[tuple[str, str]] = [(l, r) for l, r in _REPLS]
@@ -45,13 +47,13 @@ def reverse_to_one(output: str):
 
     while q:
         n, steps, s = heappop(q)
+
         if n == 1:
             best = min(best, (steps, s))
-            print('new best', best)
 
-            # Return the first result found for long strings with an unreasonably large search space
-            if output == 'CaCaSiThSiThPBCaCaCaCaCaCaPBCaCaPTiBCaCaCaCaCaCaCaCaCaCaCaCaSiThCaCaCaPTiTiTiTiTiTiBPTiTiTiBPTiBCaF':
-                break
+        # Return the first result found for long strings with an unreasonably large search space
+        if len(seen) > ABORT_BFS_THRESHOLD and best[1] is not None:
+            break
 
         if steps + 1 > best[0]:
             continue
@@ -135,9 +137,10 @@ def part2():
     s, steps = reverse_to_one(s)
     repl_count += steps
 
+    assert s == 'e'
+
     print()
     print(f'final reverse_to_one took {steps} steps')
-    print('final:', s)
     print('replacements:', repl_count)
 
     return repl_count
