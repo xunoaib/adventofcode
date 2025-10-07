@@ -39,21 +39,23 @@ def reverse_to_one(output: str):
     '''This returns the first element that output can be compressed into (but
     is not guaranteed to be unique)'''
 
-    q = [(count_elements(output), output)]
+    q = [(count_elements(output), 0, output)]
     seen = {output}
     while q:
-        n, s = heappop(q)
+        n, steps, s = heappop(q)
         if n == 1:
-            return s
+            return s, steps
         for t in distinct_repls(s, REV_REPLS):
             if t not in seen:
-                heappush(q, (count_elements(t), t))
+                heappush(q, (count_elements(t), steps + 1, t))
                 seen.add(t)
-    return seen
+
+    print(f"Warning! Doesn't compress: {output}")
+    return output, 0
 
 
 def count_elements(output: str):
-    return sum(c.isupper() for c in output)
+    return sum(c.isupper() for c in output) + (output == 'e')
 
 
 def highlight(s: str):
@@ -68,11 +70,13 @@ def compress_inner_rn_ars(s: str):
     while m := re.search(pattern, s):
         segments = []
         for y in m.group(1).split('Y'):
-            compressed = reverse_to_one(y)
-            seg = compressed
-            if y == seg:
-                repl_count += 1  # TODO: must count reverse_to_one
-            segments.append(seg)
+            compressed, steps = reverse_to_one(y)
+            if compressed is None:
+                print('>>>', y)
+                exit()
+            if y == compressed:
+                repl_count += steps
+            segments.append(compressed)
 
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
     return s.replace('(', 'Rn').replace(')', 'Ar')
@@ -111,9 +115,12 @@ def part2():
         s = s.replace('CRnFYMgAr', 'H')
         print('\n' + highlight(s))
 
-    print(min(reverse_to_one(s), key=count_elements))
-    print(repl_count)
+    print('rev2one:', reverse_to_one(s))
+    print('replacements:', repl_count)
 
+
+print(reverse_to_one('HCaCaCaCaCaSiThCaCaCaCaCaPBCaPBCaCaSiAl'))
+exit()
 
 # a1 = part1()
 # print('part1:', a1)
