@@ -121,15 +121,15 @@ def part2():
     s = INPUT_STR
 
     changed = True
-    while changed and 'Rn' in s:
-        orig = s
+    while 'Rn' in s and changed:
+        last_s = s
 
         s = compress_inner_rn_ars(s)
         s = replace_rnfyfars(s)
         s = replace_rnars(s)
         s = replace(s, 'CRnFYMgAr', 'H')
 
-        changed = orig != s
+        changed = last_s != s
         print('\n' + highlight(s))
 
     if any(m in s for m in ['Rn', 'Y', 'Ar']):
