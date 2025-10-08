@@ -121,15 +121,26 @@ def part1(mem):
 
 def part2(mem):
     total = 0
-    r = 0
-    best = 0
-    while (total := count_diag(r, mem)) < 100:
-        # r += 1
-        r += 100
-        if total > best:
-            best = max(best, total)
-            print('new max', best, '@', r)
-    return total
+
+    r = 3907
+    while True:
+        total = count_diag(r, mem)
+        if total == 100:
+            print('found', r)
+            break
+        r += 1
+
+    start_row = r
+
+    vals = [
+        (r, start_row - r) for r in range(start_row + 1)
+        if detect(r, start_row - r, mem)
+    ]
+
+    (rmin, cmin), (rmax, cmax) = min(vals), max(vals)
+
+    r, c = (rmin, cmax)
+    return c * 10000 + r
 
 
 def detect(row: int, col: int, mem: list[int]):
