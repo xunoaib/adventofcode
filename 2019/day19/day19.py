@@ -119,14 +119,41 @@ def part1(mem):
     return total
 
 
+def part2(mem):
+    total = 0
+    r = 0
+    best = 0
+    while (total := count_diag(r, mem)) < 100:
+        # r += 1
+        r += 100
+        if total > best:
+            best = max(best, total)
+            print('new max', best, '@', r)
+    return total
+
+
+def detect(row: int, col: int, mem: list[int]):
+    computer = Computer(mem)
+    computer.input = [row, col]
+    computer.run()
+    return computer.output[0]
+
+
+def count_diag(start_row: int, mem: list[int]):
+    total = 0
+    for r in range(start_row + 1):
+        total += detect(r, start_row - r, mem)
+    return total
+
+
 def main():
     mem = list(map(int, sys.stdin.read().split(',')))
 
     a1 = part1(mem)
     print('part1:', a1)
 
-    # a2 = part2(mem)
-    # print('part2:', a2)
+    a2 = part2(mem)
+    print('part2:', a2)
 
     assert a1 == 112
 
