@@ -1,10 +1,11 @@
-import math
+import bisect
 import sys
 from collections import defaultdict
-from copy import deepcopy
+from functools import cache
+
+# TODO: Find line equations instead of brute forcing
 
 POS, IMM, REL = 0, 1, 2
-
 DIR_OFFSETS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 
@@ -120,31 +121,29 @@ def part1(mem):
     return total
 
 
+class LazySeq:
+
+    def __init__(self, n, f):
+        self.n = n
+        self.f = cache(f)
+
+    def __len__(self):
+        return self.n
+
+    def __getitem__(self, i):
+        if 0 <= i < self.n:
+            return self.f(i)
+        raise IndexError
+
+
 def part2(mem):
-    # Found experimentally
-    # r = 3907
-
     count = lambda r: count_diag(r, mem)
+    seq = LazySeq(4096, count)
 
-    minr = maxr = r = 1
-    while True:
-        tot = count(r)
-        if tot < 100:
-            minr = r
-        elif tot > 100:
-            maxr = r
-            break
-        r *= 2
-        print(f'{r=}')
-
-    print(minr, maxr)
-
-    while True:
-        total = count_diag(r, mem)
-        if total == 100:
-            print('found', r)
-            break
+    r = 1 + bisect.bisect_left(seq, 99)
+    while count(r) < 100:
         r += 1
+        print('trying r =', r)
 
     start_row = r
 
