@@ -81,6 +81,21 @@ def compress_inner_rn_ars(s: str):
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
+def compress_outer_rn_ars(s: str):
+    global a2_count
+
+    pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
+    while m := re.search(pattern, s):
+        segments = []
+        for y in m.group(1).split('Y'):
+            compressed, steps = reverse_to_one(y)
+            if compressed != y:
+                a2_count += steps
+            segments.append(compressed)
+        s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
+    return s.replace('(', 'Rn').replace(')', 'Ar')
+
+
 def replace_rnfyfars(s: str):
     global a2_count
 
@@ -120,16 +135,12 @@ def part2():
     global a2_count
     s = INPUT_STR
 
-    changed = True
-    while 'Rn' in s and changed:
-        last_s = s
-
+    last_s = None
+    while 'Rn' in s != last_s:
         s = compress_inner_rn_ars(s)
         s = replace_rnfyfars(s)
         s = replace_rnars(s)
         s = replace(s, 'CRnFYMgAr', 'H')
-
-        changed = last_s != s
         print('\n' + highlight(s))
 
     if any(m in s for m in ['Rn', 'Y', 'Ar']):
