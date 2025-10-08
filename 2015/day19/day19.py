@@ -90,9 +90,7 @@ def replace_rnfyfars(s: str):
         ('SiRnMgAr', 'Ca'),
         ('NRnMgAr', 'H'),
     ]:
-        while l in s:
-            s = s.replace(l, r, 1)
-            a2_count += 1
+        s = replace(s, l, r)
 
     return s
 
@@ -101,27 +99,44 @@ def replace_rnars(s: str):
     global a2_count
     for l, r in REPLS:
         if m := re.match(r'([A-Z][a-z]?)Rn(.*?)Ar', r):
-            while m.group() in s:
-                s = s.replace(m.group(), l, 1)
-                a2_count += 1
+            s = replace(s, m.group(), l)
     return s
+
+
+def replace(text, srch, repl, count=-1):
+    '''Perform string replacement and update global replacement counter'''
+
+    global a2_count
+
+    while srch in text and count != 0:
+        text = text.replace(srch, repl, 1)
+        count -= 1
+        a2_count += 1
+
+    return text
 
 
 def part2():
     global a2_count
     s = INPUT_STR
 
-    while 'Rn' in s:
+    changed = True
+    while changed and 'Rn' in s:
+        orig = s
+
         s = compress_inner_rn_ars(s)
         s = replace_rnfyfars(s)
         s = replace_rnars(s)
+        s = replace(s, 'CRnFYMgAr', 'H')
 
-        while 'CRnFYMgAr' in s:
-            s = s.replace('CRnFYMgAr', 'H', 1)
-            a2_count += 1
+        changed = orig != s
+        print('\n' + highlight(s))
 
-        # print('\n' + highlight(s))
+    if any(m in s for m in ['Rn', 'Y', 'Ar']):
+        print('\nERROR: Some static elements are still present')
+        exit()
 
+    print('Reducing to one...')
     s, steps = reverse_to_one(s)
     a2_count += steps
 
