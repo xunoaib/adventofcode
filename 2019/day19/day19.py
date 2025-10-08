@@ -1,3 +1,4 @@
+import math
 import sys
 from collections import defaultdict
 from copy import deepcopy
@@ -120,10 +121,23 @@ def part1(mem):
 
 
 def part2(mem):
-    total = 0
-
     # Found experimentally
-    r = 3907
+    # r = 3907
+
+    count = lambda r: count_diag(r, mem)
+
+    minr = maxr = r = 1
+    while True:
+        tot = count(r)
+        if tot < 100:
+            minr = r
+        elif tot > 100:
+            maxr = r
+            break
+        r *= 2
+        print(f'{r=}')
+
+    print(minr, maxr)
 
     while True:
         total = count_diag(r, mem)
