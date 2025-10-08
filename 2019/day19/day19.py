@@ -109,10 +109,14 @@ class Computer:
 
 
 def part1(mem):
-    computer = Computer(mem)
-    computer.input += [0, 0]
-    computer.run()
-    print(computer.output)
+    total = 0
+    for r in range(50):
+        for c in range(50):
+            computer = Computer(mem)
+            computer.input = [r, c]
+            computer.run()
+            total += computer.output[0]
+    return total
 
 
 def main():
@@ -123,6 +127,8 @@ def main():
 
     # a2 = part2(mem)
     # print('part2:', a2)
+
+    assert a1 == 112
 
 
 if __name__ == '__main__':
