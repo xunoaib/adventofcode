@@ -1,8 +1,6 @@
 import sys
 from collections import defaultdict
 from copy import deepcopy
-from dataclasses import dataclass
-from itertools import batched, product
 
 POS, IMM, REL = 0, 1, 2
 
@@ -107,85 +105,14 @@ class Computer:
             self.mem[param3] = val1 * val2
             self.pc += 4
         else:
-            raise Exception(f'unknown opcode: {opcode}')
-
-
-def move(computer: Computer, direction: int):
-    assert direction in range(1, 5)
-    computer = deepcopy(computer)
-
-    computer.input.insert(0, direction)
-    while not computer.output:
-        computer.step()
-
-    return computer.output.pop(0), computer
+            self.running = False
 
 
 def part1(mem):
     computer = Computer(mem)
-
-    q = [(0, 0, 0, computer)]
-    seen = {(0, 0)}
-
-    while q:
-        steps, r, c, computer = q.pop(0)
-        for d, (roff, coff) in enumerate(DIR_OFFSETS, start=1):
-            resp, newcomputer = move(computer, d)
-            if resp == 1:
-                newpos = (r + roff, c + coff)
-                if newpos not in seen:
-                    seen.add(newpos)
-                    q.append((steps + 1, *newpos, newcomputer))
-            if resp == 2:
-                return steps + 1
-
-
-def explore_map(mem):
-    computer = Computer(mem)
-
-    q = [(0, 0, 0, computer)]
-    seen = {(0, 0)}
-
-    accessible = {(0, 0)}
-    o2 = None
-
-    while q:
-        steps, r, c, computer = q.pop(0)
-        for d, (roff, coff) in enumerate(DIR_OFFSETS, start=1):
-            resp, newcomputer = move(computer, d)
-            newpos = (r + roff, c + coff)
-            if newpos in seen:
-                continue
-            seen.add(newpos)
-            if resp == 0:
-                continue
-            if resp == 2:
-                o2 = newpos
-
-            accessible.add(newpos)
-            q.append((steps + 1, *newpos, newcomputer))
-
-    assert isinstance(o2, tuple), o2
-    return accessible, o2
-
-
-def part2(mem):
-    acc, o2 = explore_map(mem)
-
-    q = [(0, o2)]
-    fill_time = {o2: 0}
-
-    while q:
-        mins, (r, c) = q.pop(0)
-        for roff, coff in DIR_OFFSETS:
-            newpos = (r + roff, c + coff)
-            if newpos not in acc:
-                continue
-            if newpos not in fill_time:
-                fill_time[newpos] = mins
-                q.append((mins + 1, newpos))
-
-    return max(fill_time.values()) + 1
+    computer.input += [0, 0]
+    computer.run()
+    print(computer.output)
 
 
 def main():
@@ -194,11 +121,8 @@ def main():
     a1 = part1(mem)
     print('part1:', a1)
 
-    a2 = part2(mem)
-    print('part2:', a2)
-
-    assert a1 == 234
-    assert a2 == 292
+    # a2 = part2(mem)
+    # print('part2:', a2)
 
 
 if __name__ == '__main__':
