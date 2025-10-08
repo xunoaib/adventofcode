@@ -122,7 +122,9 @@ def part1(mem):
 def part2(mem):
     total = 0
 
+    # Found experimentally
     r = 3907
+
     while True:
         total = count_diag(r, mem)
         if total == 100:
@@ -139,7 +141,8 @@ def part2(mem):
 
     (rmin, cmin), (rmax, cmax) = min(vals), max(vals)
 
-    r, c = (rmin, cmax)
+    r = min(cmin, cmax)
+    c = min(rmin, rmax)
     return c * 10000 + r
 
 
@@ -167,6 +170,7 @@ def main():
     print('part2:', a2)
 
     assert a1 == 112
+    assert a2 == 18261982
 
 
 if __name__ == '__main__':
