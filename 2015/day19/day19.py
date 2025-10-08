@@ -134,10 +134,11 @@ def replace(text, srch, repl, count=-1):
 def replacement_loop(s: str):
     last_s = None
     while 'Rn' in s != last_s:
+        last_s = s
         s = compress_inner_rn_ars(s)
         s = replace_rnfyfars(s)
         s = replace_rnars(s)
-        s = last_s = replace(s, 'CRnFYMgAr', 'H')
+        s = replace(s, 'CRnFYMgAr', 'H')
         print('\n' + highlight(s))
     return s
 
@@ -146,7 +147,11 @@ def part2():
     global a2_count
     s = INPUT_STR
 
-    s = replacement_loop(s)
+    last_s = None
+    while s != last_s and any(m in s for m in ['Rn', 'Y', 'Ar']):
+        last_s = s
+        print('replacing')
+        s = replacement_loop(s)
 
     if any(m in s for m in ['Rn', 'Y', 'Ar']):
         print('\nERROR: Some static elements are still present')
