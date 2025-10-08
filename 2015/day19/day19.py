@@ -76,23 +76,34 @@ def compress_inner_rn_ars(s: str):
             compressed, steps = reverse_to_one(y)
             if compressed != y:
                 a2_count += steps
-            segments.append(compressed)
+            if compressed is not None:
+                segments.append(compressed)
         s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
+# FIXME: finish implementing next innermost replacement for other inputs
 def compress_outer_rn_ars(s: str):
-    global a2_count
+    print('Attempting to compress next innermost regions')
 
-    pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Ar'
-    while m := re.search(pattern, s):
-        segments = []
-        for y in m.group(1).split('Y'):
-            compressed, steps = reverse_to_one(y)
-            if compressed != y:
-                a2_count += steps
-            segments.append(compressed)
-        s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
+    def repl_pattern(pattern: str, s: str):
+        global a2_count
+        while m := re.search(pattern, s):
+            print('>>>', m.group(), m.group(1))
+            segments = []
+            for y in m.group(1).split('Y'):
+                # print('>>>', repr(y))
+                compressed, steps = reverse_to_one(y)
+                if compressed != y:
+                    a2_count += steps
+                if compressed is not None:
+                    segments.append(compressed)
+            s = s[:m.start()] + '(' + 'Y'.join(segments) + ')' + s[m.end():]
+        return s
+
+    pattern = r'Rn((?:(?!Rn|Ar|\(|\)).)*?)Rn'
+    s = repl_pattern(pattern, s)
+
     return s.replace('(', 'Rn').replace(')', 'Ar')
 
 
@@ -152,6 +163,8 @@ def part2():
         last_s = s
         print('replacing')
         s = replacement_loop(s)
+        s = compress_outer_rn_ars(s)
+        print('\n' + highlight(s))
 
     if any(m in s for m in ['Rn', 'Y', 'Ar']):
         print('\nERROR: Some static elements are still present')
