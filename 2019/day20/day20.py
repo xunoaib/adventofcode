@@ -1,5 +1,8 @@
 import sys
 from collections import defaultdict
+from typing import TypeAlias
+
+Pos: TypeAlias = tuple[int, int]
 
 
 def neighbors4(r: int, c: int):
@@ -20,14 +23,15 @@ def main():
     telepads = {p for p, v in grid.items() if v not in '.#'}
 
     # Create initial walkable graph
-    edges: dict[tuple[int, int], set[tuple[int, int]]] = defaultdict(set)
+    edges: dict[Pos, set[Pos]] = defaultdict(set)
+
     for p in walkable:
         for n in neighbors4(*p):
             if n in walkable:
                 edges[p].add(n)
                 edges[n].add(p)
 
-    telepoints = defaultdict(set)
+    telepoints: dict[str, set[Pos]] = defaultdict(set)
 
     for p in telepads:
         n = next(n for n in neighbors4(*p) if n in telepads)
@@ -41,13 +45,26 @@ def main():
         )
 
     # Find start and end locations
-    start = telepoints.pop('AA').pop()
-    end = telepoints.pop('ZZ').pop()
+    AA: Pos = telepoints.pop('AA').pop()
+    ZZ: Pos = telepoints.pop('ZZ').pop()
 
     # Add edges between teleporters
     for tkey, (p, n) in telepoints.items():
         edges[p].add(n)
         edges[n].add(p)
+
+    q = [(AA)]
+    seen = {AA: 0}
+
+    while q:
+        p = q.pop(0)
+        for n in edges[p]:
+            print(n)
+            if n not in seen:
+                seen[n] = seen[p] + 1
+                q.append(n)
+
+    print('part1:', seen[ZZ])
 
 
 if __name__ == '__main__':
