@@ -40,6 +40,10 @@ def main():
             next(t for s in (p, n) for t in neighbors4(*s) if t in walkable)
         )
 
+    # Find start and end locations
+    start = telepoints.pop('AA').pop()
+    end = telepoints.pop('ZZ').pop()
+
     # Add edges between teleporters
     for tkey, (p, n) in telepoints.items():
         edges[p].add(n)
