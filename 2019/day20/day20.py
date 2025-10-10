@@ -19,6 +19,14 @@ def main():
     walkable = {p for p, v in grid.items() if v == '.'}
     telepads = {p for p, v in grid.items() if v not in '.#'}
 
+    # Create initial walkable graph
+    edges: dict[tuple[int, int], set[tuple[int, int]]] = defaultdict(set)
+    for p in walkable:
+        for n in neighbors4(*p):
+            if n in walkable:
+                edges[p].add(n)
+                edges[n].add(p)
+
     telepoints = defaultdict(set)
 
     for p in telepads:
