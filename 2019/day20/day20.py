@@ -4,6 +4,9 @@ from typing import TypeAlias
 
 Pos: TypeAlias = tuple[int, int]
 
+OUTER = -1
+INNER = 1
+
 
 def neighbors4(r: int, c: int):
     for roff, coff in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -79,10 +82,39 @@ def main():
 
     # Identify level change between edges
     lvl_diff: dict[Pos, int] = {
-        p: -1 if is_outer(p) else 1
+        p: OUTER if is_outer(p) else INNER
         for ps in telepoints.values()
         for p in ps
     }
+
+    q = [(0, AA)]
+    seen = {q[0]: 0}
+
+    while q:
+        key = lvl, p = q.pop(0)
+
+        if key == (0, ZZ):
+            print('part2:', seen[key])
+            break
+
+        for n in edges[p]:
+
+            diffs = (lvl_diff.get(p), lvl_diff.get(n))
+
+            if diffs == (INNER, OUTER):
+                nlvl = lvl - 1
+            elif diffs == (OUTER, INNER):
+                nlvl = lvl + 1
+            else:
+                nlvl = lvl
+
+            if nlvl < 0:
+                continue
+
+            nkey = (nlvl, n)
+            if nkey not in seen:
+                seen[nkey] = seen[key] + 1
+                q.append(nkey)
 
 
 if __name__ == '__main__':
