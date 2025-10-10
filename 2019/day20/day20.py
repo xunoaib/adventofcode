@@ -19,25 +19,20 @@ def main():
     walkable = {p for p, v in grid.items() if v == '.'}
     telepads = {p for p, v in grid.items() if v not in '.#'}
 
-    padgroups = {}
+    telepoints = defaultdict(set)
+
     for p in telepads:
         n = next(n for n in neighbors4(*p) if n in telepads)
-        key = ''.join(sorted(grid[p] + grid[n]))
-        padgroups[key] = (p, n)
 
-    print(padgroups)
-    exit()
+        # Find 2-letter teleporter ID
+        tkey = ''.join(sorted(grid[p] + grid[n]))
 
-    print([grid[p] for p in telepads])
+        # Find empty passages connected to each teleporter
+        telepoints[tkey].add(
+            next(t for s in (p, n) for t in neighbors4(*s) if t in walkable)
+        )
 
-    counts = {0: 0, 1: 0}
-    for p in telepads:
-        s = sum(grid.get(n) == '.' for n in neighbors4(*p))
-        counts[s] += 1
-        if s not in (0, 1):
-            print(s)
-
-    print(counts)
+    print(telepoints)
 
 
 if __name__ == '__main__':
