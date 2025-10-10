@@ -40,7 +40,10 @@ def main():
             next(t for s in (p, n) for t in neighbors4(*s) if t in walkable)
         )
 
-    print(telepoints)
+    # Add edges between teleporters
+    for tkey, (p, n) in telepoints.items():
+        edges[p].add(n)
+        edges[n].add(p)
 
 
 if __name__ == '__main__':
