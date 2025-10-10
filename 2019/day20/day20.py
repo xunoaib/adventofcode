@@ -89,22 +89,31 @@ def main():
 
     q = [(0, AA)]
     seen = {q[0]: 0}
+    path = {q[0]: None}
 
     while q:
         key = lvl, p = q.pop(0)
 
         if key == (0, ZZ):
-            print('part2:', seen[key])
+            xs = []
+            while key is not None:
+                xs.append(key)
+                key = path[key]
+
+            for x in xs[::-1]:
+                print(x)
+
+            print('part2:', seen[0, ZZ])
             break
 
         for n in edges[p]:
 
-            diffs = (lvl_diff.get(p), lvl_diff.get(n))
+            diffs = pd, nd = (lvl_diff.get(p), lvl_diff.get(n))
 
             if diffs == (INNER, OUTER):
-                nlvl = lvl - 1
-            elif diffs == (OUTER, INNER):
                 nlvl = lvl + 1
+            elif diffs == (OUTER, INNER):
+                nlvl = lvl - 1
             else:
                 nlvl = lvl
 
@@ -115,6 +124,7 @@ def main():
             if nkey not in seen:
                 seen[nkey] = seen[key] + 1
                 q.append(nkey)
+                path[nkey] = key
 
 
 if __name__ == '__main__':
