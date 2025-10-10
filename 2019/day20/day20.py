@@ -67,9 +67,7 @@ def main():
                 seen[n] = seen[p] + 1
                 q.append(n)
 
-    print('part1:', seen[ZZ])
-
-    # Part 2
+    print('part1:', a1 := seen[ZZ])
 
     RMIN = min(r for r, c in walkable)
     RMAX = max(r for r, c in walkable)
@@ -89,12 +87,13 @@ def main():
 
     q = [(0, AA)]
     seen = {q[0]: 0}
+    a2 = None
 
     while q:
         key = lvl, p = q.pop(0)
 
         if key == (0, ZZ):
-            print('part2:', seen[0, ZZ])
+            print('part2:', a2 := seen[key])
             break
 
         for n in edges[p]:
@@ -115,6 +114,9 @@ def main():
             if nkey not in seen:
                 seen[nkey] = seen[key] + 1
                 q.append(nkey)
+
+    assert a1 == 628
+    assert a2 == 7506
 
 
 if __name__ == '__main__':
