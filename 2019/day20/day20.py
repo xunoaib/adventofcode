@@ -53,18 +53,36 @@ def main():
         edges[p].add(n)
         edges[n].add(p)
 
+    # Part 1
     q = [(AA)]
     seen = {AA: 0}
 
     while q:
         p = q.pop(0)
         for n in edges[p]:
-            print(n)
             if n not in seen:
                 seen[n] = seen[p] + 1
                 q.append(n)
 
     print('part1:', seen[ZZ])
+
+    # Part 2
+
+    RMIN = min(r for r, c in walkable)
+    RMAX = max(r for r, c in walkable)
+    CMIN = min(c for r, c in walkable)
+    CMAX = max(c for r, c in walkable)
+
+    def is_outer(p: Pos):
+        r, c = p
+        return r in (RMIN, RMAX) or c in (CMIN, CMAX)
+
+    # Identify level change between edges
+    lvl_diff: dict[Pos, int] = {
+        p: -1 if is_outer(p) else 1
+        for ps in telepoints.values()
+        for p in ps
+    }
 
 
 if __name__ == '__main__':
