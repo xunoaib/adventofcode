@@ -2,7 +2,7 @@ import sys
 
 lines = sys.stdin.read().strip().splitlines()
 cards: list[int] = list(range(10007))
-cards: list[int] = list(range(10))
+# cards: list[int] = list(range(10))
 
 for line in lines:
 
@@ -21,4 +21,8 @@ for line in lines:
             tar = (tar + n) % len(new_cards)
         cards = new_cards
 
-print(cards)
+a1 = cards.index(2019)
+
+print('part1:', a1)
+
+assert a1 == 5169
