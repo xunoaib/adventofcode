@@ -1,7 +1,6 @@
 import sys
 
 lines = sys.stdin.read().strip().splitlines()
-
 cards: list[int] = list(range(10007))
 
 for line in lines:
@@ -26,7 +25,10 @@ for line in lines:
                 if spots[pos] is None:
                     moves_left -= 1
             spots[pos] = cards.pop(0)
-            print('writing spot', pos, 'cards left:', len(cards))
+            print(
+                'writing spot', pos, 'cards left:', len(cards),
+                sum(s == None for s in spots)
+            )
             # print(n, len(cards))
 
         cards = spots
