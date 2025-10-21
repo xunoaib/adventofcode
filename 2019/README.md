@@ -20,8 +20,8 @@
 | [Day 16: Flawed Frequency Transmission](https://adventofcode.com/2019/day/16) | [Code](day16/day16.py) |
 | [Day 17: Set and Forget](https://adventofcode.com/2019/day/17) | [Code](day17/day17.py) |
 | [Day 18: Many-Worlds Interpretation](https://adventofcode.com/2019/day/18) | Code |
-| [Day 19: Tractor Beam](https://adventofcode.com/2019/day/19) | Code |
-| [Day 20: Donut Maze](https://adventofcode.com/2019/day/20) | Code |
+| [Day 19: Tractor Beam](https://adventofcode.com/2019/day/19) | [Code](day19/day19.py) |
+| [Day 20: Donut Maze](https://adventofcode.com/2019/day/20) | [Code](day20/day20.py) |
 | [Day 21: Springdroid Adventure](https://adventofcode.com/2019/day/21) | Code |
 | [Day 22: Slam Shuffle](https://adventofcode.com/2019/day/22) | Code |
 | [Day 23: Category Six](https://adventofcode.com/2019/day/23) | Code |
