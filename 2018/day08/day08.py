@@ -38,7 +38,6 @@ def node_value(node: Node):
 
 
 vs = list(map(int, input().split()))
-vs_orig = list(vs)
 
 root = parse()
 a1 = metadata_sum(root)
