@@ -10,25 +10,21 @@ class Node:
     metadata: list[int] = field(default_factory=list)
 
 
-vs = list(map(int, input().split()))
-
-
-def parse(i: int):
-    print(i)
-    n_children = vs[i]
-    n_metadata = vs[i + 1]
-    i += 2
+def parse():
+    n_children = vs.pop(0)
+    n_metadata = vs.pop(0)
 
     children: list[Node] = []
     for _ in range(n_children):
-        i, child = parse(i)
-        children.append(child)
+        children.append(parse())
 
-    metadata = vs[i:i + n_metadata]
-
-    return i, Node(children, metadata)
+    metadata = [vs.pop(0) for _ in range(n_metadata)]
+    return Node(children, metadata)
 
 
-i, n = parse(0)
+vs = list(map(int, input().split()))
+vs_orig = list(vs)
+
+n = parse()
 
 print(n)
