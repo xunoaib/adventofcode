@@ -11,7 +11,6 @@ class Node:
 
 
 def parse():
-    global tot
 
     n_children = vs.pop(0)
     n_metadata = vs.pop(0)
@@ -21,14 +20,19 @@ def parse():
         children.append(parse())
 
     metadata = [vs.pop(0) for _ in range(n_metadata)]
-    tot += sum(metadata)
     return Node(children, metadata)
+
+
+def metadata_sum(node: Node):
+    return sum(node.metadata) + sum(map(metadata_sum, node.children))
 
 
 vs = list(map(int, input().split()))
 vs_orig = list(vs)
-tot = 0
 
-n = parse()
+root = parse()
+a1 = metadata_sum(root)
 
-print('part1:', tot)
+print('part1:', a1)
+
+assert a1 == 36627
