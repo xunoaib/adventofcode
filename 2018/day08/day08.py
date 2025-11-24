@@ -27,12 +27,25 @@ def metadata_sum(node: Node):
     return sum(node.metadata) + sum(map(metadata_sum, node.children))
 
 
+def node_value(node: Node):
+    if not node.children:
+        return sum(node.metadata)
+
+    return sum(
+        node_value(node.children[mv - 1]) for mv in node.metadata
+        if mv - 1 < len(node.children)
+    )
+
+
 vs = list(map(int, input().split()))
 vs_orig = list(vs)
 
 root = parse()
 a1 = metadata_sum(root)
+a2 = node_value(root)
 
 print('part1:', a1)
+print('part2:', a2)
 
 assert a1 == 36627
+assert a2 == 16695
