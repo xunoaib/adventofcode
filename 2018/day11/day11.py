@@ -26,10 +26,8 @@ for y in range(1, ROWS):
         p = region_power(x, y, gsn)
         best = max(best, (p, x, y))
 
-print(best)
-
 p, x, y = best
-
 a1 = f'{x},{y}'
-
 print('part1:', a1)
+
+assert a1 == '235,16'
