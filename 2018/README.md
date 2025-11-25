@@ -11,7 +11,7 @@
 | [Day 7: The Sum of Its Parts](https://adventofcode.com/2018/day/7) | [Code](day07/day07.py) |
 | [Day 8: Memory Maneuver](https://adventofcode.com/2018/day/8) | [Code](day08/day08.py) |
 | [Day 9: Marble Mania](https://adventofcode.com/2018/day/9) | [Code](day09/day09.py) |
-| [Day 10: The Stars Align](https://adventofcode.com/2018/day/10) | Code |
+| [Day 10: The Stars Align](https://adventofcode.com/2018/day/10) | [Code](day10/day10.py) |
 | [Day 11: Chronal Charge](https://adventofcode.com/2018/day/11) | Code |
 | [Day 12: Subterranean Sustainability](https://adventofcode.com/2018/day/12) | Code |
 | [Day 13: Mine Cart Madness](https://adventofcode.com/2018/day/13) | Code |
