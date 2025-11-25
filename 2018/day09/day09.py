@@ -14,6 +14,7 @@ def solve(last_marble: int):
     marble_num = 1
 
     last_update = time()
+    last_marble_count = 0
 
     while marble_num < last_marble:
 
@@ -26,8 +27,12 @@ def solve(last_marble: int):
         # print(f'[{player_turn}] {ns}')
 
         if time() > last_update + 1:
-            print(marble_num)
+            print(
+                marble_num, (marble_num - last_marble_count) /
+                (time() - last_update)
+            )
             last_update = time()
+            last_marble_count = marble_num
 
         if marble_num % 23 == 0:
             scores[player_turn] += marble_num
