@@ -1,14 +1,10 @@
 import re
 from collections import Counter
-from dataclasses import dataclass
-from time import time
 
 NUM_PLAYERS, LAST_MARBLE = map(int, re.findall(r'\d+', input()))
 
 
-@dataclass
 class Node:
-    value: int
 
     def __init__(
         self,
@@ -27,7 +23,6 @@ class LinkedList:
         self.current_node = Node(value)
 
     def pop(self):
-        '''Pops the current node'''
         n = self.current_node
         n.ccw.cw = n.cw
         n.cw.ccw = n.ccw
@@ -37,19 +32,8 @@ class LinkedList:
     def insert(self, value: int):
         m1 = self.current_node.cw
         m2 = self.current_node.cw.cw
-
-        n = self.current_node = Node(value)
-        n.cw = m2
-        n.ccw = m1
-        m1.cw = n
-        m2.ccw = n
-
-        # m1  m2
-        # 0  (1)
-
-        # ccw --- cw
-        # c   m1 [n] m2
-        # c c.cw [n] c.cw.cw
+        n = Node(value, cw=m2, ccw=m1)
+        self.current_node = m1.cw = m2.ccw = n
 
     def move_ccw(self, steps: int):
         for _ in range(steps):
@@ -88,20 +72,7 @@ def solve(last_marble: int):
     player_turn = 1
     circle = LinkedList(0)
 
-    last_update = time()
-    last_marble_count = 0
-
     while marble_num < last_marble:
-        # circle.print(player_turn)
-
-        # if time() > last_update + 1:
-        #     print(
-        #         marble_num, (marble_num - last_marble_count) /
-        #         (time() - last_update)
-        #     )
-        #     last_update = time()
-        #     last_marble_count = marble_num
-
         if marble_num % 23 == 0:
             scores[player_turn] += marble_num
             circle.move_ccw(7)
@@ -118,7 +89,8 @@ def solve(last_marble: int):
 a1 = solve(LAST_MARBLE)
 print('part1:', a1)
 
-assert a1 == 373597
-
 a2 = solve(LAST_MARBLE * 100)
 print('part2:', a2)
+
+assert a1 == 373597
+assert a2 == 2954067253
