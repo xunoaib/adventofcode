@@ -1,5 +1,7 @@
 from functools import cache
 
+import numpy as np
+
 
 @cache
 def power_level(x, y, gsn):
@@ -31,34 +33,44 @@ def region_power(x, y, gsn, size):
 
 
 def part1():
-    best = (float('-inf'), ) * 3
-
-    for y in range(1, ROWS):
-        for x in range(1, COLS):
-            p = region_power(x, y, gsn, 3)
-            best = max(best, (p, x, y))
-
+    best = best_power_at_size(gsn, 3)
     return f'{best[1]},{best[2]}'
 
 
 def part2():
     best = (float('-inf'), ) * 4
-    a2 = None
 
-    for size in range(3, 300):
-        for y in range(1, ROWS - size):
-            for x in range(1, COLS - size):
-                p = region_power(x, y, gsn, size)
-                if p > best[0]:
-                    best = (p, x, y, size)
-                    a2 = f'{x},{y},{size}'
-                    print(f'new best {a2} with power {best[0]}')
-    return a2
+    for size in range(1, 300):
+        sbest = best_power_at_size(gsn, size)
+        best = min(best, sbest)
+        if sbest == best:
+            print(f'new best {best} with power {best[0]}')
+
+    _, x, y, size = best
+    return f'{x},{y},{size}'
+
+
+def best_power_at_size(gsn: int, size: int):
+    best = (float('-inf'), ) * 3
+    for y in range(1, ROWS):
+        for x in range(1, COLS):
+            p = region_power(x, y, gsn, size)
+            best = max(best, (p, x, y))
+    return best
 
 
 gsn = int(input())
 
 ROWS = COLS = 300
+
+COST_MATRIX = np.array(
+    [[power_level(x, y, gsn) for x in range(COLS)] for y in range(ROWS)]
+)
+
+# for size in range(3, 300):
+#     for y in range(1, ROWS - size):
+#         for x in range(1, COLS - size):
+#             t = m[y:y + size, x:x + size].flatten().sum()
 
 a1 = part1()
 print('part1:', a1)
