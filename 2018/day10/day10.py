@@ -2,11 +2,11 @@ import re
 import sys
 
 
-def simulate(objects):
+def simulate(objects: list[list[int]]):
     return [[x + vx, y + vy, vx, vy] for x, y, vx, vy in objects]
 
 
-def display(objects):
+def display(objects: list[list[int]]):
     minx = min(x for x, _, _, _ in objects)
     miny = min(y for _, y, _, _ in objects)
     maxx = max(x for x, _, _, _ in objects)
@@ -21,7 +21,7 @@ def display(objects):
     print()
 
 
-def spread_cost(objects):
+def spread_cost(objects: list[list[int]]):
     minx = min(x for x, _, _, _ in objects)
     miny = min(y for _, y, _, _ in objects)
     maxx = max(x for x, _, _, _ in objects)
