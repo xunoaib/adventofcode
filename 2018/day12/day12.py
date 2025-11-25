@@ -23,10 +23,15 @@ def step(state: str, idx: int):
     return ''.join(vals).rstrip('.'), idx
 
 
-gens = [(f'....{state}....', -4)]
+def pot_nums(state, idx):
+    return [idx for idx, v in enumerate(state, start=idx) if v == '#']
+
+
+gens = [(f'....{state}....', -2)]
 for _ in range(20):
     gens.append(step(*gens[-1]))
 
 for i, (s, idx) in enumerate(gens):
     # print(f'{i>2}: {s.ljust(".")}')
     print(f'{i:>2}: ({idx:>3}) {s}')
+    print(pot_nums(s, idx))
