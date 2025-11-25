@@ -3,12 +3,8 @@ import numpy as np
 
 def power_level(x, y):
     rack_id = x + 10
-    p = rack_id * y
-    p += GSN
-    p *= rack_id
-    p = ((p % 1000) - (p % 100)) // 100
-    p -= 5
-    return p
+    p = ((rack_id * y) + GSN) * rack_id
+    return ((p % 1000) - (p % 100)) // 100 - 5
 
 
 def part1():
