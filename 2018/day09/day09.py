@@ -1,10 +1,11 @@
 import re
 from collections import Counter
+from time import time
 
-num_players, last_num = map(int, re.findall(r'\d+', input()))
+NUM_PLAYERS, LAST_MARBLE = map(int, re.findall(r'\d+', input()))
 
 
-def part1(last_num: int):
+def solve(last_marble: int):
     scores = Counter()
 
     player_turn = 1
@@ -12,7 +13,9 @@ def part1(last_num: int):
     cur_idx = 0
     marble_num = 1
 
-    while marble_num < last_num:
+    last_update = time()
+
+    while marble_num < last_marble:
 
         # ns = ''.join(
         #     [
@@ -21,6 +24,10 @@ def part1(last_num: int):
         #     ][::-1]
         # )
         # print(f'[{player_turn}] {ns}')
+
+        if time() > last_update + 1:
+            print(marble_num)
+            last_update = time()
 
         if marble_num % 23 == 0:
             scores[player_turn] += marble_num
@@ -32,13 +39,13 @@ def part1(last_num: int):
             circle.insert(i, marble_num)
 
         marble_num += 1
-        player_turn = (player_turn + 1) % num_players
+        player_turn = (player_turn + 1) % NUM_PLAYERS
 
     return max(scores.values())
 
 
-a1 = part1(last_num)
-a2 = part1(last_num * 100)
+a1 = solve(LAST_MARBLE)
+a2 = solve(LAST_MARBLE * 100)
 
 print('part1:', a1)
 print('part2:', a2)
