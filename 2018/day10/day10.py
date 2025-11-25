@@ -6,12 +6,12 @@ def simulate(objects):
     return [[x + vx, y + vy, vx, vy] for x, y, vx, vy in objects]
 
 
-def display(objectss):
-    minx = min(x for x, y, vx, vy in objects)
-    miny = min(y for x, y, vx, vy in objects)
-    maxx = max(x for x, y, vx, vy in objects)
-    maxy = max(y for x, y, vx, vy in objects)
-    points = {(x, y) for x, y, vx, vy in objects}
+def display(objects):
+    minx = min(x for x, _, _, _ in objects)
+    miny = min(y for _, y, _, _ in objects)
+    maxx = max(x for x, _, _, _ in objects)
+    maxy = max(y for _, y, _, _ in objects)
+    points = {(x, y) for x, y, _, _ in objects}
 
     print()
     for y in range(miny, maxy + 1):
@@ -19,9 +19,6 @@ def display(objectss):
             print('#' if (x, y) in points else '.', end='')
         print()
     print()
-
-
-objects = [list(map(int, re.findall(r'-?\d+', line))) for line in sys.stdin]
 
 
 def spread_cost(objects):
@@ -32,22 +29,26 @@ def spread_cost(objects):
     return maxx - minx + maxy - miny
 
 
-best_cost = spread_cost(objects)
-best_objects = objects
-steps = 0
-while best_cost > 70:
-    objects = simulate(objects)
-    ncost = spread_cost(objects)
-    steps += 1
-    if ncost < best_cost:
-        best_cost = ncost
-        best_objects = objects
-        print('new best', ncost)
+objects = [list(map(int, re.findall(r'-?\d+', line))) for line in sys.stdin]
+
+best = float('inf')
+step = 0
+
+while True:
+    nobjects = simulate(objects)
+    ncost = spread_cost(nobjects)
+
+    if ncost > best:
+        break
+
+    step += 1
+    objects = nobjects
+    best = ncost
 
 display(objects)
 
 a1 = 'FPRBRRZA'
-a2 = steps
+a2 = step
 
 print('part1:', a1)
 print('part2:', a2)
