@@ -43,27 +43,6 @@ class LinkedList:
         for _ in range(steps):
             self.current_node = self.current_node.cw
 
-    def print(self, player_turn: int):
-        n = self.current_node
-        while n.value != 0:
-            n = n.ccw
-
-        root = n
-        nodes = [n]
-        while n.cw != root:
-            n = n.cw
-            nodes.append(n)
-
-        ns = ''.join(
-            [
-                f' \033[93m{"("+str(v.value)+")":>4}\033[0m'
-                if v == self.current_node else f' {v.value:>4}'
-                for i, v in enumerate(nodes)
-            ]
-        )
-
-        print(f'[{player_turn}] {ns}')
-
 
 def solve(last_marble: int):
     scores = Counter()
