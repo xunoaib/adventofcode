@@ -20,47 +20,42 @@ class Node:
 class LinkedList:
 
     def __init__(self, value: int):
-        self.current_node = Node(value)
+        self.current = Node(value)
 
     def pop(self):
-        n = self.current_node
+        n = self.current
         n.ccw.cw = n.cw
         n.cw.ccw = n.ccw
-        self.current_node = n.cw
+        self.current = n.cw
         return n.value
 
     def insert(self, value: int):
-        m1 = self.current_node.cw
-        m2 = self.current_node.cw.cw
-        n = Node(value, cw=m2, ccw=m1)
-        self.current_node = m1.cw = m2.ccw = n
+        m1 = self.current.cw
+        m2 = self.current.cw.cw
+        self.current = m1.cw = m2.ccw = Node(value, cw=m2, ccw=m1)
 
     def move_ccw(self, steps: int):
         for _ in range(steps):
-            self.current_node = self.current_node.ccw
-
-    def move_cw(self, steps: int):
-        for _ in range(steps):
-            self.current_node = self.current_node.cw
+            self.current = self.current.ccw
 
 
 def solve(last_marble: int):
     scores = Counter()
 
-    marble_num = 1
-    player_turn = 1
+    marble = 1
+    player = 1
     circle = LinkedList(0)
 
-    while marble_num < last_marble:
-        if marble_num % 23 == 0:
-            scores[player_turn] += marble_num
+    while marble < last_marble:
+        if marble % 23 == 0:
+            scores[player] += marble
             circle.move_ccw(7)
-            scores[player_turn] += circle.pop()
+            scores[player] += circle.pop()
         else:
-            circle.insert(marble_num)
+            circle.insert(marble)
 
-        marble_num += 1
-        player_turn = (player_turn + 1) % NUM_PLAYERS
+        marble += 1
+        player = (player + 1) % NUM_PLAYERS
 
     return max(scores.values())
 
