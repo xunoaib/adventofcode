@@ -11,15 +11,12 @@ class Node:
 
 
 def parse():
-
     n_children = vs.pop(0)
     n_metadata = vs.pop(0)
 
-    children: list[Node] = []
-    for _ in range(n_children):
-        children.append(parse())
-
+    children = [parse() for _ in range(n_children)]
     metadata = [vs.pop(0) for _ in range(n_metadata)]
+
     return Node(children, metadata)
 
 
