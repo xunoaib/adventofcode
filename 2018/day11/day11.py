@@ -42,7 +42,7 @@ def part2():
 
     for size in range(1, 300):
         sbest = best_power_at_size(gsn, size)
-        best = min(best, sbest)
+        best = max(best, sbest)
         if sbest == best:
             print(f'new best {best} with power {best[0]}')
 
@@ -51,11 +51,11 @@ def part2():
 
 
 def best_power_at_size(gsn: int, size: int):
-    best = (float('-inf'), ) * 3
-    for y in range(1, ROWS):
-        for x in range(1, COLS):
-            p = region_power(x, y, gsn, size)
-            best = max(best, (p, x, y))
+    best = (float('-inf'), ) * 4
+    for y in range(1, ROWS - size):
+        for x in range(1, COLS - size):
+            p = COST_MATRIX[y:y + size, x:x + size].flatten().sum()
+            best = max(best, (p, x, y, size))
     return best
 
 
@@ -66,11 +66,6 @@ ROWS = COLS = 300
 COST_MATRIX = np.array(
     [[power_level(x, y, gsn) for x in range(COLS)] for y in range(ROWS)]
 )
-
-# for size in range(3, 300):
-#     for y in range(1, ROWS - size):
-#         for x in range(1, COLS - size):
-#             t = m[y:y + size, x:x + size].flatten().sum()
 
 a1 = part1()
 print('part1:', a1)
