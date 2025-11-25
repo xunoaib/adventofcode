@@ -1,7 +1,9 @@
 import re
 import sys
 
-# position=< 20247,  40241> velocity=<-2, -4>
+
+def simulate(objects):
+    return [[x + vx, y + vy, vx, vy] for x, y, vx, vy in objects]
 
 
 def display():
@@ -16,10 +18,18 @@ def display():
             print('#' if (x, y) in points else '.', end='')
         print()
 
+    print()
+
 
 objects = []
 for line in sys.stdin:
     obj = px, py, vx, vy = list(map(int, re.findall(r'-?\d+', line)))
     objects.append(obj)
 
+display()
+objects = simulate(objects)
+display()
+objects = simulate(objects)
+display()
+objects = simulate(objects)
 display()
