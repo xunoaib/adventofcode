@@ -13,6 +13,7 @@ for c in s:
     if garbage is not None:  # in_garbage
         if c == '>':
             print('closing garbage')
+            bb += i - garbage - 1
             garbage = None
         i += 1
         continue
