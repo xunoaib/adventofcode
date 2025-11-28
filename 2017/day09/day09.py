@@ -1,37 +1,28 @@
 import re
 
-s = input()
-s = re.sub(r'!.', '', s)
+s = re.sub(r'!.', '', input())
 
-i = 0
 garbage = None
-groups = []
+i = groups = a1 = a2 = 0
 
-aa = bb = 0
-
-for c in s:
-    if garbage is not None:  # in_garbage
+for i, c in enumerate(s):
+    if garbage is not None:
         if c == '>':
-            print('closing garbage')
-            bb += i - garbage - 1
+            a2 += i - garbage - 1
             garbage = None
         i += 1
         continue
-
     if c == '{':
-        groups.append(i)
-        print('new group', groups)
+        groups += 1
     elif c == '<':
-        print('new garbage')
         garbage = i
     elif c == '}':
-        print('closing group', groups, len(groups))
-        aa += len(groups)
-        groups.pop()
-
+        a1 += groups
+        groups -= 1
     i += 1
 
-print('part1:', aa)
-print('part2:', bb)
+print('part1:', a1)
+print('part2:', a2)
 
-assert aa == 14190
+assert a1 == 14190
+assert a2 == 7053
