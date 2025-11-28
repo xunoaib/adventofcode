@@ -1,18 +1,13 @@
 import re
 
 s = input()
-
-while '!' in s:
-    s = re.sub(r'!.', '_', s, count=1)
-
-stack = []
-groups = []
+s = re.sub(r'!.', '', s)
 
 i = 0
-
 garbage = None
+groups = []
 
-aa = 0
+aa = bb = 0
 
 for c in s:
     if garbage is not None:  # in_garbage
@@ -36,3 +31,6 @@ for c in s:
     i += 1
 
 print('part1:', aa)
+print('part2:', bb)
+
+assert aa == 14190
