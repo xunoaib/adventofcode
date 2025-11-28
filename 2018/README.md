@@ -12,8 +12,8 @@
 | [Day 8: Memory Maneuver](https://adventofcode.com/2018/day/8) | [Code](day08/day08.py) |
 | [Day 9: Marble Mania](https://adventofcode.com/2018/day/9) | [Code](day09/day09.py) |
 | [Day 10: The Stars Align](https://adventofcode.com/2018/day/10) | [Code](day10/day10.py) |
-| [Day 11: Chronal Charge](https://adventofcode.com/2018/day/11) | Code |
-| [Day 12: Subterranean Sustainability](https://adventofcode.com/2018/day/12) | Code |
+| [Day 11: Chronal Charge](https://adventofcode.com/2018/day/11) | [Code](day11/day11.py) |
+| [Day 12: Subterranean Sustainability](https://adventofcode.com/2018/day/12) | [Code](day12/day12.py) |
 | [Day 13: Mine Cart Madness](https://adventofcode.com/2018/day/13) | Code |
 | [Day 14: Chocolate Charts](https://adventofcode.com/2018/day/14) | Code |
 | [Day 15: Beverage Bandits](https://adventofcode.com/2018/day/15) | Code |
