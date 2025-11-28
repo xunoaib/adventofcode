@@ -6,14 +6,7 @@ ORDERS = 'n ne se s sw nw'.split() * 2
 def measure_dist(ds):
     c = Counter(ds)
 
-    for a, b in [('ne', 'sw'), ('nw', 'se'), ('s', 'n')]:
-        if c[b] < c[a]:
-            a, b = b, a
-        c[b] -= c[a]
-        c[a] = 0
-
     def combine(a, b, into):
-        # cancels out moves (nw + ne become n)
         if c[b] < c[a]:
             a, b = b, a
 
@@ -21,9 +14,17 @@ def measure_dist(ds):
         c[b] -= c[a]
         c[a] = 0
 
+    # cancel out opposite moves (i.e. n & s)
+    for i in range(3):
+        a, into, b = ORDERS[i], None, ORDERS[i + 3]
+        combine(a, b, into)
+
+    # simplify other moves (i.e. nw & ne == n)
     for i in range(6):
         a, into, b = ORDERS[i:i + 3]
         combine(a, b, into)
+
+    del c[None]
 
     return sum(c.values())
 
