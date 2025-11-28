@@ -13,6 +13,10 @@ for line in lines:
 G = nx.Graph()
 G.add_edges_from(pairs)
 
-for p in nx.connected_components(G):
-    if '0' in p:
-        print('part1:', len(p))
+groups = list(nx.connected_components(G))
+
+a1 = next(len(p) for p in groups if '0' in p)
+a2 = len(groups)
+
+print('part2:', a1)
+print('part2:', a2)
