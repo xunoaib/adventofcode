@@ -19,8 +19,14 @@
 
     ws.onmessage = function(event) {
         if (event.data === "refresh") {
-            console.log("Received 'refresh' signal. Refreshing page...");
-            location.reload();
+          console.log("Received 'refresh' signal. Refreshing page...");
+          location.reload();
+          
+          // scroll part 2 into view
+          const part2 = document.getElementById("part2");
+          if (part2) {
+              part2.scrollIntoView();
+          }
         }
     };
 
