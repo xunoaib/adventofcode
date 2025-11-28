@@ -3,8 +3,7 @@ from collections import Counter
 ORDERS = 'n ne se s sw nw'.split() * 2
 
 
-def measure_dist(ds):
-    c = Counter(ds)
+def measure_dist(c):
 
     def combine(a, b, into):
         if c[b] < c[a]:
@@ -29,12 +28,14 @@ def measure_dist(ds):
     return sum(c.values())
 
 
-ds = input().split(',')
+dirs = input().split(',')
 
 a1 = a2 = 0
+c = Counter()
 
-for i in range(len(ds)):
-    a1 = measure_dist(ds[:i + 1])
+for d in dirs:
+    c[d] += 1
+    a1 = measure_dist(c)
     a2 = max(a2, a1)
 
 print('part1:', a1)
