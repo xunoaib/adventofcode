@@ -15,6 +15,7 @@ from private_leaderboard import PrivateLeaderboard
 # websocket server used to refresh the web browser
 WS_REFRESH_URI = "ws://localhost:8765"
 
+
 def on_successful_submit(challenge_path, aoc):
     # refresh the web page
     try:
@@ -31,34 +32,81 @@ def on_successful_submit(challenge_path, aoc):
     aoc.personal_stats(year)
     print()
 
+
 def get_parser():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='cmd', required=True)
 
     group = parser.add_argument_group()
-    group.add_argument('challenge', nargs='?', default='.', help='Challenge path/string in the form: 2021/day1. Defaults to the current directory')
-    group.add_argument('-c', '--cookiefile', help='Firefox cookies file (sqlite) if using a non-default profile')
+    group.add_argument(
+        'challenge',
+        nargs='?',
+        default='.',
+        help=
+        'Challenge path/string in the form: 2021/day1. Defaults to the current directory'
+    )
+    group.add_argument(
+        '-c',
+        '--cookiefile',
+        help='Firefox cookies file (sqlite) if using a non-default profile'
+    )
 
-    dl = subparsers.add_parser('download', help='Download sample input based on current directory')
-    dl.add_argument('-i', '--interval', type=float, help='Seconds to wait between failed requests')
-    dl.add_argument('-o', '--outfile', type=str, nargs='?', const='', help='Output file to write to if successful. Use this option without a value for automatic naming (./dayX.in)')
+    dl = subparsers.add_parser(
+        'download', help='Download sample input based on current directory'
+    )
+    dl.add_argument(
+        '-i',
+        '--interval',
+        type=float,
+        help='Seconds to wait between failed requests'
+    )
+    dl.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        nargs='?',
+        const='',
+        help=
+        'Output file to write to if successful. Use this option without a value for automatic naming (./dayX.in)'
+    )
 
-    subparsers.add_parser('submit', help='Submit answer for last input line matching "part[1-2]: <answer>"')
-    subparsers.add_parser('auth', help='Retrieve name of currently logged-in user using cookie (auth check)')
+    subparsers.add_parser(
+        'submit',
+        help='Submit answer for last input line matching "part[1-2]: <answer>"'
+    )
+    subparsers.add_parser(
+        'auth',
+        help=
+        'Retrieve name of currently logged-in user using cookie (auth check)'
+    )
 
-    mkdir = subparsers.add_parser('mkdir', help='Create the next non-existent challenge directory, copy code template, and download sample input')
-    mkdir.add_argument('-d','--dir-only', help='Only create the directory')
+    mkdir = subparsers.add_parser(
+        'mkdir',
+        help=
+        'Create the next non-existent challenge directory, copy code template, and download sample input'
+    )
+    mkdir.add_argument('-d', '--dir-only', help='Only create the directory')
 
     stats = subparsers.add_parser('stats', help='Retrieve leaderboard stats')
     stats.add_argument('year', nargs='?')
 
-    leaderboard = subparsers.add_parser('pstats', help='Retrieve private leaderboard stats')
+    leaderboard = subparsers.add_parser(
+        'pstats', help='Retrieve private leaderboard stats'
+    )
     leaderboard.add_argument('code')
     leaderboard.add_argument('year', nargs='?')
-    leaderboard.add_argument('-l','--loop', action='store_true')
-    leaderboard.add_argument('-e','--events', action='store_true', help='Notify of leaderboard changes')
-    leaderboard.add_argument('-t','--times', action='store_true', help='Show completion datetimes')
+    leaderboard.add_argument('-l', '--loop', action='store_true')
+    leaderboard.add_argument(
+        '-e',
+        '--events',
+        action='store_true',
+        help='Notify of leaderboard changes'
+    )
+    leaderboard.add_argument(
+        '-t', '--times', action='store_true', help='Show completion datetimes'
+    )
     return parser
+
 
 def main(args=None):
     parser = get_parser()
@@ -70,16 +118,25 @@ def main(args=None):
         on_successful_submit(challenge_path, aoc)
 
     funcs = {
-        'submit': lambda args: not submit(aoc, args.challenge, success_callback),
-        'download': lambda args: download(aoc, args.challenge, args.interval, args.outfile),
-        'auth': lambda args: auth(aoc),
-        'stats': lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
-        'pstats': lambda args: handle_private_leaderboard(aoc, args) and 0,  # suppress output
-        'mkdir': lambda args: make_next_dir(aoc, args.dir_only),
+        'submit':
+        lambda args: not submit(aoc, args.challenge, success_callback),
+        'download':
+        lambda args:
+        download(aoc, args.challenge, args.interval, args.outfile),
+        'auth':
+        lambda args: auth(aoc),
+        'stats':
+        lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
+        'pstats':
+        lambda args: handle_private_leaderboard(aoc, args
+                                                ) and 0,  # suppress output
+        'mkdir':
+        lambda args: make_next_dir(aoc, args.dir_only),
     }
 
     if func := funcs.get(args.cmd):
         return func(args)
+
 
 def auth(aoc: AOC):
     if username := aoc.get_username():
@@ -88,6 +145,7 @@ def auth(aoc: AOC):
     else:
         print('not logged in')
         return 1
+
 
 def make_next_dir(aoc: AOC, dir_only: bool):
     '''
@@ -102,7 +160,9 @@ def make_next_dir(aoc: AOC, dir_only: bool):
 
     year = int(cwd.name)
     if year < 2015:
-        print(f"Invalid year ({year})! Advent of Code doesn't go back that far")
+        print(
+            f"Invalid year ({year})! Advent of Code doesn't go back that far"
+        )
         return 1
 
     # find the highest existing day number
@@ -117,7 +177,9 @@ def make_next_dir(aoc: AOC, dir_only: bool):
         return 1
 
     # infer zero-padding convention
-    nextdirname = f'day{nextdaynum:02}' if lastdaynumstr.startswith('0') else f'day{nextdaynum}'
+    nextdirname = f'day{nextdaynum:02}' if lastdaynumstr.startswith(
+        '0'
+    ) else f'day{nextdaynum}'
     print('$ mkdir', nextdirname)
     path = pathlib.Path(nextdirname)
     path.mkdir()
@@ -138,6 +200,7 @@ def make_next_dir(aoc: AOC, dir_only: bool):
 
     return 0
 
+
 def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
     year, day = AOC.parse_date(challenge_path)
     dirname = pathlib.Path(challenge_path).expanduser().resolve().name
@@ -150,7 +213,8 @@ def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
 
     # prompt to overwrite
     if outfile != '/dev/stdout' and pathlib.Path(outfile).exists():
-        if input(f'{outfile} already exists. Overwrite? [y/N] ').lower() != 'y':
+        if input(f'{outfile} already exists. Overwrite? [y/N] '
+                 ).lower() != 'y':
             return 1
 
     # if day is today, wait until midnight
@@ -182,6 +246,7 @@ def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
             else:
                 print('download failed')
                 break
+
 
 def submit(aoc, challenge_path, success_callback=None):
 
@@ -215,6 +280,7 @@ def submit(aoc, challenge_path, success_callback=None):
 
     return True
 
+
 def handle_private_leaderboard(aoc, args):
     if args.year is None:
         args.year = datetime.now().year
@@ -224,6 +290,7 @@ def handle_private_leaderboard(aoc, args):
     elif args.events:
         events = lb.loop_differences(args.year, args.code, args.loop)
         print(events)
+
 
 if __name__ == "__main__":
     try:
