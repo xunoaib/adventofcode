@@ -202,9 +202,12 @@ def submit(aoc, challenge_path, success_callback=None):
     print('Submitting:', repr(answer))
 
     message = aoc.submit_answer(year, day, level, answer)
-    print(message)
+    success = "That's the right answer!" in message
 
-    if "That's the right answer!" not in message:
+    color = '\033[92m' if success else '\033[91m'
+    print(f'{color}{message}\033[0m')
+
+    if not success:
         return False
 
     if success_callback:
