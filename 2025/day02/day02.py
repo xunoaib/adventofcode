@@ -14,7 +14,15 @@ def valid(s: str):
     return True
 
 
-aa = 0
+def valid2(s: str):
+    for i in range(1, len(s)):
+        n = len(s) // i
+        if s[:i] * n == s:
+            return False
+    return True
+
+
+bb = aa = 0
 
 for g in sys.stdin.read().split(','):
     a, b = map(int, g.split('-'))
@@ -23,6 +31,9 @@ for g in sys.stdin.read().split(','):
         if not valid(str(i)):
             print('invalid', i)
             aa += i
+        if not valid2(str(i)):
+            print('invalid', i)
+            bb += i
 
 if locals().get('aa') is not None:
     print('part1:', aa)
