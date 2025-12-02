@@ -1,45 +1,24 @@
 import sys
-from collections import Counter, defaultdict
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
-
-aa = bb = None
 
 
-def valid(s: str):
-    for i in range(1, len(s)):
-        n = len(s) // i
-        if n == 2 and s[:i] * n == s:
-            return False
-    return True
+def invalid1(s: str):
+    return s[:len(s) // 2] * 2 == s
 
 
-def valid2(s: str):
-    for i in range(1, len(s)):
-        n = len(s) // i
-        if s[:i] * n == s:
-            return False
-    return True
+def invalid2(s: str):
+    return any(s[:i] * (len(s) // i) == s for i in range(1, len(s)))
 
 
-bb = aa = 0
+a1 = a2 = 0
 
 for g in sys.stdin.read().split(','):
     a, b = map(int, g.split('-'))
-
     for i in range(a, b + 1):
-        if not valid(str(i)):
-            print('invalid', i)
-            aa += i
-        if not valid2(str(i)):
-            print('invalid', i)
-            bb += i
+        a1 += i * invalid1(str(i))
+        a2 += i * invalid2(str(i))
 
-if locals().get('aa') is not None:
-    print('part1:', aa)
+print('part1:', a1)
+print('part2:', a2)
 
-if locals().get('bb') is not None:
-    print('part2:', bb)
-
-# assert aa == 0
-# assert bb == 0
+assert a1 == 24043483400
+assert a2 == 38262920235
