@@ -1,0 +1,33 @@
+import sys
+from itertools import combinations
+
+lines = sys.stdin.read().strip().split('\n')
+
+a1 = a2 = 0
+
+for line in lines:
+    xs = list(map(int, list(line)))
+    m = 0
+    for a, b in combinations(xs, r=2):
+        m = max(m, a * 10 + b)
+    a1 += m
+
+for line in lines:
+    xs = list(map(int, list(line)))
+    vals = sorted(enumerate(xs), key=lambda iv: (-iv[1], iv[0]))
+
+    s = []
+    for left in range(12, 0, -1):
+        for i, v in vals:
+            if i <= len(xs) - left:
+                s.append(v)
+                vals = [(ii, vv) for ii, vv in vals if ii > i]
+                break
+
+    a2 += int(''.join(map(str, s)))
+
+print('part1:', a1)
+print('part2:', a2)
+
+assert a1 == 17301
+assert a2 == 172162399742349
