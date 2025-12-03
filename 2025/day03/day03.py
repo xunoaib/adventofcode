@@ -21,12 +21,37 @@ for line in lines:
 for line in lines:
     xs = list(map(int, list(line)))
 
-    m = 0
-    for p in combinations(range(12), r=3):
-        s = ''.join(str(v) for i, v in enumerate(xs) if i not in p)
-        new = int(s)
-        m = max(m, new)
-    bb += m
+    vals = [(v, i) for i, v in enumerate(xs)]
+    vals.sort(key=lambda vi: (-vi[0], vi[1]))
+    left = 12
+
+    print()
+    print('>>> Line', line)
+    print()
+
+    s = []
+    cur_idx = None
+    while left:
+        # if not vals:
+        #     s += xs[idx:idx + left]
+        #     break
+
+        for v, i in vals:
+            print(vals)
+            if i <= len(xs) - left:
+                print(f'popping {v} @ {i}')
+                left -= 1
+                cur_idx = i
+                s.append(v)
+                vals = [(vv, ii) for vv, ii in vals if ii > cur_idx]
+                break
+        else:
+            print('nothing found', s, vals)
+            exit()
+
+    s = ''.join(map(str, s))
+    print(s)
+    bb += int(s)
 
 if locals().get('aa') is not None:
     print('part1:', aa)
@@ -34,5 +59,5 @@ if locals().get('aa') is not None:
 if locals().get('bb') is not None:
     print('part2:', bb)
 
-# assert aa == 0
-# assert bb == 3121910778619
+# assert aa == 17301
+assert bb == 3121910778619
