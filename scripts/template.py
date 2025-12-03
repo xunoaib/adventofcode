@@ -9,6 +9,9 @@ s = sys.stdin.read()
 vs = list(tuple(map(int, s.split(','))))
 lines = s.strip().split('\n')
 
+for line in lines:
+    pass
+
 # grid = {
 #     (r, c): ch
 #     for r, line in enumerate(lines)
