@@ -10,7 +10,7 @@ def neighbors8(r, c):
 
 def accessible(g):
     for p in g:
-        if sum(1 for n in neighbors8(*p) if n in g) < 4:
+        if len(set(neighbors8(*p)) & g) < 4:
             yield p
 
 
