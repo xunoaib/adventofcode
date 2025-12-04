@@ -9,9 +9,7 @@ def neighbors8(r, c):
 
 
 def accessible(g):
-    for p in g:
-        if len(set(neighbors8(*p)) & g) < 4:
-            yield p
+    return {p for p in g if len(set(neighbors8(*p)) & g) < 4}
 
 
 papers = {
@@ -20,10 +18,10 @@ papers = {
     for c, ch in enumerate(line) if ch == '@'
 }
 
-a1 = len(list(accessible(papers)))
+a1 = len(accessible(papers))
 a2 = 0
 
-while acc := set(accessible(papers)):
+while acc := accessible(papers):
     a2 += len(acc)
     papers -= acc
 
