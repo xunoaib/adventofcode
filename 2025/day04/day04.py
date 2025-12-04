@@ -1,9 +1,5 @@
 import sys
-from collections import Counter, defaultdict
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
-
-aa = bb = None
+from itertools import product
 
 
 def neighbors8(r, c):
@@ -12,51 +8,27 @@ def neighbors8(r, c):
             yield r + roff, c + coff
 
 
-s = sys.stdin.read()
-lines = s.strip().split('\n')
+def accessible(g):
+    for p in g:
+        if sum(1 for n in neighbors8(*p) if n in g) < 4:
+            yield p
 
-grid = {
-    (r, c): ch
-    for r, line in enumerate(lines)
-    for c, ch in enumerate(line)
+
+papers = {
+    (r, c)
+    for r, line in enumerate(sys.stdin)
+    for c, ch in enumerate(line) if ch == '@'
 }
 
-g = grid.copy()
+a1 = len(list(accessible(papers)))
+a2 = 0
 
+while acc := set(accessible(papers)):
+    a2 += len(acc)
+    papers -= acc
 
-def accessible(g):
+print('part1:', a1)
+print('part2:', a2)
 
-    r = []
-    for p in g:
-        count = sum(1 for n in neighbors8(*p) if n in g)
-        if count < 4:
-            r.append(p)
-    return r
-
-
-grid = {k for k, v in grid.items() if v == '@'}
-
-aa = len(list(accessible(grid)))
-
-oglen = l = len(grid)
-while acc := set(accessible(grid)):
-    grid -= acc
-
-bb = oglen - len(grid)
-
-# maxr = max(r for r, c in grid)
-# maxc = max(c for r, c in grid)
-#
-# for r in range(0, maxr + 1):
-#     for c in range(0, maxc + 1):
-#         print(g[r, c], end='')
-#     print()
-
-if locals().get('aa') is not None:
-    print('part1:', aa)
-
-if locals().get('bb') is not None:
-    print('part2:', bb)
-
-assert aa == 1523
-assert bb == 9290
+assert a1 == 1523
+assert a2 == 9290
