@@ -24,24 +24,26 @@ grid = {
 
 g = grid.copy()
 
-aa = 0
-for p, v in grid.items():
-    if v != '@':
-        continue
-    count = sum(1 for n in neighbors8(*p) if grid.get(n) == '@')
-    g[p] = 'x' if count < 4 else v
-    if count < 4:
-        aa += 1
 
-    print(p)
+def accessible(g):
 
-maxr = max(r for r, c in grid)
-maxc = max(c for r, c in grid)
+    for p, v in grid.items():
+        if v != '@':
+            continue
+        count = sum(1 for n in neighbors8(*p) if grid.get(n) == '@')
+        if count < 4:
+            yield p
 
-for r in range(0, maxr + 1):
-    for c in range(0, maxc + 1):
-        print(g[r, c], end='')
-    print()
+
+aa = len(list(accessible(grid)))
+
+# maxr = max(r for r, c in grid)
+# maxc = max(c for r, c in grid)
+#
+# for r in range(0, maxr + 1):
+#     for c in range(0, maxc + 1):
+#         print(g[r, c], end='')
+#     print()
 
 if locals().get('aa') is not None:
     print('part1:', aa)
