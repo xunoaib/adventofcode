@@ -8,9 +8,8 @@ aa = bb = None
 
 def neighbors8(r, c):
     for roff, coff in product([-1, 0, 1], repeat=2):
-        if roff == coff == 0:
-            continue
-        yield r + roff, c + coff
+        if roff or coff:
+            yield r + roff, c + coff
 
 
 s = sys.stdin.read()
@@ -27,15 +26,23 @@ g = grid.copy()
 
 def accessible(g):
 
-    for p, v in grid.items():
-        if v != '@':
-            continue
-        count = sum(1 for n in neighbors8(*p) if grid.get(n) == '@')
+    r = []
+    for p in g:
+        count = sum(1 for n in neighbors8(*p) if n in g)
         if count < 4:
-            yield p
+            r.append(p)
+    return r
 
+
+grid = {k for k, v in grid.items() if v == '@'}
 
 aa = len(list(accessible(grid)))
+
+oglen = l = len(grid)
+while acc := set(accessible(grid)):
+    grid -= acc
+
+bb = oglen - len(grid)
 
 # maxr = max(r for r, c in grid)
 # maxc = max(c for r, c in grid)
@@ -51,5 +58,5 @@ if locals().get('aa') is not None:
 if locals().get('bb') is not None:
     print('part2:', bb)
 
-# assert aa == 0
-# assert bb == 0
+assert aa == 1523
+assert bb == 9290
