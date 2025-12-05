@@ -7,7 +7,7 @@ aa = bb = None
 
 s = sys.stdin.read()
 
-a, b = s.split('\n\n')
+s, b = s.split('\n\n')
 
 ranges = []
 
@@ -19,13 +19,27 @@ def inrange(i):
     return False
 
 
-for line in a.split('\n'):
+for line in s.split('\n'):
     ranges.append(tuple(map(int, line.split('-'))))
 
 aa = 0
 for i in b.splitlines():
-    print(i)
     aa += inrange(int(i))
+
+ranges.sort()
+
+fin = [ranges.pop(0)]
+
+while ranges:
+    s1, e1 = fin[-1]
+    s2, e2 = ranges.pop(0)
+    s = max(s2, e1)
+    if s <= e2:
+        if e1 == s:
+            s += 1
+        fin.append((s, e2))
+
+bb = sum((e - s + 1) for s, e in fin)
 
 if locals().get('aa') is not None:
     print('part1:', aa)
@@ -33,5 +47,5 @@ if locals().get('aa') is not None:
 if locals().get('bb') is not None:
     print('part2:', bb)
 
-# assert aa == 0
-# assert bb == 0
+assert aa == 756
+assert bb == 355555479253787
