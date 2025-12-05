@@ -1,51 +1,32 @@
 import sys
-from collections import Counter, defaultdict
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
 
-aa = bb = None
+s, b = sys.stdin.read().split('\n\n')
 
-s = sys.stdin.read()
 
-s, b = s.split('\n\n')
+def isfresh(i):
+    return any(i in range(a, b + 1) for a, b in newranges)
+
 
 ranges = []
-
-
-def inrange(i):
-    for a, b in ranges:
-        if i in range(a, b + 1):
-            return True
-    return False
-
-
 for line in s.split('\n'):
     ranges.append(tuple(map(int, line.split('-'))))
-
-aa = 0
-for i in b.splitlines():
-    aa += inrange(int(i))
-
 ranges.sort()
 
-fin = [ranges.pop(0)]
+newranges = [ranges.pop(0)]
 
 while ranges:
-    s1, e1 = fin[-1]
+    s1, e1 = newranges[-1]
     s2, e2 = ranges.pop(0)
     s = max(s2, e1)
+    s += e1 == s
     if s <= e2:
-        if e1 == s:
-            s += 1
-        fin.append((s, e2))
+        newranges.append((s, e2))
 
-bb = sum((e - s + 1) for s, e in fin)
+a1 = sum(map(isfresh, map(int, b.splitlines())))
+a2 = sum((e - s + 1) for s, e in newranges)
 
-if locals().get('aa') is not None:
-    print('part1:', aa)
+print('part1:', a1)
+print('part2:', a2)
 
-if locals().get('bb') is not None:
-    print('part2:', bb)
-
-assert aa == 756
-assert bb == 355555479253787
+assert a1 == 756
+assert a2 == 355555479253787
