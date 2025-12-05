@@ -1,12 +1,10 @@
 # 🎄 Advent of Code - Solutions 🦌
 
-Advent of Code is a festive annual programming event that runs every December.
+[Advent of Code](https://adventofcode.com/) is a festive annual programming event that runs every December.
 
 Each day leading up to Christmas, a new two-part puzzle is released. Solving
 each part earns a star, with up to 50 stars available by the end of the event.
 It's a fun way to practice coding and sharpen problem solving skills!
-
-https://adventofcode.com/
 
 Below are my solutions for each year, along with total ⭐ counts.
 
