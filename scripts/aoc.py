@@ -174,26 +174,25 @@ def main(args=None):
         level, answer = parse_level_answer_from_output(output)
         year, day = AOC.parse_date(args.challenge)
         if success := submit(year, day, level, answer, aoc):
-            on_success(year, day, level, aoc)
+            on_success(year, day, level)
         return success
 
-    funcs = {
-        'download':
-        lambda args:
-        download(aoc, args.challenge, args.interval, args.outfile),
-        'auth':
-        lambda args: auth(aoc),
-        'stats':
-        lambda args: aoc.personal_stats(args.year) and 0,  # suppress output
-        'pstats':
-        lambda args: handle_private_leaderboard(aoc, args
-                                                ) and 0,  # suppress output
-        'mkdir':
-        lambda args: make_next_dir(aoc, args.dir_only),
-    }
+    elif args.cmd == 'download':
+        return download(aoc, args.challenge, args.interval, args.outfile)
 
-    if func := funcs.get(args.cmd):
-        return func(args)
+    elif args.cmd == 'auth':
+        return auth(aoc)
+
+    elif args.cmd == 'stats':
+        return aoc.personal_stats(args.year) and 0
+
+    elif args.cmd == 'pstats':
+        return handle_private_leaderboard(aoc, args) and 0  # suppress output
+    elif args.cmd == 'mkdir':
+        return make_next_dir(aoc, args.dir_only)
+    else:
+        print('Unknown command:', args.cmd)
+        return 1
 
 
 def auth(aoc: AOC):
