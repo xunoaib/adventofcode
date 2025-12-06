@@ -8,6 +8,8 @@ import sys
 import time
 from datetime import datetime
 
+import lxml.html
+import requests
 import websocket
 from aoclib import AOC
 from private_leaderboard import PrivateLeaderboard
@@ -16,21 +18,37 @@ from private_leaderboard import PrivateLeaderboard
 WS_REFRESH_URI = "ws://localhost:8765"
 
 
-def on_successful_submit(challenge_path, aoc):
-    # refresh the web page
+def send_page_refresh(ws_url=WS_REFRESH_URI, verbose=True):
     try:
-        ws = websocket.create_connection(WS_REFRESH_URI)
+        if verbose:
+            print("\nRefreshing page...")
+        ws = websocket.create_connection(ws_url)
         ws.send("refresh")
-        print("\nRefreshing page...")
         ws.close()
     except Exception as e:
-        print(f"Failed to refresh the web page: {e}")
+        if verbose:
+            print(f"Failed to refresh the web page: {e}")
 
-    # print leaderboard stats
-    year, day = AOC.parse_date(challenge_path)
-    print(f'Leaderboard (Day {day}):\n')
-    aoc.personal_stats(year)
-    print()
+
+def parse_level_answer_from_output(output: str) -> tuple[int, str]:
+    '''
+    Parse level (part1 or part2) answer from output. Returns (level, answer).
+    Level 1 corresponds to Part 1, etc.
+    '''
+
+    # parse level/answer from last line matching "partN: answer"
+    level, answer = None, None
+    for line in output.split('\n')[::-1]:
+        if m := re.search('^part([1,2]): (.*)$', line):
+            level, answer = m.groups()
+            break
+
+    if None in (level, answer):
+        raise ValueError('Error: no line found matching "part[1-2]: <answer>"')
+
+    assert isinstance(level, str)
+    assert isinstance(answer, str)
+    return int(level), answer
 
 
 def get_parser():
@@ -108,18 +126,58 @@ def get_parser():
     return parser
 
 
+def parse_stats(html: str) -> dict[int, dict[str, int]]:
+    '''
+    Parses global stats given HTML from the /<year>/stats page.
+    Returns a dict of day: {'part1': int, 'part2': int}
+    '''
+
+    tree = lxml.html.fromstring(html)
+    results = {}
+    for group in tree.xpath('//main/pre[@class="stats"]/a')[::-1]:
+        day, part2, part1 = map(int, group.text_content().split()[:3])
+        results[day] = {'part1': part1, 'part2': part2}
+    return results
+
+
+def on_success(year: int, day: int, level: int, aoc: AOC):
+    send_page_refresh(verbose=False)
+
+    # retrieve and print global stats
+    resp = requests.get(f'https://adventofcode.com/{year}/stats')
+    results = parse_stats(resp.text)
+
+    part1 = results[day]['part1']
+    part2 = results[day]['part2']
+
+    assert level in [1, 2]
+    rank = part1 if level == 1 else part2
+
+    print()
+    print('Global solves:')
+    print(f'  Part 1: {part1}')
+    print(f'  Part 2: {part2}')
+    print()
+    print(f'\033[95;1mYour approximate global rank: {rank}\033[0m')
+    print()
+
+
 def main(args=None):
     parser = get_parser()
     args = parser.parse_args(args)
 
     aoc = AOC.from_firefox(args.cookiefile)
 
-    def success_callback(challenge_path, aoc=aoc):
-        on_successful_submit(challenge_path, aoc)
+    if args.cmd == 'submit':
+        print('Reading submission from stdin...', file=sys.stderr)
+        output = sys.stdin.read()
+        level, answer = parse_level_answer_from_output(output)
+        year, day = AOC.parse_date(args.challenge)
+        if success := submit(year, day, level, answer, aoc):
+            on_success(year, day, level, aoc)
+        return success
 
     funcs = {
-        'submit':
-        lambda args: not submit(aoc, args.challenge, success_callback),
         'download':
         lambda args:
         download(aoc, args.challenge, args.interval, args.outfile),
@@ -248,19 +306,8 @@ def download(aoc: AOC, challenge_path: str, interval: float, outfile: str):
                 break
 
 
-def submit(aoc, challenge_path, success_callback=None):
-
-    year, day = AOC.parse_date(challenge_path)
-
-    # parse level/answer from last line matching "partN: answer"
-    level, answer = None, None
-    for line in sys.stdin.readlines()[::-1]:
-        if m := re.search('^part([1,2]): (.*)$', line):
-            level, answer = m.groups()
-            break
-
-    if None in (level, answer):
-        raise ValueError('Error: no line found matching "part[1-2]: <answer>"')
+def submit(year: int, day: int, level: int, answer: str, aoc: AOC):
+    assert level in [1, 2]
 
     # describe submission
     print(f'AoC {year}, Day {day}, Part {level}')
@@ -272,13 +319,7 @@ def submit(aoc, challenge_path, success_callback=None):
     color = '\033[92m' if success else '\033[91m'
     print(f'{color}{message}\033[0m')
 
-    if not success:
-        return False
-
-    if success_callback:
-        success_callback(challenge_path)
-
-    return True
+    return success
 
 
 def handle_private_leaderboard(aoc, args):
