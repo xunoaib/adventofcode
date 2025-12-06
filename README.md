@@ -11,7 +11,7 @@ Below are my solutions for each year, along with total ⭐ counts.
 
 | Year | Stars | Link |
 |------|-------|------|
-| 2025 | ⭐ 10 | [Solutions](2025/README.md) |
+| 2025 | ⭐ 12 | [Solutions](2025/README.md) |
 | 2024 | ⭐ 50 | [Solutions](2024/README.md) |
 | 2023 | ⭐ 50 | [Solutions](2023/README.md) |
 | 2022 | ⭐ 50 | [Solutions](2022/README.md) |
@@ -23,4 +23,4 @@ Below are my solutions for each year, along with total ⭐ counts.
 | 2016 | ⭐ 18 | [Solutions](2016/README.md) |
 | 2015 | ⭐ 50 | [Solutions](2015/README.md) |
 
-Total stars: ⭐ 413
+Total stars: ⭐ 415
