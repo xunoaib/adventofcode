@@ -140,25 +140,29 @@ def parse_stats(html: str) -> dict[int, dict[str, int]]:
     return results
 
 
-def on_success(year: int, day: int, level: int, aoc: AOC):
+def on_success(year: int, day: int, level: int):
     send_page_refresh(verbose=False)
 
     # retrieve and print global stats
+    assert year >= 2015
     resp = requests.get(f'https://adventofcode.com/{year}/stats')
     results = parse_stats(resp.text)
 
     part1 = results[day]['part1']
     part2 = results[day]['part2']
 
-    assert level in [1, 2]
-    rank = part1 if level == 1 else part2
+    assert level in [1, 2], f'Invalid level: {level}'
+    rank = (part1 + part2) if level == 1 else part2
 
     print()
-    print('Global solves:')
-    print(f'  Part 1: {part1}')
-    print(f'  Part 2: {part2}')
+    print(
+        f'\033[93mGlobal Solves: \033[93m**\033[0m \033[43;30m {part2} \033[0m / \033[100m {part1} \033[0m \033[90m*\033[0m'
+    )
     print()
-    print(f'\033[95;1mYour approximate global rank: {rank}\033[0m')
+    print(
+        f'\033[95;1mYour global rank:\033[0m \033[105;30m {rank} \033[0m \033[95m{"*"*level}\033[0m'
+    )
+
     print()
 
 
@@ -315,7 +319,7 @@ def submit(year: int, day: int, level: int, answer: str, aoc: AOC):
     message = aoc.submit_answer(year, day, level, answer)
     success = "That's the right answer!" in message
 
-    color = '\033[92m' if success else '\033[91m'
+    color = '\033[42;30m' if success else '\033[41;30m'
     print(f'{color}{message}\033[0m')
 
     return success
