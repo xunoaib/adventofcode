@@ -140,22 +140,12 @@ def parse_stats(html: str) -> dict[int, dict[str, int]]:
     return results
 
 
-from joblib import Memory
-
-memory = Memory('.joblib')
-
-
-# @memory.cache
-def requests_get(url):
-    return requests.get(url)
-
-
 def on_success(year: int, day: int, level: int):
     send_page_refresh(verbose=False)
 
     # retrieve and print global stats
     assert year >= 2015
-    resp = requests_get(f'https://adventofcode.com/{year}/stats')
+    resp = requests.get(f'https://adventofcode.com/{year}/stats')
     results = parse_stats(resp.text)
 
     part1 = results[day]['part1']
@@ -169,22 +159,14 @@ def on_success(year: int, day: int, level: int):
         f'\033[93;1mGlobal Solves: \033[93m**\033[0m \033[43;30m {part2} \033[0m / \033[100m {part1} \033[0m \033[90m*\033[0m'
     )
     print()
+
     bg_color = '\033[43;30m' if level == 2 else '\033[100m'
     rank_str = f'{bg_color} {rank} \033[0m'
+
     print(
-        # f'\033[95;1mYour global rank:\033[0m \033[105;30m {rank} \033[0m \033[95m{"*"*level}\033[0m'
-        # f'\033[95;1mYour global rank:\033[0m {rank_str} \033[95m{"*"*level}\033[0m'
-        # f'Your global rank:\033[0m {rank_str} {"*"*level}\033[0m'
-        # f'Your global rank:\033[0m {rank_str} \033[3m(Day {day}, Part {level})\033[23m'
         f'\033[93mYour global rank:\033[0m {rank_str} / Day {day}, Part {level} {"*"*level}'
     )
-
     print()
-
-
-# on_success(2025, 5, level=1)
-# on_success(2025, 5, level=2)
-# exit()
 
 
 def main(args=None):
