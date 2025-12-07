@@ -1,33 +1,22 @@
 import sys
 from collections import Counter
 
-a1 = a2 = None
+lines = sys.stdin.read().strip().split('\n')
+start = lines[0].index('S')
+lines = [[i for i, v in enumerate(line) if v == '^'] for line in lines]
 
-s = sys.stdin.read()
-lines = s.strip().split('\n')
+beams = Counter({start: 1})
+a1, a2 = 0, 1
 
-beams = {i for i, ch in enumerate(lines[0]) if ch == 'S'}
-a1 = a2 = 0
-
-for line in lines:
-    for i, ch in enumerate(line):
-        if ch == '^':
-            if i in beams:
-                beams.remove(i)
-                beams |= {i - 1, i + 1}
-                a1 += 1
-
-beams = Counter(i for i, ch in enumerate(lines[0]) if ch == 'S')
-
-for line in lines:
+for splits in lines:
     newbeams = beams.copy()
-    for i, ch in enumerate(line):
-        if ch == '^':
-            if count := beams.get(i):
-                newbeams[i] -= count
-                newbeams[i - 1] += count
-                newbeams[i + 1] += count
-                a2 += count
+    for i in splits:
+        if count := beams.get(i):
+            newbeams[i] -= count
+            newbeams[i - 1] += count
+            newbeams[i + 1] += count
+            a2 += count
+            a1 += 1
     beams = newbeams
 
 print('part1:', a1)
