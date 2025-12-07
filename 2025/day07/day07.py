@@ -1,46 +1,37 @@
 import sys
-from collections import Counter, defaultdict
-from copy import deepcopy
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
+from collections import Counter
 
-aa = bb = None
+a1 = a2 = None
 
 s = sys.stdin.read()
 lines = s.strip().split('\n')
 
 beams = {i for i, ch in enumerate(lines[0]) if ch == 'S'}
-aa = 0
+a1 = a2 = 0
 
 for line in lines:
     for i, ch in enumerate(line):
-        if i in beams:
-            if ch == '^':
+        if ch == '^':
+            if i in beams:
                 beams.remove(i)
-                beams.add(i - 1)
-                beams.add(i + 1)
-                aa += 1
-
-if locals().get('aa') is not None:
-    print('part1:', aa)
+                beams |= {i - 1, i + 1}
+                a1 += 1
 
 beams = Counter(i for i, ch in enumerate(lines[0]) if ch == 'S')
-bb = 1
+
 for line in lines:
-    newbeams = deepcopy(beams)
-    print(newbeams)
+    newbeams = beams.copy()
     for i, ch in enumerate(line):
         if ch == '^':
             if count := beams.get(i):
-                print('splitting', i)
                 newbeams[i] -= count
                 newbeams[i - 1] += count
                 newbeams[i + 1] += count
-                bb += count
+                a2 += count
     beams = newbeams
 
-if locals().get('bb') is not None:
-    print('part2:', bb)
+print('part1:', a1)
+print('part2:', a2)
 
-# assert aa == 0
-# assert bb == 0
+assert a1 == 1541
+assert a2 == 80158285728929
