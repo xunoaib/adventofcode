@@ -1,5 +1,6 @@
 import sys
 from collections import Counter, defaultdict
+from copy import deepcopy
 from heapq import heappop, heappush
 from itertools import pairwise, permutations, product
 
@@ -8,11 +9,8 @@ aa = bb = None
 s = sys.stdin.read()
 lines = s.strip().split('\n')
 
-for line in lines:
-    pass
-
 beams = {i for i, ch in enumerate(lines[0]) if ch == 'S'}
-splits = 0
+aa = 0
 
 for line in lines:
     for i, ch in enumerate(line):
@@ -21,19 +19,25 @@ for line in lines:
                 beams.remove(i)
                 beams.add(i - 1)
                 beams.add(i + 1)
-                splits += 1
-
-# print(len(beams))
-aa = splits
-
-# grid = {
-#     (r, c): ch
-#     for r, line in enumerate(lines)
-#     for c, ch in enumerate(line)
-# }
+                aa += 1
 
 if locals().get('aa') is not None:
     print('part1:', aa)
+
+beams = Counter(i for i, ch in enumerate(lines[0]) if ch == 'S')
+bb = 1
+for line in lines:
+    newbeams = deepcopy(beams)
+    print(newbeams)
+    for i, ch in enumerate(line):
+        if ch == '^':
+            if count := beams.get(i):
+                print('splitting', i)
+                newbeams[i] -= count
+                newbeams[i - 1] += count
+                newbeams[i + 1] += count
+                bb += count
+    beams = newbeams
 
 if locals().get('bb') is not None:
     print('part2:', bb)
