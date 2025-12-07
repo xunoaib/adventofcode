@@ -8,14 +8,13 @@ beams = Counter({lines[0].index('S'): 1})
 a1 = 0
 
 for splits in rows:
-    newbeams = beams.copy()
+    curbeams = beams.copy()
     for i in splits:
-        if count := beams.get(i):
-            newbeams[i] -= count
-            newbeams[i - 1] += count
-            newbeams[i + 1] += count
-            a1 += 1
-    beams = newbeams
+        count = curbeams.get(i, 0)
+        beams[i] -= count
+        beams[i - 1] += count
+        beams[i + 1] += count
+        a1 += count > 0
 
 a2 = sum(beams.values())
 
