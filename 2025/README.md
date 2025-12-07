@@ -8,3 +8,4 @@
 | [Day 4: Printing Department](https://adventofcode.com/2025/day/4) | [Code](day04/day04.py) |
 | [Day 5: Cafeteria](https://adventofcode.com/2025/day/5) | [Code](day05/day05.py) |
 | [Day 6: Trash Compactor](https://adventofcode.com/2025/day/6) | [Code](day06/day06.py) |
+| [Day 7: Laboratories](https://adventofcode.com/2025/day/7) | [Code](day07/day07.py) |
