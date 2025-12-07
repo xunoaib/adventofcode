@@ -2,13 +2,12 @@ import sys
 from collections import Counter
 
 lines = sys.stdin.read().strip().split('\n')
-start = lines[0].index('S')
-lines = [[i for i, v in enumerate(line) if v == '^'] for line in lines]
+rows = [[i for i, v in enumerate(line) if v == '^'] for line in lines]
 
-beams = Counter({start: 1})
+beams = Counter({lines[0].index('S'): 1})
 a1 = 0
 
-for splits in lines:
+for splits in rows:
     newbeams = beams.copy()
     for i in splits:
         if count := beams.get(i):
