@@ -1,5 +1,4 @@
 import sys
-from collections import defaultdict
 from math import prod
 
 
@@ -16,7 +15,7 @@ for i, p in enumerate(points):
         dists.append((dist(p, q), p, q))
 dists.sort()
 
-circuits = defaultdict(set)
+circuits = {}
 
 N = 1000 if len(points) > 100 else 10
 
