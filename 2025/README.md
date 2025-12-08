@@ -9,3 +9,4 @@
 | [Day 5: Cafeteria](https://adventofcode.com/2025/day/5) | [Code](day05/day05.py) |
 | [Day 6: Trash Compactor](https://adventofcode.com/2025/day/6) | [Code](day06/day06.py) |
 | [Day 7: Laboratories](https://adventofcode.com/2025/day/7) | [Code](day07/day07.py) |
+| [Day 8: Playground](https://adventofcode.com/2025/day/8) | [Code](day08/day08.py) |
