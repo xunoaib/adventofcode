@@ -15,13 +15,13 @@ for i, p in enumerate(points):
         dists.append((dist(p, q), p, q))
 dists.sort()
 
-circuits = {}
-
 N = 1000 if len(points) > 100 else 10
 
+circuits = {}
+
 for i, (_, p, q) in enumerate(dists):
-    points1 = circuits.get(p, set())
-    points2 = circuits.get(q, set())
+    points1 = circuits.get(p) or set()
+    points2 = circuits.get(q) or set()
     newpoints = points1 | points2 | {p, q}
     circuits |= {r: newpoints for r in newpoints}
 
