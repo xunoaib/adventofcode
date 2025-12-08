@@ -27,8 +27,7 @@ for i, (_, p, q) in enumerate(dists):
 
     if i == N - 1:
         ids = {id(v): v for v in circuits.values()}
-        aa = prod(sorted(len(v) for v in ids.values())[-3:])
-
+        aa = prod(sorted(map(len, ids.values()))[-3:])
 
     if len(newpoints) == len(points):
         bb = p[0] * q[0]
