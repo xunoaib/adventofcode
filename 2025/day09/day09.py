@@ -18,14 +18,15 @@ def valid_region(p, q):
     x1, x2 = sorted([x1, x2])
     y1, y2 = sorted([y1, y2])
 
+    # check for outside intersections
     for x in [x1, x2]:
         for y in outer_y_at_x[x]:
-            if y in range(y1, y2 + 1):
+            if y1 <= y <= y2:
                 return False
 
     for y in [y1, y2]:
         for x in outer_x_at_y[y]:
-            if x in range(x1, x2 + 1):
+            if x1 <= x <= x2:
                 return False
 
     return True
@@ -34,50 +35,45 @@ def valid_region(p, q):
 lines = sys.stdin.read().strip().split('\n')
 corners = [tuple(map(int, line.split(','))) for line in lines]
 
-aa = float('-inf')
-for i, p in enumerate(corners):
-    for q in corners[i + 1:]:
-        aa = max(aa, area(p, q))
+a1 = max(area(p, q) for p, q in combinations(corners, r=2))
+print('part1:', a1)
 
-print('part1:', aa)
-
-path = set()  # walked tiles
+perim = set()  # tiles walked along perimeter
 outer = set()  # tiles immediately outside polygon
 
 for p, q in pairwise(corners + corners[:1]):
-    xoff = q[0] - p[0]
-    yoff = q[1] - p[1]
-
-    xstep = (xoff > 0) - (xoff < 0)
-    ystep = (yoff > 0) - (yoff < 0)
+    dx = q[0] - p[0]
+    dy = q[1] - p[1]
+    xstep = (dx > 0) - (dx < 0)
+    ystep = (dy > 0) - (dy < 0)
 
     # vector exiting polygon
-    xstep_out, ystep_out = {L: U, R: D, U: R, D: L}[xstep, ystep]
+    out = {L: U, R: D, U: R, D: L}[xstep, ystep]
 
-    pp, qq = p, q
-    while pp != qq:
-        path.add(pp)
-        outer.add((pp[0] + xstep_out, pp[1] + ystep_out))
-        pp = (pp[0] + xstep, pp[1] + ystep)
+    cur = p
+    while cur != q:
+        perim.add(cur)
+        outer.add((cur[0] + out[0], cur[1] + out[1]))
+        cur = (cur[0] + xstep, cur[1] + ystep)
 
-    outer.add((pp[0] + xstep_out, pp[1] + ystep_out))
-    outer.add((qq[0] + xstep_out, qq[1] + ystep_out))
+outer -= perim
 
-outer -= path
-
+# associate x => {y coords in outer region}
+# for faster out-of-bounds checks
 outer_y_at_x = defaultdict(set)
 outer_x_at_y = defaultdict(set)
+
 for x, y in outer:
     outer_y_at_x[x].add(y)
     outer_x_at_y[y].add(x)
 
-bb = float('-inf')
+a2 = float('-inf')
 for p, q in combinations(corners, r=2):
     a = area(p, q)
-    if a > bb and valid_region(p, q):
-        bb = a
+    if a > a2 and valid_region(p, q):
+        a2 = a
 
-print('part2:', bb)
+print('part2:', a2)
 
-assert aa == 4750176210
-assert bb == 1574684850
+assert a1 == 4750176210
+assert a2 == 1574684850
