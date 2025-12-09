@@ -1,6 +1,6 @@
 import sys
 from collections import defaultdict
-from itertools import combinations, pairwise
+from itertools import combinations, pairwise, starmap
 
 U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
@@ -35,7 +35,7 @@ def valid_region(p, q):
 lines = sys.stdin.read().strip().split('\n')
 corners = [tuple(map(int, line.split(','))) for line in lines]
 
-a1 = max(area(p, q) for p, q in combinations(corners, r=2))
+a1 = max(starmap(area, combinations(corners, r=2)))
 print('part1:', a1)
 
 perim = set()  # tiles walked along perimeter
