@@ -13,18 +13,25 @@ def neighbors4(r, c):
         yield r + roff, c + coff
 
 
-def draw(points):
+def render(points):
     minx = min(x for x, y in points)
     maxx = max(x for x, y in points)
     miny = min(y for x, y in points)
     maxy = max(y for x, y in points)
 
-    for y in range(miny, maxy + 1):
-        for x in range(minx, maxx + 1):
-            print(
-                '#' if (x, y) in spots else ('X' if (x, y) in points else '.'),
-                end=''
-            )
+    for y in range(miny - 2, maxy + 3):
+        for x in range(minx - 2, maxx + 3):
+            p = x, y
+
+            ch = '.'
+            if p in spots:
+                ch = '#'
+            elif p in filled:
+                ch = 'X'
+            elif p in outer:
+                ch = 'o'
+
+            print(ch, end='')
         print()
 
 
@@ -37,8 +44,8 @@ spots = [tuple(map(int, line.split(','))) for line in lines]
 
 
 def area(p, q):
-    xoff = abs(p[0] - q[0] + 1)
-    yoff = abs(p[1] - q[1] + 1)
+    xoff = abs(p[0] - q[0]) + 1
+    yoff = abs(p[1] - q[1]) + 1
     return xoff * yoff
 
 
@@ -72,9 +79,6 @@ draw = ImageDraw.Draw(im)
 
 rows = []
 
-at_x = defaultdict(set)
-at_y = defaultdict(set)
-
 outer = set()
 
 for p, q in pairwise(spots + spots[:1]):
@@ -91,13 +95,13 @@ for p, q in pairwise(spots + spots[:1]):
     s = xstep, ystep
     xstepo = ystepo = 0
     if xstep == -1:
-        ystepo = -1
-    elif xstep == 1:
         ystepo = 1
+    elif xstep == 1:
+        ystepo = -1
     elif ystep == -1:
-        xstepo = 1
-    elif ystep == 1:
         xstepo = -1
+    elif ystep == 1:
+        xstepo = 1
 
     u, v = p, q
 
@@ -121,11 +125,8 @@ for p, q in pairwise(spots + spots[:1]):
     # draw.line((*uu, *vv), fill=(0, 255, 0), width=1)
 
 im.save('a.png')
-print('saved')
 
 outer -= filled
-
-print(len(outer) - len(filled))
 
 
 def contains(u, p, q):
@@ -149,28 +150,33 @@ def valid_area(p, q):
     x1, x2 = sorted([x1, x2])
     y1, y2 = sorted([y1, y2])
 
-    for x in range(x1, x2 + 1):
-        if {(x, y1), (x, y2)} & outer:
-            return False
+    for x in [x1, x2]:
+        for y in at_x[x]:
+            if y in range(y1, y2 + 1):
+                return False
 
-    for y in range(y1, y2 + 1):
-        if {(x1, y), (x2, y)} & outer:
-            return False
+    for y in [y1, y2]:
+        for x in at_y[y]:
+            if x in range(x1, x2 + 1):
+                return False
 
     return True
 
 
-for x, y in filled:
+at_x = defaultdict(set)
+at_y = defaultdict(set)
+for x, y in outer:
     at_x[x].add(y)
     at_y[y].add(x)
 
-for x in range(minx, maxx + 1):
-    if pts := at_x.get(x):
-        print(x, pts)
+# for x in range(minx, maxx + 1):
+#     if pts := at_x.get(x):
+#         print(x, pts)
 
 best = float('-inf')
 for p, q in combinations(spots, r=2):
     a = area(p, q)
+
     if a <= best:
         continue
 
@@ -179,14 +185,10 @@ for p, q in combinations(spots, r=2):
     if success:
         best = max(best, a)
 
-        print(
-            'candidate', a, 'success' if success else 'failed', p, q, '=>',
-            best
-        )
-
-# part 2 wrong 4496928723 (too high)
-# 136459862 low
-# 4496928723 high
+        # print(
+        #     'candidate', a, 'success' if success else 'failed', p, q, '=>',
+        #     best
+        # )
 
 bb = best
 
