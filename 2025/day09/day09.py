@@ -1,16 +1,10 @@
 import sys
-from collections import Counter, defaultdict
-from heapq import heappop, heappush
-from itertools import combinations, pairwise, permutations, product
+from collections import defaultdict
+from itertools import combinations, pairwise
 
 from PIL import Image, ImageDraw
 
 DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
-
-
-def neighbors4(r, c):
-    for roff, coff in DIRS:
-        yield r + roff, c + coff
 
 
 def render(points):
@@ -24,7 +18,7 @@ def render(points):
             p = x, y
 
             ch = '.'
-            if p in spots:
+            if p in corners:
                 ch = '#'
             elif p in filled:
                 ch = 'X'
@@ -35,115 +29,13 @@ def render(points):
         print()
 
 
-aa = bb = None
-
-s = sys.stdin.read()
-lines = s.strip().split('\n')
-
-spots = [tuple(map(int, line.split(','))) for line in lines]
-
-
 def area(p, q):
     xoff = abs(p[0] - q[0]) + 1
     yoff = abs(p[1] - q[1]) + 1
     return xoff * yoff
 
 
-best = (float('-inf'), (0, 0), (0, 0))
-for i, p in enumerate(spots):
-    for q in spots[i + 1:]:
-        new = (area(p, q), p, q)
-        best = max(best, new)
-
-aa = best[0]
-
-if locals().get('aa') is not None:
-    print('part1:', aa)
-
-filled = set()
-
-minx = min(x for x, y in spots)
-maxx = max(x for x, y in spots)
-miny = min(y for x, y in spots)
-maxy = max(y for x, y in spots)
-
-scale = 100
-
-im = Image.new(
-    'RGB', (
-        (maxx - minx + scale) // scale + scale,
-        (maxy - miny + scale) // scale + scale
-    )
-)
-draw = ImageDraw.Draw(im)
-
-rows = []
-
-outer = set()
-
-for p, q in pairwise(spots + spots[:1]):
-    xoff = q[0] - p[0]
-    yoff = q[1] - p[1]
-
-    xstep = ystep = 0
-    if xoff:
-        xstep = 1 if xoff > 0 else -1
-    if yoff:
-        ystep = 1 if yoff > 0 else -1
-
-    # add "outer" tiles (left of current)
-    s = xstep, ystep
-    xstepo = ystepo = 0
-    if xstep == -1:
-        ystepo = 1
-    elif xstep == 1:
-        ystepo = -1
-    elif ystep == -1:
-        xstepo = -1
-    elif ystep == 1:
-        xstepo = 1
-
-    u, v = p, q
-
-    filled |= {p, q}
-    while p != q:
-        filled.add(p)
-        outer.add((p[0] + xstepo, p[1] + ystepo))
-        p = (p[0] + xstep, p[1] + ystep)
-
-    outer.add((u[0] + xstepo, u[1] + ystepo))
-    outer.add((v[0] + xstepo, v[1] + ystepo))
-
-    uu = ((u[0] - minx) // scale, (u[1] - miny) // scale)
-    vv = ((v[0] - minx) // scale, (v[1] - miny) // scale)
-    draw.line((*uu, *vv), fill=(64, 64, 64), width=1)
-    draw.line((*uu, *uu), fill=(255, 0, 0), width=10)
-    draw.line((*vv, *vv), fill=(255, 0, 0), width=10)
-
-    # uu = ((u[0] - minx + xoffo) // scale, (u[1] - miny + yoffo) // scale)
-    # vv = ((v[0] - minx + xoffo) // scale, (v[1] - miny + yoffo) // scale)
-    # draw.line((*uu, *vv), fill=(0, 255, 0), width=1)
-
-im.save('a.png')
-
-outer -= filled
-
-
-def contains(u, p, q):
-    (xn, x1, x2), (yn, y1, y2) = zip(u, p, q)
-    x1, x2 = sorted([x1, x2])
-    y1, y2 = sorted([y1, y2])
-
-    r = (x1, y2)
-    s = (x2, y1)
-
-    if u in (r, s):
-        return False
-
-    return xn in range(x1 + 1, x2 + 1) and yn in range(y1 + 1, y2 + 1)
-
-
-def valid_area(p, q):
+def valid_region(p, q):
     x1, y1 = p
     x2, y2 = q
 
@@ -163,37 +55,85 @@ def valid_area(p, q):
     return True
 
 
+lines = sys.stdin.read().strip().split('\n')
+corners = [tuple(map(int, line.split(','))) for line in lines]
+
+aa = float('-inf')
+for i, p in enumerate(corners):
+    for q in corners[i + 1:]:
+        aa = max(aa, area(p, q))
+
+print('part1:', aa)
+
+filled = set()
+
+minx = min(x for x, y in corners)
+maxx = max(x for x, y in corners)
+miny = min(y for x, y in corners)
+maxy = max(y for x, y in corners)
+
+scale = 100
+
+im = Image.new(
+    'RGB', (
+        (maxx - minx + scale) // scale + scale,
+        (maxy - miny + scale) // scale + scale
+    )
+)
+draw = ImageDraw.Draw(im)
+
+outer = set()
+
+for p, q in pairwise(corners + corners[:1]):
+    xoff = q[0] - p[0]
+    yoff = q[1] - p[1]
+
+    xstep = ystep = 0
+    if xoff:
+        xstep = 1 if xoff > 0 else -1
+    if yoff:
+        ystep = 1 if yoff > 0 else -1
+
+    # add "outer" tiles (left of current)
+    xstep_out, ystep_out = {L: U, R: D, U: R, D: L}[xstep, ystep]
+
+    u, v = p, q
+
+    filled |= {p, q}
+    while p != q:
+        filled.add(p)
+        outer.add((p[0] + xstep_out, p[1] + ystep_out))
+        p = (p[0] + xstep, p[1] + ystep)
+
+    outer.add((u[0] + xstep_out, u[1] + ystep_out))
+    outer.add((v[0] + xstep_out, v[1] + ystep_out))
+
+    uu = ((u[0] - minx) // scale, (u[1] - miny) // scale)
+    vv = ((v[0] - minx) // scale, (v[1] - miny) // scale)
+    draw.line((*uu, *vv), fill=(64, 64, 64), width=1)
+    draw.line((*uu, *uu), fill=(255, 0, 0), width=10)
+    draw.line((*vv, *vv), fill=(255, 0, 0), width=10)
+
+    # uu = ((u[0] - minx + xoffo) // scale, (u[1] - miny + yoffo) // scale)
+    # vv = ((v[0] - minx + xoffo) // scale, (v[1] - miny + yoffo) // scale)
+    # draw.line((*uu, *vv), fill=(0, 255, 0), width=1)
+
+im.save('a.png')
+outer -= filled
+
 at_x = defaultdict(set)
 at_y = defaultdict(set)
 for x, y in outer:
     at_x[x].add(y)
     at_y[y].add(x)
 
-# for x in range(minx, maxx + 1):
-#     if pts := at_x.get(x):
-#         print(x, pts)
-
-best = float('-inf')
-for p, q in combinations(spots, r=2):
+bb = float('-inf')
+for p, q in combinations(corners, r=2):
     a = area(p, q)
+    if a > bb and valid_region(p, q):
+        bb = a
 
-    if a <= best:
-        continue
+print('part2:', bb)
 
-    success = valid_area(p, q)
-
-    if success:
-        best = max(best, a)
-
-        # print(
-        #     'candidate', a, 'success' if success else 'failed', p, q, '=>',
-        #     best
-        # )
-
-bb = best
-
-if locals().get('bb') is not None:
-    print('part2:', bb)
-
-# assert aa == 0
-# assert bb == 0
+assert aa == 4750176210
+assert bb == 1574684850
