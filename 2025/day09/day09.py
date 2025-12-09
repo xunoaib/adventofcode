@@ -75,6 +75,8 @@ rows = []
 at_x = defaultdict(set)
 at_y = defaultdict(set)
 
+outer = set()
+
 for p, q in pairwise(spots + spots[:1]):
     xoff = q[0] - p[0]
     yoff = q[1] - p[1]
@@ -85,25 +87,48 @@ for p, q in pairwise(spots + spots[:1]):
     if yoff:
         ystep = 1 if yoff > 0 else -1
 
+    # add "outer" tiles (left of current)
+    s = xstep, ystep
+    xstepo = ystepo = 0
+    if xstep == -1:
+        ystepo = -1
+    elif xstep == 1:
+        ystepo = 1
+    elif ystep == -1:
+        xstepo = 1
+    elif ystep == 1:
+        xstepo = -1
+
     u, v = p, q
 
     filled |= {p, q}
     while p != q:
         filled.add(p)
+        outer.add((p[0] + xstepo, p[1] + ystepo))
         p = (p[0] + xstep, p[1] + ystep)
 
-    u = ((u[0] - minx) // scale, (u[1] - miny) // scale)
-    v = ((v[0] - minx) // scale, (v[1] - miny) // scale)
-    draw.line((*u, *v), fill=(64, 64, 64), width=1)
-    draw.line((*u, *u), fill=(255, 0, 0), width=10)
-    draw.line((*v, *v), fill=(255, 0, 0), width=10)
+    outer.add((u[0] + xstepo, u[1] + ystepo))
+    outer.add((v[0] + xstepo, v[1] + ystepo))
+
+    uu = ((u[0] - minx) // scale, (u[1] - miny) // scale)
+    vv = ((v[0] - minx) // scale, (v[1] - miny) // scale)
+    draw.line((*uu, *vv), fill=(64, 64, 64), width=1)
+    draw.line((*uu, *uu), fill=(255, 0, 0), width=10)
+    draw.line((*vv, *vv), fill=(255, 0, 0), width=10)
+
+    # uu = ((u[0] - minx + xoffo) // scale, (u[1] - miny + yoffo) // scale)
+    # vv = ((v[0] - minx + xoffo) // scale, (v[1] - miny + yoffo) // scale)
+    # draw.line((*uu, *vv), fill=(0, 255, 0), width=1)
 
 im.save('a.png')
 print('saved')
 
+outer -= filled
+
+print(len(outer) - len(filled))
+
 
 def contains(u, p, q):
-    ''' If p+q contains u '''
     (xn, x1, x2), (yn, y1, y2) = zip(u, p, q)
     x1, x2 = sorted([x1, x2])
     y1, y2 = sorted([y1, y2])
@@ -115,6 +140,24 @@ def contains(u, p, q):
         return False
 
     return xn in range(x1 + 1, x2 + 1) and yn in range(y1 + 1, y2 + 1)
+
+
+def valid_area(p, q):
+    x1, y1 = p
+    x2, y2 = q
+
+    x1, x2 = sorted([x1, x2])
+    y1, y2 = sorted([y1, y2])
+
+    for x in range(x1, x2 + 1):
+        if {(x, y1), (x, y2)} & outer:
+            return False
+
+    for y in range(y1, y2 + 1):
+        if {(x1, y), (x2, y)} & outer:
+            return False
+
+    return True
 
 
 for x, y in filled:
@@ -131,17 +174,19 @@ for p, q in combinations(spots, r=2):
     if a <= best:
         continue
 
-    success = not any(contains(u, p, q) for u in spots if u not in (p, q))
+    success = valid_area(p, q)
 
     if success:
         best = max(best, a)
 
-    # print(
-    #     'candidate', a, 'success' if success else 'failed', p, q, '=>',
-    #     best
-    # )
+        print(
+            'candidate', a, 'success' if success else 'failed', p, q, '=>',
+            best
+        )
 
 # part 2 wrong 4496928723 (too high)
+# 136459862 low
+# 4496928723 high
 
 bb = best
 
