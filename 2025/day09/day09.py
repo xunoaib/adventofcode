@@ -19,12 +19,12 @@ def valid_region(p, q):
     y1, y2 = sorted([y1, y2])
 
     for x in [x1, x2]:
-        for y in at_x[x]:
+        for y in outer_y_at_x[x]:
             if y in range(y1, y2 + 1):
                 return False
 
     for y in [y1, y2]:
-        for x in at_y[y]:
+        for x in outer_x_at_y[y]:
             if x in range(x1, x2 + 1):
                 return False
 
@@ -41,8 +41,8 @@ for i, p in enumerate(corners):
 
 print('part1:', aa)
 
-path = set()
-outer = set()
+path = set()  # walked tiles
+outer = set()  # tiles immediately outside polygon
 
 for p, q in pairwise(corners + corners[:1]):
     xoff = q[0] - p[0]
@@ -50,10 +50,11 @@ for p, q in pairwise(corners + corners[:1]):
 
     xstep = (xoff > 0) - (xoff < 0)
     ystep = (yoff > 0) - (yoff < 0)
+
+    # vector exiting polygon
     xstep_out, ystep_out = {L: U, R: D, U: R, D: L}[xstep, ystep]
 
     pp, qq = p, q
-    path |= {p, q}
     while pp != qq:
         path.add(pp)
         outer.add((pp[0] + xstep_out, pp[1] + ystep_out))
@@ -64,11 +65,11 @@ for p, q in pairwise(corners + corners[:1]):
 
 outer -= path
 
-at_x = defaultdict(set)
-at_y = defaultdict(set)
+outer_y_at_x = defaultdict(set)
+outer_x_at_y = defaultdict(set)
 for x, y in outer:
-    at_x[x].add(y)
-    at_y[y].add(x)
+    outer_y_at_x[x].add(y)
+    outer_x_at_y[y].add(x)
 
 bb = float('-inf')
 for p, q in combinations(corners, r=2):
