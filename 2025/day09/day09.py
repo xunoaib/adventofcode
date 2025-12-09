@@ -2,31 +2,7 @@ import sys
 from collections import defaultdict
 from itertools import combinations, pairwise
 
-from PIL import Image, ImageDraw
-
-DIRS = U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
-
-
-def render(points):
-    minx = min(x for x, y in points)
-    maxx = max(x for x, y in points)
-    miny = min(y for x, y in points)
-    maxy = max(y for x, y in points)
-
-    for y in range(miny - 2, maxy + 3):
-        for x in range(minx - 2, maxx + 3):
-            p = x, y
-
-            ch = '.'
-            if p in corners:
-                ch = '#'
-            elif p in filled:
-                ch = 'X'
-            elif p in outer:
-                ch = 'o'
-
-            print(ch, end='')
-        print()
+U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 
 def area(p, q):
@@ -65,61 +41,28 @@ for i, p in enumerate(corners):
 
 print('part1:', aa)
 
-filled = set()
-
-minx = min(x for x, y in corners)
-maxx = max(x for x, y in corners)
-miny = min(y for x, y in corners)
-maxy = max(y for x, y in corners)
-
-scale = 100
-
-im = Image.new(
-    'RGB', (
-        (maxx - minx + scale) // scale + scale,
-        (maxy - miny + scale) // scale + scale
-    )
-)
-draw = ImageDraw.Draw(im)
-
+path = set()
 outer = set()
 
 for p, q in pairwise(corners + corners[:1]):
     xoff = q[0] - p[0]
     yoff = q[1] - p[1]
 
-    xstep = ystep = 0
-    if xoff:
-        xstep = 1 if xoff > 0 else -1
-    if yoff:
-        ystep = 1 if yoff > 0 else -1
-
-    # add "outer" tiles (left of current)
+    xstep = (xoff > 0) - (xoff < 0)
+    ystep = (yoff > 0) - (yoff < 0)
     xstep_out, ystep_out = {L: U, R: D, U: R, D: L}[xstep, ystep]
 
-    u, v = p, q
+    pp, qq = p, q
+    path |= {p, q}
+    while pp != qq:
+        path.add(pp)
+        outer.add((pp[0] + xstep_out, pp[1] + ystep_out))
+        pp = (pp[0] + xstep, pp[1] + ystep)
 
-    filled |= {p, q}
-    while p != q:
-        filled.add(p)
-        outer.add((p[0] + xstep_out, p[1] + ystep_out))
-        p = (p[0] + xstep, p[1] + ystep)
+    outer.add((pp[0] + xstep_out, pp[1] + ystep_out))
+    outer.add((qq[0] + xstep_out, qq[1] + ystep_out))
 
-    outer.add((u[0] + xstep_out, u[1] + ystep_out))
-    outer.add((v[0] + xstep_out, v[1] + ystep_out))
-
-    uu = ((u[0] - minx) // scale, (u[1] - miny) // scale)
-    vv = ((v[0] - minx) // scale, (v[1] - miny) // scale)
-    draw.line((*uu, *vv), fill=(64, 64, 64), width=1)
-    draw.line((*uu, *uu), fill=(255, 0, 0), width=10)
-    draw.line((*vv, *vv), fill=(255, 0, 0), width=10)
-
-    # uu = ((u[0] - minx + xoffo) // scale, (u[1] - miny + yoffo) // scale)
-    # vv = ((v[0] - minx + xoffo) // scale, (v[1] - miny + yoffo) // scale)
-    # draw.line((*uu, *vv), fill=(0, 255, 0), width=1)
-
-im.save('a.png')
-outer -= filled
+outer -= path
 
 at_x = defaultdict(set)
 at_y = defaultdict(set)
