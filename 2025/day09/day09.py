@@ -70,8 +70,6 @@ im = Image.new(
 )
 draw = ImageDraw.Draw(im)
 
-import pandas as pd
-
 rows = []
 
 at_x = defaultdict(set)
@@ -96,13 +94,12 @@ for p, q in pairwise(spots + spots[:1]):
 
     u = ((u[0] - minx) // scale, (u[1] - miny) // scale)
     v = ((v[0] - minx) // scale, (v[1] - miny) // scale)
-    draw.line((*u, *v), fill=(255, 255, 255), width=1)
-    rows.append((xoff, yoff))
+    draw.line((*u, *v), fill=(64, 64, 64), width=1)
+    draw.line((*u, *u), fill=(255, 0, 0), width=10)
+    draw.line((*v, *v), fill=(255, 0, 0), width=10)
 
-df = pd.DataFrame(rows, columns=['xoff', 'yoff'])
-# print(df['xoff'].value_counts().to_dict())
-
-# print(maxx - minx, maxy - miny)
+im.save('a.png')
+print('saved')
 
 
 def contains(u, p, q):
@@ -117,24 +114,8 @@ def contains(u, p, q):
     if u in (r, s):
         return False
 
-    # return xn in range(x1, x2 + 1) and yn in range(y1, y2 + 1)
-    # return xn in range(x1 + 1, x2) and yn in range(y1 + 1, y2)
     return xn in range(x1 + 1, x2 + 1) and yn in range(y1 + 1, y2 + 1)
 
-
-best = float('-inf')
-for p, q in combinations(spots, r=2):
-    a = area(p, q)
-    if a > best:
-        success = not any(contains(u, p, q) for u in spots if u not in (p, q))
-
-        if success:
-            best = max(best, a)
-
-        # print(
-        #     'candidate', a, 'success' if success else 'failed', p, q, '=>',
-        #     best
-        # )
 
 for x, y in filled:
     at_x[x].add(y)
@@ -144,12 +125,25 @@ for x in range(minx, maxx + 1):
     if pts := at_x.get(x):
         print(x, pts)
 
+best = float('-inf')
+for p, q in combinations(spots, r=2):
+    a = area(p, q)
+    if a <= best:
+        continue
+
+    success = not any(contains(u, p, q) for u in spots if u not in (p, q))
+
+    if success:
+        best = max(best, a)
+
+    # print(
+    #     'candidate', a, 'success' if success else 'failed', p, q, '=>',
+    #     best
+    # )
+
 # part 2 wrong 4496928723 (too high)
 
 bb = best
-
-im.save('a.png')
-print('saved')
 
 if locals().get('bb') is not None:
     print('part2:', bb)
