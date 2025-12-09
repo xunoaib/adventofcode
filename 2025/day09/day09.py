@@ -81,8 +81,6 @@ for p, q in pairwise(spots + spots[:1]):
     xoff = q[0] - p[0]
     yoff = q[1] - p[1]
 
-    # print(xoff, yoff)
-
     xstep = ystep = 0
     if xoff:
         xstep = 1 if xoff > 0 else -1
@@ -133,18 +131,18 @@ for p, q in combinations(spots, r=2):
         if success:
             best = max(best, a)
 
-        print(
-            'candidate', a, 'success' if success else 'failed', p, q, '=>',
-            best
-        )
+        # print(
+        #     'candidate', a, 'success' if success else 'failed', p, q, '=>',
+        #     best
+        # )
 
-# for x, y in filled:
-#     at_x[x].add(y)
-#     at_y[y].add(x)
+for x, y in filled:
+    at_x[x].add(y)
+    at_y[y].add(x)
 
-# for x in range(minx, maxx + 1):
-#     if pts := at_x.get(x):
-#         print(x, pts)
+for x in range(minx, maxx + 1):
+    if pts := at_x.get(x):
+        print(x, pts)
 
 # part 2 wrong 4496928723 (too high)
 
@@ -152,31 +150,6 @@ bb = best
 
 im.save('a.png')
 print('saved')
-
-# print(len(filled))
-#
-# seen = set()
-#
-# print('---')
-#
-# p = spots[0] if len(spots) < 100 else spots[1]
-#
-# q = [(p[0] + 2, p[1] + 2)]
-# seen = {q[0]}
-# while q:
-#     p = q.pop()
-#
-#     x, y = p
-#     if x not in range(minx, maxx + 1) or y not in range(miny, maxy + 1):
-#         print('oob')
-#         exit()
-#
-#     for n in neighbors4(*p):
-#         if n not in filled and n not in seen:
-#             seen.add(n)
-#             q.append(n)
-#
-# print(len(seen))
 
 if locals().get('bb') is not None:
     print('part2:', bb)
