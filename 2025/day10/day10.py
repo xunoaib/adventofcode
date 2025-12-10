@@ -2,8 +2,6 @@ import sys
 
 from z3 import Int, Optimize, sat
 
-lines = sys.stdin.read().strip().split('\n')
-
 
 def neighbors(buttons, state):
     for bs in buttons:
@@ -13,13 +11,12 @@ def neighbors(buttons, state):
         yield tuple(s)
 
 
-class Machine:
-
-    def __init__(self, line):
-        lights, *buttons, req = [g[1:-1] for g in line.split(' ')]
-        self.buttons = tuple(tuple(map(int, g.split(','))) for g in buttons)
-        self.goal_lights = tuple(ch == '#' for ch in lights)
-        self.goal_jolts = tuple(map(int, req.split(',')))
+def parse(line):
+    lights, *buttons, req = [g[1:-1] for g in line.split(' ')]
+    buttons = tuple(tuple(map(int, g.split(','))) for g in buttons)
+    lights = tuple(ch == '#' for ch in lights)
+    jolts = tuple(map(int, req.split(',')))
+    return buttons, lights, jolts
 
 
 def solve_part1(buttons, goal):
@@ -60,11 +57,13 @@ def solve_part2(buttons, goal):
     return sum(m[p].as_long() for p in presses)
 
 
+lines = sys.stdin.read().strip().split('\n')
 a1 = a2 = 0
+
 for line in lines:
-    m = Machine(line)
-    a1 += solve_part1(m.buttons, m.goal_lights)
-    a2 += solve_part2(m.buttons, m.goal_jolts)
+    buttons, lights, jolts = parse(line)
+    a1 += solve_part1(buttons, lights)
+    a2 += solve_part2(buttons, jolts)
 
 print('part1:', a1)
 print('part2:', a2)
