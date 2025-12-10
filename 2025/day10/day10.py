@@ -32,6 +32,8 @@ class Machine:
                     seen.add(n)
                     q.append((cost + 1, n))
 
+        assert False
+
     def neighbors(self, state):
         for bs in self.buttons:
             s = list(state)
@@ -40,11 +42,55 @@ class Machine:
             yield tuple(s)
 
 
-aa = 0
+class Machine2:
+
+    def __init__(self, line):
+        lights, *buttons, req = [g[1:-1] for g in line.split(' ')]
+        self.goal_lights = tuple(ch == '#' for ch in lights)
+        self.lights = (False, ) * len(self.goal_lights)
+        self.goal_jolts = tuple(map(int, req.split(',')))
+        self.jolts = (0, ) * len(self.goal_jolts)
+        self.buttons = tuple(tuple(map(int, g.split(','))) for g in buttons)
+        self.mode = True
+
+    def solve(self):
+        q = [(0, (self.lights, self.jolts))]
+        seen = {q[0][1]}
+        while q:
+            cost, state = heappop(q)
+            lights, jolts = state
+
+            # if lights == self.goal_lights and jolts == self.goal_jolts:
+            if jolts == self.goal_jolts:
+                return cost
+
+            for n in self.neighbors(lights, jolts):
+                if n not in seen:
+                    seen.add(n)
+                    heappush(q, (cost + 1, n))
+
+        assert False
+
+    def neighbors(self, lights, jolts):
+        for bs in self.buttons:
+            nlights = list(lights)
+            for b in bs:
+                nlights[b] = not nlights[b]
+            yield (tuple(nlights), jolts)
+
+        for bs in self.buttons:
+            njolts = list(jolts)
+            for b in bs:
+                njolts[b] += 1
+            yield (lights, tuple(njolts))
+
+
+aa = bb = 0
 for line in lines:
-    m = Machine(line)
-    x = m.solve()
-    aa += x
+    aa += Machine(line).solve()
+    x = Machine2(line).solve()
+    print(x)
+    bb += x
 
 # grid = {
 #     (r, c): ch
