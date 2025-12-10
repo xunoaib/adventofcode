@@ -11,3 +11,4 @@
 | [Day 7: Laboratories](https://adventofcode.com/2025/day/7) | [Code](day07/day07.py) |
 | [Day 8: Playground](https://adventofcode.com/2025/day/8) | [Code](day08/day08.py) |
 | [Day 9: Movie Theater](https://adventofcode.com/2025/day/9) | [Code](day09/day09.py) |
+| [Day 10: Factory](https://adventofcode.com/2025/day/10) | [Code](day10/day10.py) |
