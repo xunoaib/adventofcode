@@ -5,10 +5,7 @@ from z3 import Int, Optimize, sat
 
 def neighbors(buttons, state):
     for bs in buttons:
-        s = list(state)
-        for b in bs:
-            s[b] = not s[b]
-        yield tuple(s)
+        yield tuple(v ^ (i in bs) for i, v in enumerate(state))
 
 
 def parse(line):
@@ -34,7 +31,7 @@ def solve_part1(buttons, goal):
 
 
 def solve_part2(buttons, goal):
-    presses = [Int(f'presses{i}') for i in range(len(buttons))]
+    presses = [Int(f'p{i}') for i in range(len(buttons))]
 
     s = Optimize()
     for p in presses:
