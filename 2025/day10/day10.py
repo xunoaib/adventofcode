@@ -54,35 +54,27 @@ class Machine2:
         self.mode = True
 
     def solve(self):
-        q = [(0, (self.lights, self.jolts))]
+        q = [(0, self.jolts)]
         seen = {q[0][1]}
         while q:
-            cost, state = heappop(q)
-            lights, jolts = state
+            cost, jolts = heappop(q)
 
-            # if lights == self.goal_lights and jolts == self.goal_jolts:
             if jolts == self.goal_jolts:
                 return cost
 
-            for n in self.neighbors(lights, jolts):
+            for n in self.neighbors(jolts):
                 if n not in seen:
                     seen.add(n)
                     heappush(q, (cost + 1, n))
 
         assert False
 
-    def neighbors(self, lights, jolts):
-        for bs in self.buttons:
-            nlights = list(lights)
-            for b in bs:
-                nlights[b] = not nlights[b]
-            yield (tuple(nlights), jolts)
-
+    def neighbors(self, jolts):
         for bs in self.buttons:
             njolts = list(jolts)
             for b in bs:
                 njolts[b] += 1
-            yield (lights, tuple(njolts))
+            yield tuple(njolts)
 
 
 aa = bb = 0
