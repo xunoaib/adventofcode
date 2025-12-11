@@ -1,5 +1,6 @@
 import sys
 from collections import Counter, defaultdict
+from functools import cache
 from heapq import heappop, heappush
 from itertools import pairwise, permutations, product
 
@@ -20,18 +21,32 @@ counts = Counter()
 
 
 def dfs(cur, tar):
-    # print(cur)
     if cur == 'out':
         return 1
-
     t = 0
     for n in g[cur]:
         t += dfs(n, tar)
-
     return t
 
 
-aa = dfs('you', 'out')
+@cache
+def dfs2(cur, tar, s: int = 0):
+    if cur == 'out':
+        return 1 if s == 3 else 0
+
+    t = 0
+    for n in g[cur]:
+        ns = s
+        if n == 'fft':
+            ns |= 1
+        if n == 'dac':
+            ns |= 2
+        t += dfs2(n, tar, ns)
+    return t
+
+
+# aa = dfs('you', 'out')
+bb = dfs2('svr', 'out')
 
 # q = ['you']
 # seen = {q[0]}
