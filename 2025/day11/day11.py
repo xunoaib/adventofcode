@@ -1,76 +1,31 @@
 import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from functools import cache
-from heapq import heappop, heappush
-from itertools import pairwise, permutations, product
 
-aa = bb = None
 
-s = sys.stdin.read()
-lines = s.strip().split('\n')
+def part1(cur):
+    return 1 if cur == 'out' else sum(part1(n) for n in g[cur])
+
+
+@cache
+def part2(cur, s: int = 0):
+    return s == 3 if cur == 'out' else sum(
+        part2(n, s | 1 * (n == 'fft') | 2 * (n == 'dac')) for n in g[cur]
+    )
+
+
+lines = sys.stdin.read().strip().split('\n')
 
 g = defaultdict(set)
 for line in lines:
     a, *bs = line.split(' ')
-    a = a[:-1]
-    g[a] |= set(bs)
+    g[a[:-1]] |= set(bs)
 
-print(g)
+a1 = part1('you')
+a2 = part2('svr')
 
-counts = Counter()
+print('part1:', a1)
+print('part2:', a2)
 
-
-def dfs(cur, tar):
-    if cur == 'out':
-        return 1
-    t = 0
-    for n in g[cur]:
-        t += dfs(n, tar)
-    return t
-
-
-@cache
-def dfs2(cur, tar, s: int = 0):
-    if cur == 'out':
-        return 1 if s == 3 else 0
-
-    t = 0
-    for n in g[cur]:
-        ns = s
-        if n == 'fft':
-            ns |= 1
-        if n == 'dac':
-            ns |= 2
-        t += dfs2(n, tar, ns)
-    return t
-
-
-# aa = dfs('you', 'out')
-bb = dfs2('svr', 'out')
-
-# q = ['you']
-# seen = {q[0]}
-# aa = 0
-# while q:
-#     p, path = q.pop()
-#     if p == 'out':
-#         aa += 1
-#     for n in g[p]:
-#         if n not in seen:
-#             seen.add(n)
-#             q.append(n)
-
-# grid = {
-#     (r, c): ch
-#     for r, line in enumerate(lines)
-#     for c, ch in enumerate(line)
-# }
-
-if locals().get('aa') is not None:
-    print('part1:', aa)
-
-if locals().get('bb') is not None:
-    print('part2:', bb)
-
-# assert aa == 0
-# assert bb == 0
+assert a1 == 674
+assert a2 == 438314708837664
