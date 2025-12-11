@@ -20,12 +20,12 @@ def valid_region(p, q):
 
     # check for outside intersections
     for x in [x1, x2]:
-        for y in outer_y_at_x[x]:
+        for y in outer_y[x]:
             if y1 <= y <= y2:
                 return False
 
     for y in [y1, y2]:
-        for x in outer_x_at_y[y]:
+        for x in outer_x[y]:
             if x1 <= x <= x2:
                 return False
 
@@ -41,17 +41,17 @@ print('part1:', a1)
 perim = set()  # tiles walked along perimeter
 outer = set()  # tiles immediately outside polygon
 
-for p, q in pairwise(corners + corners[:1]):
-    dx = q[0] - p[0]
-    dy = q[1] - p[1]
+for src, tar in pairwise(corners + corners[:1]):
+    dx = tar[0] - src[0]
+    dy = tar[1] - src[1]
     xstep = (dx > 0) - (dx < 0)
     ystep = (dy > 0) - (dy < 0)
 
     # vector exiting polygon
     out = {L: U, R: D, U: R, D: L}[xstep, ystep]
 
-    cur = p
-    while cur != q:
+    cur = src
+    while cur != tar:
         perim.add(cur)
         outer.add((cur[0] + out[0], cur[1] + out[1]))
         cur = (cur[0] + xstep, cur[1] + ystep)
@@ -60,17 +60,17 @@ outer -= perim
 
 # associate x => {y coords in outer region}
 # for faster out-of-bounds checks
-outer_y_at_x = defaultdict(set)
-outer_x_at_y = defaultdict(set)
+outer_y = defaultdict(set)
+outer_x = defaultdict(set)
 
 for x, y in outer:
-    outer_y_at_x[x].add(y)
-    outer_x_at_y[y].add(x)
+    outer_y[x].add(y)
+    outer_x[y].add(x)
 
 a2 = 0
-for p, q in combinations(corners, r=2):
-    a = area(p, q)
-    if a > a2 and valid_region(p, q):
+for src, tar in combinations(corners, r=2):
+    a = area(src, tar)
+    if a > a2 and valid_region(src, tar):
         a2 = a
 
 print('part2:', a2)
