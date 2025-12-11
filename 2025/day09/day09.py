@@ -67,7 +67,7 @@ for x, y in outer:
     outer_y_at_x[x].add(y)
     outer_x_at_y[y].add(x)
 
-a2 = float('-inf')
+a2 = 0
 for p, q in combinations(corners, r=2):
     a = area(p, q)
     if a > a2 and valid_region(p, q):
