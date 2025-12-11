@@ -164,7 +164,7 @@ def on_success(year: int, day: int, level: int):
     rank_str = f'{bg_color} {rank} \033[0m'
 
     print(
-        f'\033[93mYour global rank:\033[0m {rank_str} / Day {day}, Part {level} {"*"*level}'
+        f'\033[93;1mYour global rank:\033[0m {rank_str} / Day {day}, Part {level} {"*"*level}'
     )
     print()
 
@@ -318,6 +318,7 @@ def submit(year: int, day: int, level: int, answer: str, aoc: AOC):
     # describe submission
     print(f'AoC {year}, Day {day}, Part {level}')
     print('Submitting:', repr(answer))
+    print()
 
     message = aoc.submit_answer(year, day, level, answer)
     success = "That's the right answer!" in message
