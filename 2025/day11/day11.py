@@ -8,7 +8,7 @@ def part1(cur):
 
 
 @cache
-def part2(cur, s: int = 0):
+def part2(cur, s=0):
     return s == 3 if cur == 'out' else sum(
         part2(n, s | (n == 'fft') | (n == 'dac') * 2) for n in g[cur]
     )
