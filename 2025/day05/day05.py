@@ -1,11 +1,11 @@
 import sys
 
-s, b = sys.stdin.read().split('\n\n')
-
 
 def isfresh(i):
-    return any(i in range(a, b + 1) for a, b in newranges)
+    return any(a <= i <= b for a, b in newranges)
 
+
+s, b = sys.stdin.read().split('\n\n')
 
 ranges = []
 for line in s.split('\n'):
