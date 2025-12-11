@@ -14,11 +14,9 @@ def part2(cur, s: int = 0):
     )
 
 
-lines = sys.stdin.read().strip().split('\n')
-
 g = defaultdict(set)
-for line in lines:
-    a, *bs = line.split(' ')
+for line in sys.stdin:
+    a, *bs = line[:-1].split(' ')
     g[a[:-1]] |= set(bs)
 
 a1 = part1('you')
