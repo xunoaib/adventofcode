@@ -2,15 +2,11 @@ import sys
 from itertools import combinations
 
 lines = sys.stdin.read().strip().split('\n')
-
 a1 = a2 = 0
 
 for line in lines:
-    xs = list(map(int, list(line)))
-    m = 0
-    for a, b in combinations(xs, r=2):
-        m = max(m, a * 10 + b)
-    a1 += m
+    xs = map(int, list(line))
+    a1 += max(a * 10 + b for a, b in combinations(xs, r=2))
 
 for line in lines:
     xs = list(map(int, list(line)))
@@ -21,7 +17,7 @@ for line in lines:
         for i, v in vals:
             if i <= len(xs) - left:
                 s.append(v)
-                vals = [(ii, vv) for ii, vv in vals if ii > i]
+                vals = [iv for iv in vals if iv[0] > i]
                 break
 
     a2 += int(''.join(map(str, s)))
