@@ -4,7 +4,7 @@ from functools import cache
 
 
 def part1(cur):
-    return 1 if cur == 'out' else sum(part1(n) for n in g[cur])
+    return 1 if cur == 'out' else sum(map(part1, g[cur]))
 
 
 @cache
