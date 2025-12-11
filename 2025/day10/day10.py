@@ -19,25 +19,27 @@ def parse(line):
 def solve_part1(buttons, goal):
     q = [(0, (False, ) * len(goal))]
     seen = {q[0][1]}
+
     while q:
         cost, lights = q.pop(0)
         if lights == goal:
             return cost
+
         for n in neighbors(buttons, lights):
             if n not in seen:
                 seen.add(n)
                 q.append((cost + 1, n))
+
     assert False
 
 
 def solve_part2(buttons, goal):
     presses = [Int(f'p{i}') for i in range(len(buttons))]
-
+    output_accs = {i: 0 for i in range(len(goal))}
     s = Optimize()
+
     for p in presses:
         s.add(p >= 0)
-
-    output_accs = {i: 0 for i in range(len(goal))}
 
     for p, bs in zip(presses, buttons):
         for b in bs:
@@ -49,7 +51,6 @@ def solve_part2(buttons, goal):
     s.minimize(sum(presses))
 
     assert s.check() == sat
-
     m = s.model()
     return sum(m[p].as_long() for p in presses)
 
