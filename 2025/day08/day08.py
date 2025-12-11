@@ -27,14 +27,14 @@ for i, (_, p, q) in enumerate(dists):
 
     if i == N - 1:
         ids = {id(v): v for v in circuits.values()}
-        aa = prod(sorted(map(len, ids.values()))[-3:])
+        a1 = prod(sorted(map(len, ids.values()))[-3:])
 
     if len(newpoints) == len(points):
-        bb = p[0] * q[0]
+        a2 = p[0] * q[0]
         break
 
-print('part1:', aa)
-print('part2:', bb)
+print('part1:', a1)
+print('part2:', a2)
 
-assert aa == 83520
-assert bb == 1131823407
+assert a1 == 83520
+assert a2 == 1131823407
