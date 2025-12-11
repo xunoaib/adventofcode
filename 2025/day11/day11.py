@@ -1,5 +1,4 @@
 import sys
-from collections import defaultdict
 from functools import cache
 
 
@@ -14,10 +13,10 @@ def part2(cur, s=0):
     )
 
 
-g = defaultdict(set)
+g = {}
 for line in sys.stdin:
     a, *bs = line[:-1].split(' ')
-    g[a[:-1]] |= set(bs)
+    g[a[:-1]] = set(bs)
 
 a1 = part1('you')
 a2 = part2('svr')
