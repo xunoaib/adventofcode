@@ -1,6 +1,7 @@
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from functools import cache
 from heapq import heappop, heappush
 from itertools import pairwise, permutations, product
 
@@ -63,12 +64,16 @@ class Solver:
     l: int
     counts: list[int]
 
-    def solve(self, idx, used):
+
+def part1(self: Solver):
+
+    @cache
+    def solve(idx, used):
         if idx >= len(self.counts):
             return True
 
         if self.counts[idx] == 0:
-            return self.solve(idx + 1, used)
+            return solve(idx + 1, used)
 
         self.counts[idx] -= 1
         shape = shapes[idx]
@@ -79,11 +84,13 @@ class Solver:
                     if not s & used and all(
                         r < self.l and c < self.w for r, c in s
                     ):
-                        if self.solve(idx, used | s):
+                        if solve(idx, used | s):
                             return True
 
         self.counts[idx] += 1
         return False
+
+    return solve(0, frozenset())
 
 
 s = sys.stdin.read().strip()
@@ -102,7 +109,7 @@ for line in elines:
     w, l = map(int, a[:-1].split('x'))
     counts = list(map(int, counts))
     s = Solver(w, l, counts)
-    print(s.solve(0, set()))
+    print(part1(s))
 
 if locals().get('aa') is not None:
     print('part1:', aa)
