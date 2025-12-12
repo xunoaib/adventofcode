@@ -1,4 +1,3 @@
-import sys
 from functools import cache
 
 
@@ -13,10 +12,7 @@ def part2(cur, s=0):
     )
 
 
-g = {}
-for line in sys.stdin:
-    a, *bs = line[:-1].split(' ')
-    g[a[:-1]] = set(bs)
+g = {a[:-1]: b for a, *b in map(str.split, open(0))}
 
 a1 = part1('you')
 a2 = part2('svr')
