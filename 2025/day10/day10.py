@@ -1,6 +1,38 @@
-import sys
+from z3 import And, Int, Optimize, sat
 
-from z3 import Int, Optimize, sat
+
+def solve_part1(buttons, goals):
+    q = [(0, (False, ) * len(goals))]
+    seen = {q[0][1]}
+
+    while q:
+        cost, lights = q.pop(0)
+        if lights == goals:
+            return cost
+
+        for n in neighbors(buttons, lights):
+            if n not in seen:
+                seen.add(n)
+                q.append((cost + 1, n))
+
+
+def solve_part2(buttons, goals):
+    presses = [Int(f'p{i}') for i in range(len(buttons))]
+    totals = [0] * len(goals)
+
+    s = Optimize()
+    s.add(And(p >= 0 for p in presses))
+
+    for p, bs in zip(presses, buttons):
+        for b in bs:
+            totals[b] += p
+
+    s.add(And(t == g for t, g in zip(totals, goals)))
+    s.minimize(sum(presses))
+
+    assert s.check() == sat
+    m = s.model()
+    return m.evaluate(sum(presses)).as_long()
 
 
 def neighbors(buttons, state):
@@ -16,50 +48,10 @@ def parse(line):
     return buttons, lights, jolts
 
 
-def solve_part1(buttons, goal):
-    q = [(0, (False, ) * len(goal))]
-    seen = {q[0][1]}
-
-    while q:
-        cost, lights = q.pop(0)
-        if lights == goal:
-            return cost
-
-        for n in neighbors(buttons, lights):
-            if n not in seen:
-                seen.add(n)
-                q.append((cost + 1, n))
-
-    assert False
-
-
-def solve_part2(buttons, goal):
-    presses = [Int(f'p{i}') for i in range(len(buttons))]
-    output_accs = {i: 0 for i in range(len(goal))}
-    s = Optimize()
-
-    for p in presses:
-        s.add(p >= 0)
-
-    for p, bs in zip(presses, buttons):
-        for b in bs:
-            output_accs[b] += p
-
-    for i in range(len(goal)):
-        s.add(output_accs[i] == goal[i])
-
-    s.minimize(sum(presses))
-
-    assert s.check() == sat
-    m = s.model()
-    return sum(m[p].as_long() for p in presses)
-
-
-lines = sys.stdin.read().strip().split('\n')
 a1 = a2 = 0
 
-for line in lines:
-    buttons, lights, jolts = parse(line)
+for line in open(0):
+    buttons, lights, jolts = parse(line.strip())
     a1 += solve_part1(buttons, lights)
     a2 += solve_part2(buttons, jolts)
 
