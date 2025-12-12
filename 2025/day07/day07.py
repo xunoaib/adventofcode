@@ -1,14 +1,12 @@
 import sys
 from collections import Counter
 
-lines = sys.stdin.read().strip().split('\n')
-rows = [[i for i, v in enumerate(line) if v == '^'] for line in lines]
-
-beams = Counter({lines[0].index('S'): 1})
+beams = Counter({input().index('S'): 1})
 a1 = 0
 
-for splits in rows:
+for line in sys.stdin:
     curbeams = beams.copy()
+    splits = [i for i, v in enumerate(line) if v == '^']
     for i in splits:
         count = curbeams.get(i, 0)
         beams[i] -= count
