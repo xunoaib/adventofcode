@@ -7,11 +7,7 @@ def isfresh(i):
 
 s, b = sys.stdin.read().split('\n\n')
 
-ranges = []
-for line in s.split('\n'):
-    ranges.append(tuple(map(int, line.split('-'))))
-ranges.sort()
-
+ranges = sorted(tuple(map(int, line.split('-'))) for line in s.split('\n'))
 newranges = [ranges.pop(0)]
 
 while ranges:
