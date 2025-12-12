@@ -13,3 +13,4 @@
 | [Day 9: Movie Theater](https://adventofcode.com/2025/day/9) | [Code](day09/day09.py) |
 | [Day 10: Factory](https://adventofcode.com/2025/day/10) | [Code](day10/day10.py) |
 | [Day 11: Reactor](https://adventofcode.com/2025/day/11) | [Code](day11/day11.py) \| [Golf](day11/golf.py) |
+| [Day 12: Christmas Tree Farm](https://adventofcode.com/2025/day/12) | [Code](day12/day12.py) |
