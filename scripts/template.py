@@ -5,12 +5,13 @@ from itertools import pairwise, permutations, product
 
 aa = bb = None
 
-s = sys.stdin.read()
-vs = list(tuple(map(int, s.split(','))))
-lines = s.strip().split('\n')
+lines = sys.stdin.read().strip().split('\n')
+
+# s = sys.stdin.read()
+# vs = list(tuple(map(int, s.split(','))))
 
 for line in lines:
-    pass
+    a, b = line.split(',')
 
 # grid = {
 #     (r, c): ch
