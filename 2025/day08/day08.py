@@ -1,4 +1,5 @@
 import sys
+from itertools import combinations
 from math import prod
 
 
@@ -8,16 +9,10 @@ def dist(p, q):
 
 lines = sys.stdin.read().strip().split('\n')
 points = [tuple(map(int, line.split(','))) for line in lines]
-
-dists = []
-for i, p in enumerate(points):
-    for q in points[i + 1:]:
-        dists.append((dist(p, q), p, q))
-dists.sort()
+dists = sorted((dist(p, q), p, q) for p, q in combinations(points, r=2))
+circuits = {}
 
 N = 1000 if len(points) > 100 else 10
-
-circuits = {}
 
 for i, (_, p, q) in enumerate(dists):
     points1 = circuits.get(p) or set()
