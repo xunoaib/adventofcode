@@ -149,7 +149,6 @@ for i, g in enumerate(gs):
     shapes.append(shape)
 
 elines = end.split('\n')
-
 aa = 0
 
 for i, line in enumerate(elines):
@@ -161,13 +160,26 @@ for i, line in enumerate(elines):
     cellcount = sum(count * len(shape) for count, shape in zip(counts, shapes))
 
     if cellcount > area:
+        # print(f'[{i}] Impossible area')
         continue
 
-    print()
-    print(f'Processing {i}: {line}')
-    print(f'{area=}, {cellcount=}')
-    shapesets = [permute_shape_region(shape, l, w) for shape in shapes]
-    aa += part1()
+    aa += 1
+
+    # wcount = w // 3
+    # lcount = l // 3
+    #
+    # if wcount * lcount > sum(counts):
+    #     print(f'[{i}] Sufficient 3x3')
+    #     aa += 1
+    #     continue
+
+    # print()
+    # print(f'[{i}] Processing {line}')
+    # print(f'{area=}, {cellcount=}')
+    # shapesets = [permute_shape_region(shape, l, w) for shape in shapes]
+    # aa += part1()
+
+# 245 too low
 
 if locals().get('aa') is not None:
     print('part1:', aa)
