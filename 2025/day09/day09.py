@@ -2,19 +2,14 @@ import sys
 from collections import defaultdict
 from itertools import combinations, pairwise, starmap
 
-U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
-
 
 def area(p, q):
-    xoff = abs(p[0] - q[0]) + 1
-    yoff = abs(p[1] - q[1]) + 1
-    return xoff * yoff
+    dx = abs(p[0] - q[0]) + 1
+    dy = abs(p[1] - q[1]) + 1
+    return dx * dy
 
 
-def valid_region(p, q):
-    x1, y1 = p
-    x2, y2 = q
-
+def valid_region(x1, y1, x2, y2):
     x1, x2 = sorted([x1, x2])
     y1, y2 = sorted([y1, y2])
 
@@ -31,6 +26,8 @@ def valid_region(p, q):
 
     return True
 
+
+U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
 lines = sys.stdin.read().strip().split('\n')
 corners = [tuple(map(int, line.split(','))) for line in lines]
@@ -58,8 +55,7 @@ for src, tar in pairwise(corners + corners[:1]):
 
 outer -= perim
 
-# associate x => {y coords in outer region}
-# for faster out-of-bounds checks
+# associate x => {y coords in outer region} for faster out-of-bounds checks
 outer_y = defaultdict(set)
 outer_x = defaultdict(set)
 
@@ -70,7 +66,7 @@ for x, y in outer:
 a2 = 0
 for src, tar in combinations(corners, r=2):
     a = area(src, tar)
-    if a > a2 and valid_region(src, tar):
+    if a > a2 and valid_region(*src, *tar):
         a2 = a
 
 print('part2:', a2)
