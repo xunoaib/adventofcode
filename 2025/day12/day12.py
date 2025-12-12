@@ -1,13 +1,10 @@
-import sys
+import re
 
-*s, r = sys.stdin.read().strip().split('\n\n')
-shapes = [g.count('#') for g in s]
-
+r = open(0).read().strip().split('\n\n')[-1]
 a1 = 0
-for line in r.split('\n'):
-    a, *counts = line.split()
-    w, l = map(int, a[:-1].split('x'))
-    counts = map(int, counts)
-    a1 += w * l >= sum(count * shape for count, shape in zip(counts, shapes))
+
+for l in r.split('\n'):
+    w, l, *c = map(int, re.findall(r'\d+', l))
+    a1 += w * l >= sum(v * 9 for v in c)
 
 print('part1:', a1)
