@@ -4,10 +4,6 @@ lines = open(0).read().strip().split('\n')
 a1 = a2 = 0
 
 for line in lines:
-    xs = map(int, list(line))
-    a1 += max(a * 10 + b for a, b in combinations(xs, r=2))
-
-for line in lines:
     xs = list(map(int, list(line)))
     vals = sorted(enumerate(xs), key=lambda iv: (-iv[1], iv[0]))
 
@@ -19,6 +15,7 @@ for line in lines:
                 vals = [iv for iv in vals if iv[0] > i]
                 break
 
+    a1 += max(a * 10 + b for a, b in combinations(xs, r=2))
     a2 += int(''.join(map(str, s)))
 
 print('part1:', a1)
