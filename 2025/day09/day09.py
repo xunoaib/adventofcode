@@ -1,4 +1,3 @@
-import sys
 from collections import defaultdict
 from itertools import combinations, pairwise, starmap
 
@@ -29,7 +28,7 @@ def valid_region(x1, y1, x2, y2):
 
 U, R, D, L = (-1, 0), (0, 1), (1, 0), (0, -1)
 
-lines = sys.stdin.read().strip().split('\n')
+lines = open(0).read().strip().split('\n')
 corners = [tuple(map(int, line.split(','))) for line in lines]
 
 a1 = max(starmap(area, combinations(corners, r=2)))

@@ -1,7 +1,6 @@
-import sys
 from itertools import combinations
 
-lines = sys.stdin.read().strip().split('\n')
+lines = open(0).read().strip().split('\n')
 a1 = a2 = 0
 
 for line in lines:

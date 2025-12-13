@@ -1,8 +1,6 @@
-import sys
-
 a1 = a2 = 0
 
-for g in sys.stdin.read().split(','):
+for g in open(0).read().split(','):
     a, b = map(int, g.split('-'))
     for i in range(a, b + 1):
         s = str(i)

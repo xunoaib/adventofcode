@@ -1,4 +1,3 @@
-import sys
 from itertools import combinations
 from math import prod
 
@@ -7,7 +6,7 @@ def dist(p, q):
     return sum((i - j)**2 for i, j in zip(p, q))
 
 
-lines = sys.stdin.read().strip().split('\n')
+lines = open(0).read().strip().split('\n')
 points = [tuple(map(int, line.split(','))) for line in lines]
 dists = sorted((dist(p, q), p, q) for p, q in combinations(points, r=2))
 circuits = {}

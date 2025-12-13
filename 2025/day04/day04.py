@@ -1,4 +1,3 @@
-import sys
 from itertools import product
 
 
@@ -14,7 +13,7 @@ def accessible(g):
 
 papers = {
     (r, c)
-    for r, line in enumerate(sys.stdin)
+    for r, line in enumerate(open(0))
     for c, ch in enumerate(line) if ch == '@'
 }
 

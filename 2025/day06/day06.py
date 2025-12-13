@@ -1,7 +1,6 @@
 import re
-import sys
 
-lines = sys.stdin.read().replace('\n', ' \n').rstrip().split('\n')
+lines = open(0).read().replace('\n', ' \n').rstrip().split('\n')
 *nums, ops = [re.split(r'\s+', line.strip()) for line in lines]
 
 a1 = sum(eval(o.join(vs)) for *vs, o in zip(*nums, ops))

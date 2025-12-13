@@ -1,9 +1,7 @@
-import sys
-
-dial = 50
 a1 = a2 = 0
+dial = 50
 
-for line in sys.stdin:
+for line in open(0):
     dir = line[0]
     count = int(line[1:])
     offset = 1 if dir == 'R' else -1
