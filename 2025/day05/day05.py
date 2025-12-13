@@ -1,11 +1,8 @@
-import sys
-
-
 def isfresh(i):
     return any(a <= i <= b for a, b in newranges)
 
 
-s, b = sys.stdin.read().split('\n\n')
+s, b = open(0).read().split('\n\n')
 
 ranges = sorted(tuple(map(int, line.split('-'))) for line in s.split('\n'))
 newranges = [ranges.pop(0)]
