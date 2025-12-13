@@ -7,8 +7,7 @@ for line in open(0):
     offset = 1 if dir == 'R' else -1
 
     for _ in range(count):
-        dial += offset
-        dial %= 100
+        dial = (dial + offset) % 100
         a2 += not dial
 
     a1 += not dial
