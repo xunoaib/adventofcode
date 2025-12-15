@@ -4,10 +4,9 @@ dial = 50
 for line in open(0):
     dir = line[0]
     count = int(line[1:])
-    offset = 1 if dir == 'R' else -1
 
     for _ in range(count):
-        dial = (dial + offset) % 100
+        dial = (dial + (-1)**(dir == 'R')) % 100
         a2 += not dial
 
     a1 += not dial
