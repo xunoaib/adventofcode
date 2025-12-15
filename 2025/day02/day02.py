@@ -5,7 +5,7 @@ for g in open(0).read().split(','):
     for i in range(a, b + 1):
         s = str(i)
         a1 += i * (s == s[:len(s) // 2] * 2)
-        a2 += i * (any(s == s[:i] * (len(s) // i) for i in range(1, len(s))))
+        a2 += i * any(s == s[:i] * (len(s) // i) for i in range(1, len(s)))
 
 print('part1:', a1)
 print('part2:', a2)
