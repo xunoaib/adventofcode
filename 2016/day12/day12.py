@@ -12,8 +12,6 @@ class CPU:
         if self.pc >= len(self.mem):
             return False
 
-        print(self.pc, self.registers, self.mem[self.pc])
-
         args = self.mem[self.pc].split()
 
         match args:
@@ -32,7 +30,7 @@ class CPU:
                 else:
                     self.pc += 1
             case _:
-                print('unknown instruction')
+                raise Exception('unknown value')
 
         return self.pc < len(self.mem)
 
@@ -51,9 +49,12 @@ def main():
     lines = sys.stdin.read().strip().splitlines()
     cpu = CPU(lines)
     cpu.run()
-
-    print(cpu.registers)
     print('part1:', cpu.registers['a'])
+
+    cpu = CPU(lines)
+    cpu.registers['c'] = 1
+    cpu.run()
+    print('part2:', cpu.registers['a'])
 
 
 if __name__ == '__main__':
