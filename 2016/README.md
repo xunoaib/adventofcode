@@ -13,8 +13,8 @@
 | [Day 9: Explosives in Cyberspace](https://adventofcode.com/2016/day/9) | Code |
 | [Day 10: Balance Bots](https://adventofcode.com/2016/day/10) | Code |
 | [Day 11: Radioisotope Thermoelectric Generators](https://adventofcode.com/2016/day/11) | Code |
-| [Day 12: Leonardo's Monorail](https://adventofcode.com/2016/day/12) | Code |
-| [Day 13: A Maze of Twisty Little Cubicles](https://adventofcode.com/2016/day/13) | Code |
+| [Day 12: Leonardo's Monorail](https://adventofcode.com/2016/day/12) | [Code](day12/day12.py) |
+| [Day 13: A Maze of Twisty Little Cubicles](https://adventofcode.com/2016/day/13) | [Code](day13/day13.py) |
 | [Day 14: One-Time Pad](https://adventofcode.com/2016/day/14) | Code |
 | [Day 15: Timing is Everything](https://adventofcode.com/2016/day/15) | Code |
 | [Day 16: Dragon Checksum](https://adventofcode.com/2016/day/16) | Code |

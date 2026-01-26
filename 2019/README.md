@@ -25,5 +25,5 @@
 | [Day 21: Springdroid Adventure](https://adventofcode.com/2019/day/21) | Code |
 | [Day 22: Slam Shuffle](https://adventofcode.com/2019/day/22) | Code |
 | [Day 23: Category Six](https://adventofcode.com/2019/day/23) | Code |
-| [Day 24: Planet of Discord](https://adventofcode.com/2019/day/24) | Code |
+| [Day 24: Planet of Discord](https://adventofcode.com/2019/day/24) | [Code](day24/day24.py) |
 | [Day 25: Cryostasis](https://adventofcode.com/2019/day/25) | Code |
