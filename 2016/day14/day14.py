@@ -44,10 +44,28 @@ def part1():
     return str(keys[-1])
 
 
-salt = input()
-salt = 'abc'
+def part2():
+    keys = []
 
-aa = part1()
+    i = 0
+    while len(keys) < 64:
+        h = gen_hash2(i)
+        if v := get_nlet(h, 3):
+            for j in range(i + 1, i + 1001):
+                g = gen_hash2(j)
+                if v[0] * 5 in g:
+                    print(f'found key {i} {j} : {h} {g}')
+                    keys.append(i)
+                    break
+        i += 1
+
+    return str(keys[-1])
+
+
+salt = input()
+
+# aa = part1()
+bb = part2()
 
 if locals().get('aa') is not None:
     print('part1:', aa)
