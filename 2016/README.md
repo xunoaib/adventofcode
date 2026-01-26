@@ -15,7 +15,7 @@
 | [Day 11: Radioisotope Thermoelectric Generators](https://adventofcode.com/2016/day/11) | Code |
 | [Day 12: Leonardo's Monorail](https://adventofcode.com/2016/day/12) | [Code](day12/day12.py) |
 | [Day 13: A Maze of Twisty Little Cubicles](https://adventofcode.com/2016/day/13) | [Code](day13/day13.py) |
-| [Day 14: One-Time Pad](https://adventofcode.com/2016/day/14) | Code |
+| [Day 14: One-Time Pad](https://adventofcode.com/2016/day/14) | [Code](day14/day14.py) |
 | [Day 15: Timing is Everything](https://adventofcode.com/2016/day/15) | Code |
 | [Day 16: Dragon Checksum](https://adventofcode.com/2016/day/16) | Code |
 | [Day 17: Two Steps Forward](https://adventofcode.com/2016/day/17) | Code |
