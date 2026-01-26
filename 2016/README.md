@@ -2,9 +2,9 @@
 
 |                      Day                      |         Solution       |
 | :-------------------------------------------- | :--------------------- |
-| [Day 1: No Time for a Taxicab](https://adventofcode.com/2016/day/1) | Code |
-| [Day 2: Bathroom Security](https://adventofcode.com/2016/day/2) | Code |
-| [Day 3: Squares With Three Sides](https://adventofcode.com/2016/day/3) | Code |
+| [Day 1: No Time for a Taxicab](https://adventofcode.com/2016/day/1) | [Code](day01/day01.py) |
+| [Day 2: Bathroom Security](https://adventofcode.com/2016/day/2) | [Code](day02/day02.c) (C) |
+| [Day 3: Squares With Three Sides](https://adventofcode.com/2016/day/3) | [Code](day03/day03.c) (C) |
 | [Day 4: Security Through Obscurity](https://adventofcode.com/2016/day/4) | [Code](day04/day04.py) |
 | [Day 5: How About a Nice Game of Chess?](https://adventofcode.com/2016/day/5) | [Code](day05/day05.py) |
 | [Day 6: Signals and Noise](https://adventofcode.com/2016/day/6) | [Code](day06/day06.py) |
