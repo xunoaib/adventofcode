@@ -3,44 +3,39 @@ import re
 import sys
 from collections import defaultdict
 
-lines = sys.stdin.read().splitlines()
 outputs = {}
 inputs = defaultdict(list)
 
-for line in lines:
+for line in sys.stdin:
     if m := re.match(r'^value (.*) goes to (.*)$', line):
         src, tar = m.groups()
         src = int(src)
-        inputs[tar].append(src)
         outputs[src] = tar
+        inputs[tar].append(src)
     elif m := re.match(r'^(.*) gives low to (.*) and high to (.*)$', line):
         src, low, high = m.groups()
         outputs[src] = [low, high]
         inputs[low].append(src)
         inputs[high].append(src)
 
-fixed = defaultdict(list)
 
-while True:
-    q = [
-        (o, sorted(v)) for o, v in inputs.items()
-        if len(v) > 1 and isinstance(v[0], int) and isinstance(v[1], int)
-    ]
+def can_resolve(vals):
+    return len(vals) == 2 and all(isinstance(v, int) for v in vals)
 
-    if not q:
-        break
 
-    obj, vals = q.pop()
-    del inputs[obj]
+q = [(node, vals) for node, vals in inputs.items() if can_resolve(vals)]
 
-    for v, o in zip(vals, outputs[obj]):
-        fixed[o].append(v)
-        inputs[o][inputs[o].index(obj)] = v
+while q:
+    node, vals = q.pop()
+    for val, out in zip(sorted(vals), outputs[node]):
+        inputs[out][inputs[out].index(node)] = val
+        if can_resolve(inputs[out]):
+            q.append((out, inputs[out]))
 
-a1 = next(int(k[4:]) for k, v in fixed.items() if set(v) == {61, 17})
+a1 = next(int(k[4:]) for k, v in inputs.items() if set(v) == {61, 17})
 print('part1:', a1)
 
-a2 = math.prod(fixed[f'output {o}'][0] for o in [0, 1, 2])
+a2 = math.prod(inputs[f'output {o}'][0] for o in range(3))
 print('part2:', a2)
 
 assert a1 == 118
