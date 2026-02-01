@@ -1,3 +1,4 @@
+import math
 import re
 import sys
 from collections import defaultdict
@@ -49,3 +50,6 @@ while True:
 
 aa = next(k[3:] for k, v in fixed.items() if set(v) == {61, 17})
 print('part1:', aa)
+
+bb = math.prod([fixed[f'output{o}'][0] for o in [0, 1, 2]])
+print('part2:', bb)
