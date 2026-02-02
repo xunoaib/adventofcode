@@ -15,7 +15,7 @@ for L in open(0):
 
 f=lambda V:len(V)>1and all(isinstance(v,T)for v in V)
 
-q=[(n,v)for n,v in I.items()if f(v)]
+q=[i for i in I.items()if f(i[1])]
 
 while q:
 	n,v=q.pop()
