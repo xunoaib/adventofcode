@@ -1,12 +1,13 @@
 import re
 O={}
 I={}
+R=re.search
 for L in open(0):
-	if m:=re.search(r'e (.*) g.*o (.*)',L):
+	if m:=R(r'e (.*) g.*o (.*)',L):
 		s,t=m.groups()
 		O[int(s)]=t
 		I[t]=I.get(t,[])+[int(s)]
-	elif m:=re.search(r'(.*) g.*o (.*) a.*o (.*)',L):
+	elif m:=R(r'(.*) g.*o (.*) a.*o (.*)',L):
 		s,l,h=m.groups()
 		O[s]=[l,h]
 		I|={k:I.get(k,[])+[s]for k in[l,h]}
