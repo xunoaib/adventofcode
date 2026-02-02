@@ -1,42 +1,37 @@
 import math
 import re
-import sys
-from collections import defaultdict
 
-outputs = {}
-inputs = defaultdict(list)
+O = {}
+I = {}
 
-for line in sys.stdin:
-    if m := re.match(r'^value (.*) goes to (.*)$', line):
-        src, tar = m.groups()
-        src = int(src)
-        outputs[src] = tar
-        inputs[tar].append(src)
-    elif m := re.match(r'^(.*) gives low to (.*) and high to (.*)$', line):
-        src, low, high = m.groups()
-        outputs[src] = [low, high]
-        inputs[low].append(src)
-        inputs[high].append(src)
+for L in open(0):
+    if m := re.match(r'^value (.*) goes to (.*)$', L):
+        s, t = m.groups()
+        O[int(s)] = t
+        I[t] = I.get(t, []) + [int(s)]
+    elif m := re.match(r'^(.*) gives low to (.*) and high to (.*)$', L):
+        s, l, h = m.groups()
+        O[s] = [l, h]
+        I |= {k: I.get(k, []) + [s] for k in [l, h]}
 
 
-def can_resolve(vals):
-    return len(vals) == 2 and all(isinstance(v, int) for v in vals)
+def f(V):
+    return len(V) == 2 and all(isinstance(v, int) for v in V)
 
 
-q = [(node, vals) for node, vals in inputs.items() if can_resolve(vals)]
+q = [(n, v) for n, v in I.items() if f(v)]
 
 while q:
-    node, vals = q.pop()
-    for val, out in zip(sorted(vals), outputs[node]):
-        inputs[out][inputs[out].index(node)] = val
-        if can_resolve(inputs[out]):
-            q.append((out, inputs[out]))
+    n, v = q.pop()
+    for v, o in zip(sorted(v), O[n]):
+        I[o][I[o].index(n)] = v
+        q += [(o, I[o])] * f(I[o])
 
-a1 = next(int(k[4:]) for k, v in inputs.items() if set(v) == {61, 17})
-print('part1:', a1)
+a = next(int(k[4:]) for k, v in I.items() if set(v) == {61, 17})
+b = math.prod(I[f'output {o}'][0] for o in '012')
 
-a2 = math.prod(inputs[f'output {o}'][0] for o in range(3))
-print('part2:', a2)
+print(a)
+print(b)
 
-assert a1 == 118
-assert a2 == 143153
+assert a == 118
+assert b == 143153
