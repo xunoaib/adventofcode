@@ -11,8 +11,7 @@ for L in open(0):
 		O[s]=[l,h]
 		I|={k:I.get(k,[])+[s]for k in[l,h]}
 
-def f(V):
-	return len(V)>1and all(isinstance(v,int)for v in V)
+f=lambda V:len(V)>1and all(isinstance(v,int)for v in V)
 
 q=[(n,v)for n,v in I.items()if f(v)]
 
