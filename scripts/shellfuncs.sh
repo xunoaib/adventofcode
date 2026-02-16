@@ -20,7 +20,7 @@ run() {
     name=$(basename "$PWD")
 
     case "$name" in
-        day[1-9]*)
+        day[0-9]*)
             ;;
         *)
             echo "cwd \"$name\" is not in the form: dayN"
