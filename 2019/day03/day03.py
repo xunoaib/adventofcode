@@ -41,6 +41,11 @@ for wire_num, line in enumerate(sys.stdin):
 
             visited[(x,y)] = wire_num
 
-dist = min(abs(x)+abs(y) for x,y in intersections)
-print('closest intersection dist:', dist)
-print('shortest intersection steps:', min(stepsums))
+a1 = min(abs(x)+abs(y) for x,y in intersections)
+a2 = min(stepsums)
+
+print('part1:', a1)
+print('part2:', a2)
+
+assert a1 == 896
+assert a2 == 16524

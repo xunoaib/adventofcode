@@ -39,8 +39,11 @@ def valid_part2(num):
             return True
     return False
 
-vals = list(generate_part1(minval=start, maxval=end))
-print('part1:', len(vals))
+a1 = len(list(generate_part1(minval=start, maxval=end)))
+print('part1:', a1)
 
-vals = list(generate_part2(minval=start, maxval=end))
-print('part2:', len(vals))
+a2 = len(list(generate_part2(minval=start, maxval=end)))
+print('part2:', a2)
+
+assert a1 == 1694
+assert a2 == 1148

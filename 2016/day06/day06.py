@@ -17,6 +17,9 @@ def main():
     part2 = ''.join(counter.most_common()[-1][0] for counter in counters)
     print('part2:', part2)
 
+    assert part1 == 'qoclwvah'
+    assert part2 == 'ryrgviuv'
+
 
 if __name__ == "__main__":
     main()

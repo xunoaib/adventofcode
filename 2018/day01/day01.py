@@ -3,14 +3,20 @@ from itertools import cycle
 
 ints = list(map(int, sys.stdin))
 
-print('part1:', sum(ints))
+part1 = sum(ints)
 
-freq = 0
+freq = part2 = 0
 seen = {freq}
 
 for i in cycle(ints):
     freq += i
     if freq in seen:
-        print('part2:', freq)
+        part2 = freq
         break
     seen.add(freq)
+
+assert part1 == 406
+assert part2 == 312
+
+print('part1:', part1)
+print('part2:', part2)

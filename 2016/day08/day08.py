@@ -22,13 +22,19 @@ def main():
                 screen[:,a] = np.append(screen[-1:,a], screen[:-1,a])
 
     part1 = np.count_nonzero(screen == 1)
-    print('part1:', part1)
 
-    s = '\n'.join(
+    part2 = '\n'.join(
         ''.join('#' if ch else ' ' for ch in row)
         for row in screen
     )
-    print(s)
+
+    print('part1:', part1)
+    print('part2:\n', part2)
+
+    assert part1 == 106
+    assert part2 == ' ##  #### #    #### #     ##  #   #####  ##   ### \n#  # #    #    #    #    #  # #   ##    #  # #    \n#    ###  #    ###  #    #  #  # # ###  #    #    \n#    #    #    #    #    #  #   #  #    #     ##  \n#  # #    #    #    #    #  #   #  #    #  #    # \n ##  #    #### #### ####  ##    #  #     ##  ###  '
+
+
 
 if __name__ == '__main__':
     try:

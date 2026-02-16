@@ -99,6 +99,9 @@ def main():
     print('part1:', a1)
     print('part2:', a2)
 
+    assert a1 == 'IBJTUWGFKDNVEYAHOMPCQRLSZX'
+    assert a2 == 1118
+
 
 if __name__ == '__main__':
     try:

@@ -13,7 +13,7 @@ def main():
         data = f'{door_id}{idx}'.encode()
         hash = md5(data).hexdigest()
         idx += 1
-        if hash.startswith('0'*5):
+        if hash.startswith('0' * 5):
             # print(hash, data)
 
             if len(password1) < 8:
@@ -24,8 +24,13 @@ def main():
                 if len(password2) == 8:
                     break
 
+    password2 = ''.join(kv[1] for kv in sorted(password2.items()))
+
     print('part1:', password1)
-    print('part2:', ''.join(kv[1] for kv in sorted(password2.items())))
+    print('part2:', password2)
+
+    assert password1 == 'c6697b55'
+    assert password2 == '8c35d1ab'
 
 
 if __name__ == "__main__":

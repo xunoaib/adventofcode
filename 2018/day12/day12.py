@@ -36,4 +36,10 @@ for i, (s, idx) in enumerate(gens):
     print(f'{i:>2}: ({idx:>3}) {s}')
     print(pot_nums(s, idx))
 
-print('part1:', sum(pot_nums(*gens[-1])))
+part1 = sum(pot_nums(*gens[-1]))
+
+print('part1:', part1)
+
+assert part1 == 1987
+
+# TODO: Part 2

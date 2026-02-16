@@ -22,3 +22,6 @@ a2 = min(
     for c in string.ascii_lowercase
 )
 print('part2:', a2)
+
+assert a1 == 10886
+assert a2 == 4684

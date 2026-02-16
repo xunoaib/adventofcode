@@ -18,5 +18,8 @@ groups = list(nx.connected_components(G))
 a1 = next(len(p) for p in groups if '0' in p)
 a2 = len(groups)
 
-print('part2:', a1)
+print('part1:', a1)
 print('part2:', a2)
+
+assert a1 == 283
+assert a2 == 195

@@ -25,5 +25,8 @@ def main():
     print('part1:', total)
     print('part2:', part2)
 
+    assert total == 409147
+    assert part2 == 991
+
 if __name__ == "__main__":
     main()
