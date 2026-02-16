@@ -12,7 +12,17 @@ import lxml.html
 import requests
 import websocket
 from aoclib import AOC
+from dotenv import load_dotenv
 from private_leaderboard import PrivateLeaderboard
+
+load_dotenv()
+
+if _ffpath := os.environ.get('FIREFOX_PROFILE_PATH'):
+    _cookiepath = pathlib.Path(_ffpath) / 'cookies.sqlite'
+else:
+    _cookiepath = None
+
+FIREFOX_COOKIES_FILE = _cookiepath
 
 # websocket server used to refresh the web browser
 WS_REFRESH_URI = "ws://localhost:8765"
@@ -66,6 +76,7 @@ def get_parser():
     group.add_argument(
         '-c',
         '--cookiefile',
+        default=FIREFOX_COOKIES_FILE,
         help='Firefox cookies file (sqlite) if using a non-default profile'
     )
 
