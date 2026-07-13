@@ -51,40 +51,41 @@ lines = sys.stdin.read().split('\n')
 
 grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
 
-carts = {p for p, v in grid.items() if v in '^v<>'}
-corners = {p for p, v in grid.items() if v in r'\/'}
-intersections = {p for p, v in grid.items() if v in r'+'}
-print(len(carts))
+# carts = {p for p, v in grid.items() if v in '^v<>'}
+# corners = {p for p, v in grid.items() if v in r'\/'}
+# intersections = {p for p, v in grid.items() if v in r'+'}
 
 ul_corners = {
-    (r, c) for (r, c), v in grid.items() if v == '/' and grid.get((r, c + 1)) == '-'
+    (r, c)
+    for (r, c), v in grid.items()
+    if v == '/' and grid.get((r, c + 1), 'X') in '-+'
 }
 
-
-print(ul_corners)
-
-rings = []
+tracks = []
+carts = []
 
 for p in ul_corners:
-    # print(p, grid[p])
-    # print(p := find_right(*p), grid[p])
-    # print(p := find_down(*p), grid[p])
-    # print(p := find_left(*p), grid[p])
-    # print(p := find_up(*p), grid[p])
-    # print()
-
     funcs = [find_right, find_down, find_left, find_up]
+    dirs = '>v<^'
     points = []
 
-    for f in funcs:
+    track_carts = []
+    for f, d in zip(funcs, dirs):
         q = f(*p)
-        points += points_between(p, q)
+        add = points_between(p, q)
+
+        for r in add:
+            if grid[r] in dirs:
+                track_carts.append(1 if grid[r] == d else -1)
+                print('cart at', r)
+
+        points += add
         p = q
 
-    print(p, len(points), points)
+    carts.append(track_carts)
+    tracks.append(points)
 
-
-# if ch in r'\/'
+print(carts)
 
 if locals().get('aa') is not None:
     print('part1:', aa)
