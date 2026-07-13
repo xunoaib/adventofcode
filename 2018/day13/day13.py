@@ -71,25 +71,34 @@ for track_id, src in enumerate(ul_corners):
     funcs = [find_right, find_down, find_left, find_up]
     dirs = '>v<^'
     points = []
-    _carts = []
 
     for f, d in zip(funcs, dirs):
         tar = f(*src)
         add = points_between(src, tar)
 
         for p in add:
+            # associate track tile with track id
             tile_track_ids[p].append(track_id)
+
+            # identify cart
             if grid[p] in dirs:
-                _carts.append(1 if grid[p] == d else -1)
+                cart_dir = 1 if grid[p] == d else -1
+                carts.append((p, cart_dir, track_id))
                 print('cart at', p)
 
         points += add
         src = tar
 
-    carts.append(_carts)
     tracks.append(points)
 
-__import__('pprint').pprint(dict(tile_track_ids))
+print(carts)
+
+# step carts foward
+for pos, dir, track_id in carts:
+    route = tracks[track_id]
+    i = route.index(pos)
+    npos = route[(i + dir) % len(route)]
+    print(pos, npos)
 
 if locals().get('aa') is not None:
     print('part1:', aa)
