@@ -25,6 +25,26 @@ def find_up(r, c):
     return find_in_dir(r, c, -1, 0, '\\', '/')
 
 
+def points_between(p1, p2, include_last=False):
+    r1, c1 = p1
+    r2, c2 = p2
+
+    dr = (r2 > r1) - (r2 < r1)
+    dc = (c2 > c1) - (c2 < c1)
+
+    assert 0 in (dr, dc)
+
+    points = [(r1, c1)]
+    while (r1, c1) != p2:
+        r1 += dr
+        c1 += dc
+        points.append((r1, c1))
+
+    if not include_last:
+        points.pop()
+    return points
+
+
 aa = bb = None
 
 lines = sys.stdin.read().split('\n')
@@ -43,13 +63,26 @@ ul_corners = {
 
 print(ul_corners)
 
+rings = []
+
 for p in ul_corners:
-    print(p, grid[p])
-    print(p := find_right(*p), grid[p])
-    print(p := find_down(*p), grid[p])
-    print(p := find_left(*p), grid[p])
-    print(p := find_up(*p), grid[p])
-    print()
+    # print(p, grid[p])
+    # print(p := find_right(*p), grid[p])
+    # print(p := find_down(*p), grid[p])
+    # print(p := find_left(*p), grid[p])
+    # print(p := find_up(*p), grid[p])
+    # print()
+
+    funcs = [find_right, find_down, find_left, find_up]
+    points = []
+
+    for f in funcs:
+        q = f(*p)
+        points += points_between(p, q)
+        p = q
+
+    print(p, len(points), points)
+
 
 # if ch in r'\/'
 
