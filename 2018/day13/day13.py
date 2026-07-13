@@ -13,12 +13,12 @@ def find_right(r, c):
     return find_in_dir(r, c, 0, 1, '/', '\\')
 
 
-def find_down(r, c):
-    return find_in_dir(r, c, 1, 0, '\\', '/')
-
-
 def find_left(r, c):
     return find_in_dir(r, c, 0, -1, '/', '\\')
+
+
+def find_down(r, c):
+    return find_in_dir(r, c, 1, 0, '\\', '/')
 
 
 def find_up(r, c):
@@ -27,7 +27,7 @@ def find_up(r, c):
 
 aa = bb = None
 
-lines = sys.stdin.read().strip().split('\n')
+lines = sys.stdin.read().split('\n')
 
 grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
 
@@ -44,11 +44,11 @@ ul_corners = {
 print(ul_corners)
 
 for p in ul_corners:
-    print(p)
-    print(p := find_right(*p))
-    print(p := find_down(*p))
-    print(p := find_left(*p))
-    print(p := find_up(*p))
+    print(p, grid[p])
+    print(p := find_right(*p), grid[p])
+    print(p := find_down(*p), grid[p])
+    print(p := find_left(*p), grid[p])
+    print(p := find_up(*p), grid[p])
     print()
 
 # if ch in r'\/'
