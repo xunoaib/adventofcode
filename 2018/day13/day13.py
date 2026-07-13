@@ -1,4 +1,5 @@
 import sys
+from collections import defaultdict
 
 
 def find_in_dir(r: int, c: int, dr: int, dc: int, src: str, tar: str):
@@ -64,25 +65,27 @@ ul_corners = {
 tracks = []
 carts = []
 
-for p in ul_corners:
+tile_tracks = defaultdict(list)
+
+for track_id, src in enumerate(ul_corners):
     funcs = [find_right, find_down, find_left, find_up]
     dirs = '>v<^'
     points = []
+    _carts = []
 
-    track_carts = []
     for f, d in zip(funcs, dirs):
-        q = f(*p)
-        add = points_between(p, q)
+        tar = f(*src)
+        add = points_between(src, tar)
 
-        for r in add:
-            if grid[r] in dirs:
-                track_carts.append(1 if grid[r] == d else -1)
-                print('cart at', r)
+        for p in add:
+            if grid[p] in dirs:
+                _carts.append(1 if grid[p] == d else -1)
+                print('cart at', p)
 
         points += add
-        p = q
+        src = tar
 
-    carts.append(track_carts)
+    carts.append(_carts)
     tracks.append(points)
 
 print(carts)
