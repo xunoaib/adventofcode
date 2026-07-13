@@ -65,7 +65,7 @@ ul_corners = {
 tracks = []
 carts = []
 
-tile_tracks = defaultdict(list)
+tile_track_ids = defaultdict(list)
 
 for track_id, src in enumerate(ul_corners):
     funcs = [find_right, find_down, find_left, find_up]
@@ -78,6 +78,7 @@ for track_id, src in enumerate(ul_corners):
         add = points_between(src, tar)
 
         for p in add:
+            tile_track_ids[p].append(track_id)
             if grid[p] in dirs:
                 _carts.append(1 if grid[p] == d else -1)
                 print('cart at', p)
@@ -88,7 +89,7 @@ for track_id, src in enumerate(ul_corners):
     carts.append(_carts)
     tracks.append(points)
 
-print(carts)
+__import__('pprint').pprint(dict(tile_track_ids))
 
 if locals().get('aa') is not None:
     print('part1:', aa)
