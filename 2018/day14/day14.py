@@ -11,15 +11,23 @@ for _ in range(n):
     j = (j + x[j] + 1) % len(x)
 
 while len(x) < n + 10:
-    y = [*map(int, str(x[i] + x[j]))]
-    x += y
+    x += [*map(int, str(x[i] + x[j]))]
     i = (i + x[i] + 1) % len(x)
     j = (j + x[j] + 1) % len(x)
 
-print('part1:', aa := ''.join(map(str, x[n : n + 10])))
+s = ''.join(map(str, x))
 
-if locals().get('bb') is not None:
-    print('part2:', bb)
+print('part1:', aa := s[n : n + 10])
 
-# assert aa == 0
-# assert bb == 0
+last_idx = 0
+while str(n) not in s:
+    last_idx = len(x) - len(str(n))
+    x += [*map(int, str(x[i] + x[j]))]
+    i = (i + x[i] + 1) % len(x)
+    j = (j + x[j] + 1) % len(x)
+    s = ''.join(map(str, x[last_idx:]))
+
+print('part2:', bb := last_idx + s.index(str(n)))
+
+assert aa == '1031816654'
+assert bb == 20179839
