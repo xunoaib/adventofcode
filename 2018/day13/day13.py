@@ -174,9 +174,7 @@ def step_carts():
 
         # detect crash with other cart
         if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
-            r, c = npos
-            print(f'part1: {c},{r}')
-            exit()
+            return npos
 
 
 def track_pos_to_char(track_id, track_pos):
@@ -191,17 +189,17 @@ gg = {
 print(gg)
 grid |= gg
 
-# exit()
-
 print_grid()
 
-while True:
-    positions = [tracks[c.track_id][c.track_pos] for c in carts]
-    print(positions)
 
-    step_carts()
-    print_grid()
+def part1():
+    while True:
+        if crash := step_carts():
+            return f'{crash[1]},{crash[0]}'
+        print_grid()
 
+
+aa = part1()
 
 if locals().get('aa') is not None:
     print('part1:', aa)
@@ -209,5 +207,5 @@ if locals().get('aa') is not None:
 if locals().get('bb') is not None:
     print('part2:', bb)
 
-# assert aa == 0
+# assert aa == '136,36'
 # assert bb == 0
