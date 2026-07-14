@@ -166,14 +166,17 @@ def step_cart(cart: Cart):
         cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
 
     # detect crash with other cart
-    if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
-        return npos
+    if npos in [cart_coords(c) for c in carts if c != cart]:
+        return cart
 
 
 def step_carts():
+    crashes = []
     for cart in carts:
-        if crash := step_cart(cart):
-            return crash
+        if crash_cart := step_cart(cart):
+            crashes.append(crash_cart)
+            # TODO: also collect all other crashes
+    return crashes
 
 
 def cart_coords(cart: Cart):
@@ -199,16 +202,19 @@ def part1():
     global carts
     assert carts
     while True:
-        if crash := step_carts():
-            carts = [c for c in carts if cart_coords(c) != crash]
-            return f'{crash[1]},{crash[0]}'
+        if crashes := step_carts():
+            for cart in crashes:
+                carts = [c for c in carts if cart_coords(c) != cart_coords(cart)]
+            r, c = cart_coords(crashes[0])
+            return f'{c},{r}'
 
 
 def part2():
     global carts
     while len(carts) > 1:
-        if crash := step_carts():
-            carts = [c for c in carts if cart_coords(c) != crash]
+        if crashes := step_carts():
+            for cart in crashes:
+                carts = [c for c in carts if cart_coords(c) != cart_coords(cart)]
 
     r, c = cart_coords(carts[0])
     return f'{c},{r}'
