@@ -128,38 +128,41 @@ def step_cart(cart: Cart):
         # print('--- no intersection')
         cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
 
-    # detect crash with other cart
-    if npos in [cart_coords(c) for c in carts if c != cart]:
-        return cart
-
 
 def step_carts():
-    crashes = []
-    for cart in carts:
-        if crash_cart := step_cart(cart):
-            crashes.append(crash_cart)
-            # TODO: also collect all other crashes
-    return crashes
+
+    for cart in list(carts):
+        if cart not in carts:
+            continue
+
+        step_cart(cart)
+
+        # identify and remove crashes
+        carts_on_tile = [c for c in carts if cart_coords(c) == cart_coords(cart)]
+        if len(carts_on_tile) > 1:
+            print('crashed')
+            for c in carts_on_tile:
+                carts.remove(c)
+                CRASHES.append(c)
+
+
+CRASHES = []
 
 
 def part1():
-    global carts
-    assert carts
-    while True:
-        if crashes := step_carts():
-            for cart in crashes:
-                carts = [c for c in carts if cart_coords(c) != cart_coords(cart)]
-            r, c = cart_coords(crashes[0])
-            return f'{c},{r}'
+    print(*map(cart_coords, carts))
+    print_grid()
+    while len(carts) > 1:
+        step_carts()
+        print_grid()
+        print(*map(cart_coords, carts))
+
+    r, c = cart_coords(CRASHES[0])
+    return f'{c},{r}'
 
 
 def part2():
-    global carts
-    while len(carts) > 1:
-        if crashes := step_carts():
-            for cart in crashes:
-                carts = [c for c in carts if cart_coords(c) != cart_coords(cart)]
-
+    assert len(carts) == 1
     r, c = cart_coords(carts[0])
     return f'{c},{r}'
 
@@ -208,7 +211,8 @@ for track_id, src in enumerate(ul_corners):
 # replace carts with normal chars
 grid |= {cart_coords(c): tile_track_dirs[c.track_id, cart_coords(c)] for c in carts}
 
-print_grid()
+if '-v' not in sys.argv:
+    print_grid = lambda: None
 
 aa = part1()
 print('part1:', aa)
