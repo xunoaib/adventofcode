@@ -86,11 +86,9 @@ def step_cart(cart: Cart):
     npos = track[(cart.track_pos + cart.facing_forward) % len(track)]
     assert pos != npos
 
-    if len(tile_track_ids[npos]) > 1:
-        # print('--- intersection')
+    if len(track_ids[npos]) > 1:
         if cart.turn_state:  # left/right turn => switch tracks
-            # print(track_id, npos, tile_track_ids[npos])
-            new_track_id = next(t for t in tile_track_ids[npos] if t != track_id)
+            new_track_id = next(t for t in track_ids[npos] if t != track_id)
             new_track = tracks[new_track_id]
             new_track_pos = new_track.index(npos)
 
@@ -105,27 +103,19 @@ def step_cart(cart: Cart):
             ndr, ndc = DIRS4[idx]
             npos2 = (r2 + ndr, c2 + ndc)
 
-            # print('TURNING:', idx, (ndr, ndc), ':', npos, npos2)
-
             i = new_track.index(npos)
             j = new_track.index(npos2)
-
-            # print(cart)
 
             cart.track_id = new_track_id
             cart.track_pos = new_track_pos
             cart.facing_forward = 1 if ((i + 1) % len(new_track) == j) else -1
             cart.turn_state = (cart.turn_state + 2) % 3 - 1
 
-            # print(cart)
-
             assert ((i + 1) % len(new_track) == j) or ((j + 1) % len(new_track) == i)
         else:
-            # print('moving forward')
             cart.turn_state = (cart.turn_state + 2) % 3 - 1
             cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
     else:
-        # print('--- no intersection')
         cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
 
 
@@ -140,22 +130,16 @@ def step_carts():
         # identify and remove crashes
         carts_on_tile = [c for c in carts if cart_coords(c) == cart_coords(cart)]
         if len(carts_on_tile) > 1:
-            print('crashed')
             for c in carts_on_tile:
                 carts.remove(c)
                 CRASHES.append(c)
 
 
-CRASHES = []
-
-
 def part1():
-    print(*map(cart_coords, carts))
     print_grid()
     while len(carts) > 1:
         step_carts()
         print_grid()
-        print(*map(cart_coords, carts))
 
     r, c = cart_coords(CRASHES[0])
     return f'{c},{r}'
@@ -167,10 +151,7 @@ def part2():
     return f'{c},{r}'
 
 
-aa = bb = None
-
 lines = sys.stdin.read().split('\n')
-
 grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
 
 ul_corners = {
@@ -180,45 +161,41 @@ ul_corners = {
 }
 
 tracks = []
+track_ids = defaultdict(list)  # (r,c) => [...track_ids]
 carts: list[Cart] = []
-
-tile_track_ids = defaultdict(list)
-tile_track_dirs = {}
-
-for track_id, src in enumerate(ul_corners):
-    funcs = [find_right, find_down, find_left, find_up]
-    dir_chars = '>v<^'
-    points = []
-
-    for next_corner, dir_char in zip(funcs, dir_chars):
-        tar = next_corner(*src)
-        segment = points_between(src, tar)
-
-        for p in segment:
-            tile_track_dirs[track_id, p] = '-' if dir_char in '><' else '|'
-            tile_track_ids[p].append(track_id)
-            if (cart_char := grid[p]) in dir_chars:
-                facing_forward = 1 if cart_char == dir_char else -1
-                track_position = len(points) + segment.index(p)
-                carts.append(Cart(track_id, track_position, facing_forward, -1))
-
-        points += segment
-        src = tar
-
-    tracks.append(points)
+CRASHES = []
 
 
-# replace carts with normal chars
-grid |= {cart_coords(c): tile_track_dirs[c.track_id, cart_coords(c)] for c in carts}
+def setup():
+    for track_id, src in enumerate(ul_corners):
+        funcs = [find_right, find_down, find_left, find_up]
+        dir_chars = '>v<^'
+        track = []
+
+        for next_corner, dir_char in zip(funcs, dir_chars):
+            tar = next_corner(*src)
+            segment = points_between(src, tar)
+
+            for p in segment:
+                track_ids[p].append(track_id)
+                if (cart_char := grid[p]) in dir_chars:
+                    facing_forward = [-1, 1][cart_char == dir_char]
+                    track_position = len(track) + segment.index(p)
+                    carts.append(Cart(track_id, track_position, facing_forward, -1))
+
+            track += segment
+            src = tar
+
+        tracks.append(track)
+
+
+setup()
 
 if '-v' not in sys.argv:
     print_grid = lambda: None
 
-aa = part1()
-print('part1:', aa)
+print('part1:', a1 := part1())
+print('part2:', a2 := part2())
 
-bb = part2()
-print('part2:', bb)
-
-# assert aa == '136,36'
-# assert bb == 0
+assert a1 == '136,36'
+assert a2 == '53,111'
