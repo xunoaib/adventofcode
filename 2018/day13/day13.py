@@ -143,24 +143,32 @@ def step_carts():
                 dc = (c2 > c1) - (c2 < c1)
 
                 facing_dir = DIRS4.index((dr, dc))
-                ndr, ndc = DIRS4[(facing_dir + cart.turn_state) % 4]
+                idx = (facing_dir + cart.turn_state) % 4
+                ndr, ndc = DIRS4[idx]
                 npos2 = (r2 + ndr, c2 + ndc)
+
+                print('TURNING:', idx, (ndr, ndc), ':', npos, npos2)
 
                 i = new_track.index(npos)
                 j = new_track.index(npos2)
 
+                print(cart)
+
                 cart.track_id = new_track_id
                 cart.track_pos = new_track_pos
                 cart.facing_forward = 1 if ((i + 1) % len(new_track) == j) else -1
+                cart.turn_state = (cart.turn_state + 2) % 3 - 1
+
+                print(cart)
 
                 assert ((i + 1) % len(new_track) == j) or (
                     (j + 1) % len(new_track) == i
                 )
-
-            cart.turn_state = (cart.turn_state + 2) % 3 - 1
+            else:
+                cart.turn_state = (cart.turn_state + 2) % 3 - 1
         else:
             # print('--- no intersection')
-            cart.track_pos = (cart.track_pos + 1) % len(track)
+            cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
 
         # detect crash with other cart
         if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
