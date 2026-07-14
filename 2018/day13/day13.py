@@ -1,3 +1,5 @@
+# NOTE: Very messy
+
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
