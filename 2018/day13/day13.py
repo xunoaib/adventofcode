@@ -4,8 +4,6 @@ from dataclasses import dataclass
 
 DIRS4 = R, D, L, U = (0, 1), (1, 0), (0, -1), (-1, 0)
 
-FACING_R, FACING_D, FACING_L, FACING_U = range(4)
-
 
 @dataclass
 class Cart:
@@ -37,42 +35,6 @@ def find_down(r, c):
 
 def find_up(r, c):
     return find_in_dir(r, c, -1, 0, '\\', '/')
-
-
-def get_track_dir(
-    pos: tuple[int, int],
-    facing_dir: int,
-    track: list[tuple[int, int]],
-):
-    i = track.index(pos)
-
-    forward_dirs = {
-        (0, FACING_U),
-        (0, FACING_R),
-        (4, FACING_R),
-        (4, FACING_D),
-        (8, FACING_D),
-        (8, FACING_L),
-        (12, FACING_L),
-        (12, FACING_U),
-    }
-    if i % 4 == 0:
-        return 1 if (i, facing_dir) in forward_dirs else -1
-
-    section = i // (len(track) // 4)
-
-    print('#', pos, facing_dir, i, section)
-
-    return {
-        (0, FACING_R): 1,
-        (0, FACING_L): -1,
-        (1, FACING_D): 1,
-        (1, FACING_U): -1,
-        (2, FACING_R): -1,
-        (2, FACING_L): 1,
-        (3, FACING_D): -1,
-        (3, FACING_U): 1,
-    }[section, facing_dir]
 
 
 def points_between(p1, p2, include_last=False):
