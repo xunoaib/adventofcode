@@ -165,14 +165,17 @@ def step_carts():
                     (j + 1) % len(new_track) == i
                 )
             else:
+                print('moving forward')
                 cart.turn_state = (cart.turn_state + 2) % 3 - 1
+                cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
         else:
             # print('--- no intersection')
             cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
 
         # detect crash with other cart
         if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
-            print(npos)
+            r, c = npos
+            print(f'part1: {c},{r}')
             exit()
 
 
@@ -195,10 +198,6 @@ print_grid()
 while True:
     positions = [tracks[c.track_id][c.track_pos] for c in carts]
     print(positions)
-
-    # if len(set(positions)) < len(carts):
-    #     print(positions)
-    #     exit()
 
     step_carts()
     print_grid()
