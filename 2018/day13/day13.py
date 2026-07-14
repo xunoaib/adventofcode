@@ -115,62 +115,65 @@ for track_id, src in enumerate(ul_corners):
     tracks.append(points)
 
 
+def step_cart(cart: Cart):
+    track_id = cart.track_id
+    track = tracks[track_id]
+
+    pos = track[cart.track_pos]
+    npos = track[(cart.track_pos + cart.facing_forward) % len(track)]
+    assert pos != npos
+
+    if len(tile_track_ids[npos]) > 1:
+        # print('--- intersection')
+        if cart.turn_state:  # left/right turn => switch tracks
+            # print(track_id, npos, tile_track_ids[npos])
+            new_track_id = next(t for t in tile_track_ids[npos] if t != track_id)
+            new_track = tracks[new_track_id]
+            new_track_pos = new_track.index(npos)
+
+            # get original facing dir, then new facing dir
+            r1, c1 = pos
+            r2, c2 = npos
+            dr = (r2 > r1) - (r2 < r1)
+            dc = (c2 > c1) - (c2 < c1)
+
+            facing_dir = DIRS4.index((dr, dc))
+            idx = (facing_dir + cart.turn_state) % 4
+            ndr, ndc = DIRS4[idx]
+            npos2 = (r2 + ndr, c2 + ndc)
+
+            # print('TURNING:', idx, (ndr, ndc), ':', npos, npos2)
+
+            i = new_track.index(npos)
+            j = new_track.index(npos2)
+
+            # print(cart)
+
+            cart.track_id = new_track_id
+            cart.track_pos = new_track_pos
+            cart.facing_forward = 1 if ((i + 1) % len(new_track) == j) else -1
+            cart.turn_state = (cart.turn_state + 2) % 3 - 1
+
+            # print(cart)
+
+            assert ((i + 1) % len(new_track) == j) or ((j + 1) % len(new_track) == i)
+        else:
+            # print('moving forward')
+            cart.turn_state = (cart.turn_state + 2) % 3 - 1
+            cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
+    else:
+        # print('--- no intersection')
+        cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
+
+    # detect crash with other cart
+    if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
+        return npos
+
+
 def step_carts():
     for cart in carts:
-        track_id = cart.track_id
-        track = tracks[track_id]
-
-        pos = track[cart.track_pos]
-        npos = track[(cart.track_pos + cart.facing_forward) % len(track)]
-        assert pos != npos
-
-        if len(tile_track_ids[npos]) > 1:
-            # print('--- intersection')
-            if cart.turn_state:  # left/right turn => switch tracks
-                # print(track_id, npos, tile_track_ids[npos])
-                new_track_id = next(t for t in tile_track_ids[npos] if t != track_id)
-                new_track = tracks[new_track_id]
-                new_track_pos = new_track.index(npos)
-
-                # get original facing dir, then new facing dir
-                r1, c1 = pos
-                r2, c2 = npos
-                dr = (r2 > r1) - (r2 < r1)
-                dc = (c2 > c1) - (c2 < c1)
-
-                facing_dir = DIRS4.index((dr, dc))
-                idx = (facing_dir + cart.turn_state) % 4
-                ndr, ndc = DIRS4[idx]
-                npos2 = (r2 + ndr, c2 + ndc)
-
-                # print('TURNING:', idx, (ndr, ndc), ':', npos, npos2)
-
-                i = new_track.index(npos)
-                j = new_track.index(npos2)
-
-                # print(cart)
-
-                cart.track_id = new_track_id
-                cart.track_pos = new_track_pos
-                cart.facing_forward = 1 if ((i + 1) % len(new_track) == j) else -1
-                cart.turn_state = (cart.turn_state + 2) % 3 - 1
-
-                # print(cart)
-
-                assert ((i + 1) % len(new_track) == j) or (
-                    (j + 1) % len(new_track) == i
-                )
-            else:
-                # print('moving forward')
-                cart.turn_state = (cart.turn_state + 2) % 3 - 1
-                cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
-        else:
-            # print('--- no intersection')
-            cart.track_pos = (cart.track_pos + cart.facing_forward) % len(track)
-
-        # detect crash with other cart
-        if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
-            return npos
+        if crash := step_cart(cart):
+            return crash
 
 
 def cart_coords(cart: Cart):
@@ -199,7 +202,6 @@ def part1():
         if crash := step_carts():
             carts = [c for c in carts if cart_coords(c) != crash]
             return f'{crash[1]},{crash[0]}'
-        # print_grid()
 
 
 def part2():
