@@ -83,14 +83,13 @@ grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
 ul_corners = {
     (r, c)
     for (r, c), v in grid.items()
-    if v == '/' and grid.get((r, c + 1), 'X') in '-+'
+    if v == '/' and grid.get((r, c + 1), 'X') in '-+><'
 }
 
 tracks = []
 carts: list[Cart] = []
 
 tile_track_ids = defaultdict(list)
-
 tile_track_dirs = {}
 
 for track_id, src in enumerate(ul_corners):
