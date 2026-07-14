@@ -5,6 +5,14 @@ from dataclasses import dataclass
 DIRS4 = R, D, L, U = (0, 1), (1, 0), (0, -1), (-1, 0)
 
 
+@dataclass
+class Cart:
+    track_id: int
+    track_pos: int  # position on track
+    facing_forward: int  # direction on track (1=forward, -1=backward)
+    turn_state: int  # next turn ID (-1, 0, 1)
+
+
 def print_grid():
     maxr = max(r for r, c in grid)
     maxc = max(c for r, c in grid)
@@ -22,12 +30,8 @@ def print_grid():
     print()
 
 
-@dataclass
-class Cart:
-    track_id: int
-    track_pos: int  # position on track
-    facing_forward: int  # direction on track (1=forward, -1=backward)
-    turn_state: int  # next turn ID (-1, 0, 1)
+def cart_coords(cart: Cart):
+    return tracks[cart.track_id][cart.track_pos]
 
 
 def find_in_dir(r: int, c: int, dr: int, dc: int, src: str, tar: str):
@@ -72,47 +76,6 @@ def points_between(p1, p2, include_last=False):
     if not include_last:
         points.pop()
     return points
-
-
-aa = bb = None
-
-lines = sys.stdin.read().split('\n')
-
-grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
-
-ul_corners = {
-    (r, c)
-    for (r, c), v in grid.items()
-    if v == '/' and grid.get((r, c + 1), 'X') in '-+><'
-}
-
-tracks = []
-carts: list[Cart] = []
-
-tile_track_ids = defaultdict(list)
-tile_track_dirs = {}
-
-for track_id, src in enumerate(ul_corners):
-    funcs = [find_right, find_down, find_left, find_up]
-    dir_chars = '>v<^'
-    points = []
-
-    for next_corner, dir_char in zip(funcs, dir_chars):
-        tar = next_corner(*src)
-        segment = points_between(src, tar)
-
-        for p in segment:
-            tile_track_dirs[track_id, p] = '-' if dir_char in '><' else '|'
-            tile_track_ids[p].append(track_id)
-            if (cart_char := grid[p]) in dir_chars:
-                facing_forward = 1 if cart_char == dir_char else -1
-                track_position = len(points) + segment.index(p)
-                carts.append(Cart(track_id, track_position, facing_forward, -1))
-
-        points += segment
-        src = tar
-
-    tracks.append(points)
 
 
 def step_cart(cart: Cart):
@@ -179,16 +142,6 @@ def step_carts():
     return crashes
 
 
-def cart_coords(cart: Cart):
-    return tracks[cart.track_id][cart.track_pos]
-
-
-# replace carts with normal chars
-grid |= {cart_coords(c): tile_track_dirs[c.track_id, cart_coords(c)] for c in carts}
-
-print_grid()
-
-
 def part1():
     global carts
     assert carts
@@ -210,6 +163,52 @@ def part2():
     r, c = cart_coords(carts[0])
     return f'{c},{r}'
 
+
+aa = bb = None
+
+lines = sys.stdin.read().split('\n')
+
+grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
+
+ul_corners = {
+    (r, c)
+    for (r, c), v in grid.items()
+    if v == '/' and grid.get((r, c + 1), 'X') in '-+><'
+}
+
+tracks = []
+carts: list[Cart] = []
+
+tile_track_ids = defaultdict(list)
+tile_track_dirs = {}
+
+for track_id, src in enumerate(ul_corners):
+    funcs = [find_right, find_down, find_left, find_up]
+    dir_chars = '>v<^'
+    points = []
+
+    for next_corner, dir_char in zip(funcs, dir_chars):
+        tar = next_corner(*src)
+        segment = points_between(src, tar)
+
+        for p in segment:
+            tile_track_dirs[track_id, p] = '-' if dir_char in '><' else '|'
+            tile_track_ids[p].append(track_id)
+            if (cart_char := grid[p]) in dir_chars:
+                facing_forward = 1 if cart_char == dir_char else -1
+                track_position = len(points) + segment.index(p)
+                carts.append(Cart(track_id, track_position, facing_forward, -1))
+
+        points += segment
+        src = tar
+
+    tracks.append(points)
+
+
+# replace carts with normal chars
+grid |= {cart_coords(c): tile_track_dirs[c.track_id, cart_coords(c)] for c in carts}
+
+print_grid()
 
 aa = part1()
 print('part1:', aa)
