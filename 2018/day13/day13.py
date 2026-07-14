@@ -108,7 +108,7 @@ def step_carts():
 
         assert pos != npos
 
-        if grid[npos] == '+':
+        if len(tile_track_ids[npos]) > 1:
             # print('--- intersection')
             if cart.turn_state:  # left/right turn => switch tracks
                 # print(track_id, npos, tile_track_ids[npos])
