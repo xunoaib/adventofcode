@@ -63,10 +63,6 @@ lines = sys.stdin.read().split('\n')
 
 grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
 
-# carts = {p for p, v in grid.items() if v in '^v<>'}
-# corners = {p for p, v in grid.items() if v in r'\/'}
-# intersections = {p for p, v in grid.items() if v in r'+'}
-
 ul_corners = {
     (r, c)
     for (r, c), v in grid.items()
