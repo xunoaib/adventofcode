@@ -131,7 +131,7 @@ def step_cart(cart: Cart):
 
 def step_carts():
 
-    for cart in list(carts):
+    for cart in sorted(carts, key=cart_coords):
         if cart not in carts:
             continue
 
