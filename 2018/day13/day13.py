@@ -35,10 +35,28 @@ def find_up(r, c):
 
 def get_track_dir(
     pos: tuple[int, int],
-    true_facing_dir: int,
+    facing_dir: int,
     track: list[tuple[int, int]],
 ):
-    section = track.index(pos) // (len(track) // 4)
+    i = track.index(pos)
+
+    forward_dirs = {
+        (0, FACING_U),
+        (0, FACING_R),
+        (4, FACING_R),
+        (4, FACING_D),
+        (8, FACING_D),
+        (8, FACING_L),
+        (12, FACING_L),
+        (12, FACING_U),
+    }
+    if i % 4 == 0:
+        return 1 if (i, facing_dir) in forward_dirs else -1
+
+    section = i // (len(track) // 4)
+
+    print('#', pos, facing_dir, i, section)
+
     return {
         (0, FACING_R): 1,
         (0, FACING_L): -1,
@@ -48,7 +66,7 @@ def get_track_dir(
         (2, FACING_L): 1,
         (3, FACING_D): -1,
         (3, FACING_U): 1,
-    }[section, true_facing_dir]
+    }[section, facing_dir]
 
 
 def points_between(p1, p2, include_last=False):
@@ -91,70 +109,89 @@ tracks = []
 carts = []
 
 tile_track_ids = defaultdict(list)
+track_facing_dir = {}  # maps track (track_id, (r,c)) => absolute facing direction
 
 for track_id, src in enumerate(ul_corners):
     funcs = [find_right, find_down, find_left, find_up]
-    dirs = '>v<^'
+
     points = []
 
-    for next_corner, dir_char in zip(funcs, dirs):
+    for _track_facing_dir, next_corner in enumerate(funcs):
         tar = next_corner(*src)
-        add = points_between(src, tar)
+        segment = points_between(src, tar)
 
-        for p in add:
+        for p in segment:
             # associate track tile with track id
             tile_track_ids[p].append(track_id)
+            track_facing_dir[track_id, p] = _track_facing_dir
 
             # identify cart
-            if (cart_char := grid[p]) in dirs:
-                track_dir = 1 if cart_char == dir_char else -1
+            if (cart_char := grid[p]) in '>v<^':
+                # track_dir = 1 if cart_char == dir_char else -1
                 turn_state = -1  # next turn dir (left)
-                facing_dir = dirs.index(cart_char)
-                carts.append((p, track_dir, track_id, turn_state, facing_dir))
+                facing_dir = '>v<^'.index(cart_char)
+                carts.append((p, track_id, turn_state, facing_dir))
 
-        points += add
+        points += segment
         src = tar
 
     tracks.append(points)
 
 
-def step_cart():
-    print('\n=== STEP ===\n')
+def step_carts():
+    print('\n === STEP ===\n')
     global carts
 
     new_carts = []
 
-    # step carts foward
-    for pos, track_dir, track_id, turn_state, facing_dir in carts:
+    for entry in carts:
+        pos, track_id, turn_state, facing_dir = entry
+
         track = tracks[track_id]
         i = track.index(pos)
+        track_dir = get_track_dir(pos, facing_dir, track)
         npos = track[(i + track_dir) % len(track)]
-        print('>>> track', track_id, pos, '->', npos, 'tracks:', tile_track_ids[npos])
+
+        # npos = (pos[0] + DIRS4[facing_dir][0], (pos[1] + DIRS4[facing_dir][1]))
+        # print('>>> track', track_id, pos, '->', npos, 'tracks:', tile_track_ids[npos])
 
         if grid[npos] == '+':
-            print('--- intersection ---')
+            print('--- intersection')
             if turn_state:  # left/right turn, swap tracks
-                print('--- switching tracks ---')
                 track_id = next(t for t in tile_track_ids[npos] if t != track_id)
 
-            print('old facing', facing_dir)
-            new_facing_dir = (facing_dir + turn_state) % 4
-            print('new facing', new_facing_dir)
-            # print(DIRS4[new_facing_dir])
-
+            facing_dir = (facing_dir + turn_state) % 4
             turn_state = (turn_state + 2) % 3 - 1
-            print('new turn state:', turn_state)
+        else:
+            print('--- no intersection')
+            # update facing dir based on next tile
+            print('####', track[0])
 
-            x = get_track_dir(npos, new_facing_dir, tracks[track_id])
-            print('track_dir:', x)
+            # TODO: ❗ track is bidirectional (not unidirectional), so dir may vary
+            # track_forward_dir = track_facing_dir[track_id, pos]
+            if grid[npos] in '\\/':
+                track_forward_dir = track_facing_dir[track_id, pos]
+            else:  # placeholder
+                pass
 
-        new_carts.append((npos, track_dir, track_id, turn_state, facing_dir))
+        # track_dir = get_track_dir(npos, facing_dir, tracks[track_id])
+        # print('track_dir:', track_dir)
+
+        new_entry = (npos, track_id, turn_state, facing_dir)
+        print(entry)
+        print(new_entry)
+        print()
+        new_carts.append(new_entry)
 
     carts = new_carts
 
 
-step_cart()
-step_cart()
+# __import__('pprint').pprint(dict(sorted(track_facing_dir.items())))
+# exit()
+
+for _ in range(10):
+    step_carts()
+    print(carts)
 
 
 if locals().get('aa') is not None:
