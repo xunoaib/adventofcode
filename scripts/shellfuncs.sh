@@ -31,9 +31,9 @@ run() {
     [ -f "$name.py" ] || { echo "missing $name.py"; return 1; }
     [ -f "$name.in" ] || { echo "missing $name.in"; return 1; }
 
-    "$python" "$name.py" < "$name.in"
+    "$python" "$name.py" "$@" < "$name.in"
 }
 
 submit() {
-    run | aoc submit
+    run "$@" | aoc submit
 }
