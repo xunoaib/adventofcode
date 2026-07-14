@@ -139,7 +139,7 @@ for track_id, src in enumerate(ul_corners):
 
 
 def step_carts():
-    print('\n === STEP ===\n')
+    # print('\n === STEP ===\n')
 
     for cart in carts:
         track_id = cart.track_id
@@ -151,11 +151,12 @@ def step_carts():
         assert pos != npos
 
         if grid[npos] == '+':
-            print('--- intersection')
+            # print('--- intersection')
             if cart.turn_state:  # left/right turn => switch tracks
+                # print(track_id, npos, tile_track_ids[npos])
                 new_track_id = next(t for t in tile_track_ids[npos] if t != track_id)
-                new_track_pos = tracks[new_track_id].index(npos)
                 new_track = tracks[new_track_id]
+                new_track_pos = new_track.index(npos)
 
                 # get original facing dir, then new facing dir
                 r1, c1 = pos
@@ -164,13 +165,11 @@ def step_carts():
                 dc = (c2 > c1) - (c2 < c1)
 
                 facing_dir = DIRS4.index((dr, dc))
-                new_facing_dir = ndr, ndc = DIRS4[(facing_dir + cart.turn_state) % 4]
+                ndr, ndc = DIRS4[(facing_dir + cart.turn_state) % 4]
                 npos2 = (r2 + ndr, c2 + ndc)
 
                 i = new_track.index(npos)
                 j = new_track.index(npos2)
-
-                # print(i, j, len(track), len(new_track))
 
                 cart.track_id = new_track_id
                 cart.track_pos = new_track_pos
@@ -182,19 +181,24 @@ def step_carts():
 
             cart.turn_state = (cart.turn_state + 2) % 3 - 1
         else:
-            print('--- no intersection')
+            # print('--- no intersection')
             cart.track_pos = (cart.track_pos + 1) % len(track)
 
-        # track_dir = get_track_dir(npos, facing_dir, tracks[track_id])
-        # print('track_dir:', track_dir)
+        # detect crash with other cart
+        if npos in [tracks[c.track_id][c.track_pos] for c in carts if c != cart]:
+            print(npos)
+            exit()
 
 
-# __import__('pprint').pprint(dict(sorted(track_facing_dir.items())))
-# exit()
+while True:
+    positions = [tracks[c.track_id][c.track_pos] for c in carts]
+    print(positions)
 
-for _ in range(100):
+    # if len(set(positions)) < len(carts):
+    #     print(positions)
+    #     exit()
+
     step_carts()
-    print(carts)
 
 
 if locals().get('aa') is not None:
