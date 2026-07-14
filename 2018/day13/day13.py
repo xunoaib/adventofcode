@@ -9,7 +9,7 @@ def print_grid():
     maxr = max(r for r, c in grid)
     maxc = max(c for r, c in grid)
 
-    cart_dirs = {tracks[c.track_id][c.track_pos] for c in carts}
+    cart_dirs = {*map(cart_coords, carts)}
 
     print()
     for r in range(maxr + 1):
@@ -183,17 +183,8 @@ def cart_coords(cart: Cart):
     return tracks[cart.track_id][cart.track_pos]
 
 
-def track_pos_to_char(track_id, track_pos):
-    p = tracks[track_id][track_pos]
-    return tile_track_dirs[track_id, p]
-
-
-gg = {
-    tracks[c.track_id][c.track_pos]: track_pos_to_char(c.track_id, c.track_pos)
-    for c in carts
-}
-print(gg)
-grid |= gg
+# replace carts with normal chars
+grid |= {cart_coords(c): tile_track_dirs[c.track_id, cart_coords(c)] for c in carts}
 
 print_grid()
 
