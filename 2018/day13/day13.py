@@ -5,6 +5,23 @@ from dataclasses import dataclass
 DIRS4 = R, D, L, U = (0, 1), (1, 0), (0, -1), (-1, 0)
 
 
+def print_grid():
+    maxr = max(r for r, c in grid)
+    maxc = max(c for r, c in grid)
+
+    cart_dirs = {tracks[c.track_id][c.track_pos] for c in carts}
+
+    print()
+    for r in range(maxr + 1):
+        for c in range(maxc + 1):
+            ch = grid[r, c]
+            if (r, c) in cart_dirs:
+                ch = '\033[91mX\033[0m'
+            print(ch, end='')
+        print()
+    print()
+
+
 @dataclass
 class Cart:
     track_id: int
@@ -74,6 +91,8 @@ carts: list[Cart] = []
 
 tile_track_ids = defaultdict(list)
 
+tile_track_dirs = {}
+
 for track_id, src in enumerate(ul_corners):
     funcs = [find_right, find_down, find_left, find_up]
     dir_chars = '>v<^'
@@ -84,6 +103,7 @@ for track_id, src in enumerate(ul_corners):
         segment = points_between(src, tar)
 
         for p in segment:
+            tile_track_dirs[track_id, p] = '-' if dir_char in '><' else '|'
             tile_track_ids[p].append(track_id)
             if (cart_char := grid[p]) in dir_chars:
                 facing_forward = 1 if cart_char == dir_char else -1
@@ -111,7 +131,7 @@ def step_carts():
         if len(tile_track_ids[npos]) > 1:
             # print('--- intersection')
             if cart.turn_state:  # left/right turn => switch tracks
-                # print(track_id, npos, tile_track_ids[npos])
+                print(track_id, npos, tile_track_ids[npos])
                 new_track_id = next(t for t in tile_track_ids[npos] if t != track_id)
                 new_track = tracks[new_track_id]
                 new_track_pos = new_track.index(npos)
@@ -148,6 +168,22 @@ def step_carts():
             exit()
 
 
+def track_pos_to_char(track_id, track_pos):
+    p = tracks[track_id][track_pos]
+    return tile_track_dirs[track_id, p]
+
+
+gg = {
+    tracks[c.track_id][c.track_pos]: track_pos_to_char(c.track_id, c.track_pos)
+    for c in carts
+}
+print(gg)
+grid |= gg
+
+# exit()
+
+print_grid()
+
 while True:
     positions = [tracks[c.track_id][c.track_pos] for c in carts]
     print(positions)
@@ -157,6 +193,7 @@ while True:
     #     exit()
 
     step_carts()
+    print_grid()
 
 
 if locals().get('aa') is not None:
