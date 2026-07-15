@@ -20,22 +20,41 @@ def neighbors(r, c):
     return {(r + dr, c + dc) for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]}
 
 
-def open_neighbors(r, c, state: State):
+def open_neighbors(p: tuple[int, int], state: State):
     return {
         p
-        for p in neighbors(r, c)
+        for p in neighbors(*p)
         if p in WALKABLE and p not in state.goblins | state.elves
     }
+
+
+def reachable(src: tuple[int, int], pois, state: State):
+    q = [src]
+    seen = {q[0]}
+    while q:
+        p = q.pop()
+        for n in open_neighbors(p, state):
+            if n not in seen:
+                seen.add(n)
+                q.append(n)
+    return set(pois) & seen
 
 
 def step(state):
     new_state = State({}, {})
 
+    # targets adjacent to elves (or goblins)
+    elf_targets = {n for p in state.elves for n in open_neighbors(p, state)}
+    goblin_targets = {n for p in state.goblins for n in open_neighbors(p, state)}
+
+    print(elf_targets)
+    print(goblin_targets)
+
     for p, goblin in sorted(state.goblins.items()):
-        print(goblin, open_neighbors(p[0], p[1], state))
+        print(reachable(p, elf_targets, state))
 
     for p, elf in sorted(state.elves.items()):
-        print(elf, open_neighbors(p[0], p[1], state))
+        print(reachable(p, goblin_targets, state))
 
 
 def main():
