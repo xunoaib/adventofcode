@@ -30,14 +30,14 @@ def open_neighbors(p: tuple[int, int], state: State):
 
 def reachable(src: tuple[int, int], pois, state: State):
     q = [src]
-    seen = {q[0]}
+    dists = {q[0]: 0}
     while q:
-        p = q.pop()
+        p = q.pop(0)
         for n in open_neighbors(p, state):
-            if n not in seen:
-                seen.add(n)
+            if n not in dists:
+                dists[n] = dists[p] + 1
                 q.append(n)
-    return set(pois) & seen
+    return dict(sorted((p, dists[p]) for p in pois if p in dists))
 
 
 def step(state):
@@ -51,10 +51,10 @@ def step(state):
     print(goblin_targets)
 
     for p, goblin in sorted(state.goblins.items()):
-        print(reachable(p, elf_targets, state))
+        print(p, reachable(p, elf_targets, state))
 
     for p, elf in sorted(state.elves.items()):
-        print(reachable(p, goblin_targets, state))
+        print(p, reachable(p, goblin_targets, state))
 
 
 def main():
