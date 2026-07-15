@@ -1,6 +1,7 @@
 import sys
-from collections import Counter, defaultdict
 from dataclasses import dataclass
+
+type Point = tuple[int, int]
 
 
 @dataclass
@@ -12,15 +13,15 @@ class Unit:
 
 @dataclass
 class State:
-    goblins: dict[tuple[int, int], Unit]
-    elves: dict[tuple[int, int], Unit]
+    goblins: dict[Point, Unit]
+    elves: dict[Point, Unit]
 
 
 def neighbors(r, c):
     return {(r + dr, c + dc) for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]}
 
 
-def open_neighbors(p: tuple[int, int], state: State):
+def open_neighbors(p: Point, state: State):
     return {
         p
         for p in neighbors(*p)
@@ -28,16 +29,18 @@ def open_neighbors(p: tuple[int, int], state: State):
     }
 
 
-def reachable(src: tuple[int, int], pois, state: State):
-    q = [src]
-    dists = {q[0]: 0}
+def reachable(src: Point, state: State):
+    q: list[tuple[Point, int, tuple[Point, ...]]] = [(src, 0, tuple())]
+    routes: dict[Point, tuple[Point, ...]] = {src: tuple()}
+
     while q:
-        p = q.pop(0)
+        p, dist, path = q.pop(0)
         for n in open_neighbors(p, state):
-            if n not in dists:
-                dists[n] = dists[p] + 1
-                q.append(n)
-    return dict(sorted((p, dists[p]) for p in pois if p in dists))
+            if n not in routes:
+                routes[n] = path + (n,)
+                q.append((n, dist + 1, path + (n,)))
+
+    return routes
 
 
 def step(state):
@@ -47,14 +50,18 @@ def step(state):
     elf_targets = {n for p in state.elves for n in open_neighbors(p, state)}
     goblin_targets = {n for p in state.goblins for n in open_neighbors(p, state)}
 
-    print(elf_targets)
-    print(goblin_targets)
+    print('E', elf_targets)
+    print('G', goblin_targets)
+    print()
 
-    for p, goblin in sorted(state.goblins.items()):
-        print(p, reachable(p, elf_targets, state))
+    # for p, goblin in sorted(state.goblins.items()):
+    #     print(p, reachable(p, elf_targets, state))
 
     for p, elf in sorted(state.elves.items()):
-        print(p, reachable(p, goblin_targets, state))
+        routes = reachable(p, state)
+        routes = {k: v for k, v in routes.items() if k in goblin_targets}
+        for k, v in routes.items():
+            print(p, k, v)
 
 
 def main():
