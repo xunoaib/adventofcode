@@ -15,24 +15,21 @@ n = int(input())
 x = bytearray([3, 7])
 i, j = 0, 1
 
-for _ in range(n):
-    i, j = step(i, j)
-
 while len(x) < n + 10:
     i, j = step(i, j)
 
-print('part1:', aa := ''.join(map(str, x[n : n + 10])))
+print('part1:', a1 := ''.join(map(str, x[n : n + 10])))
 
-str_n = str(n)
-str_len_n = len(str_n)
-srch = bytearray(int(c) for c in str_n)
+n_str = str(n)
+len_n = len(n_str)
+srch = bytearray(map(int, str(n)))
 
 idx = x.find(srch)
 while idx == -1:
     i, j = step(i, j)
-    idx = x.find(srch, len(x) - str_len_n - 2)
+    idx = x.find(srch, len(x) - len_n - 2)
 
-print('part2:', bb := idx)
+print('part2:', a2 := idx)
 
-assert aa == '1031816654'
-assert bb == 20179839
+assert a1 == '1031816654'
+assert a2 == 20179839
