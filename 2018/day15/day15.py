@@ -53,7 +53,7 @@ def display(units: list[Unit]):
     for r in range(ROWS):
         s = ''.join(chars[r, c] for c in range(COLS))
         hps = ', '.join(
-            f'{u.type}({u.hp})' for u in units for c in range(COLS) if u.pos == (r, c)
+            f'{u.type}({u.hp})' for c in range(COLS) for u in units if u.pos == (r, c)
         )
         if hps:
             hps = '  ' + hps
@@ -126,6 +126,17 @@ def play_round(units: list[Unit]):
     units = units.copy()
     units.sort(key=lambda u: u.pos)
 
+    def try_attack():
+        if targets := find_adjacent_targets(unit, units):
+            target = targets[0]
+            debug('🩸', unit, 'attacks', target)
+            target.hp -= unit.atk
+            if target.hp <= 0:
+                debug('💀', unit, 'killed', target)
+                units.remove(target)
+            return True
+        return False
+
     for unit in units.copy():
         # first check if game is over
         if len({u.type for u in units}) <= 1:
@@ -134,19 +145,14 @@ def play_round(units: list[Unit]):
         if unit not in units:
             continue
 
-        if targets := find_adjacent_targets(unit, units):
-            target = targets[0]
-            debug('🩸', unit, 'attacks', target)
-            target.hp -= unit.atk
-            if target.hp <= 0:
-                debug('💀', unit, 'killed', target)
-                units.remove(target)
+        if try_attack():
+            continue
 
-        elif route := find_reachable_target(unit, units):
+        if route := find_reachable_target(unit, units):
             newpos = route[0]
             debug('🏃', unit, 'moving to', newpos)
             unit.pos = newpos
-
+            try_attack()
         else:
             debug('⏳', unit, 'stuck')
 
@@ -172,15 +178,16 @@ def main():
         units = play_round(units)
         debug()
         display(units)
+        round += 1
         if len({u.type for u in units}) <= 1:
             break
-        round += 1
 
     for u in units:
         print(u)
 
     s = sum(u.hp for u in units)
-    print(round, '*', s, '=', round * s)
+    aa = round * s
+    print(round, '*', s, '=', aa)
 
     if locals().get('aa') is not None:
         print('part1:', aa)
