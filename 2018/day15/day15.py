@@ -37,6 +37,18 @@ class State:
         return [u for u in self.units if u.is_elf]
 
 
+def display(units: list[Unit]):
+    ROWS = 1 + max(r for r, c in WALLS)
+    COLS = 1 + max(c for r, c in WALLS)
+
+    chars = {p: '#' for p in WALLS}
+    chars |= {p: '.' for p in WALKABLE}
+    chars |= {u.pos: 'GE'[u.is_elf] for u in units}
+
+    for r in range(ROWS):
+        print(''.join(chars[r, c] for c in range(COLS)))
+
+
 def neighbors(r, c):
     return {(r + dr, c + dc) for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]}
 
@@ -78,7 +90,6 @@ def find_reachable_targets(src: Unit, units: list[Unit]):
 
 
 def play_round(units: list[Unit]):
-    print('\n==== playing round ====\n')
     units = units.copy()
     units.sort(key=lambda u: u.pos)
 
@@ -88,7 +99,7 @@ def play_round(units: list[Unit]):
 
         if targets := find_adjacent_targets(unit, units):
             target = targets[0]
-            print('🩸', unit, 'attacked', target)
+            print('🩸', unit, 'attacks', target)
             target.hp -= unit.atk
             if target.hp <= 0:
                 print('💀', unit, 'killed', target)
@@ -96,7 +107,7 @@ def play_round(units: list[Unit]):
 
         elif routes := find_reachable_targets(unit, units):
             newpos = routes[0][0]
-            print('🦶', unit, 'moved to', newpos)
+            print('🦶', unit, 'moving to', newpos)
             unit.pos = newpos
 
         else:
@@ -106,19 +117,27 @@ def play_round(units: list[Unit]):
 
 
 def main():
-    global WALKABLE
+    global WALKABLE, WALLS
 
     aa = bb = None
     lines = sys.stdin.read().strip().split('\n')
 
     grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
+    WALLS = {p for p, v in grid.items() if v == '#'}
     WALKABLE = {p for p, v in grid.items() if v != '#'}
     units = [Unit(p, v) for p, v in grid.items() if v in 'EG']
 
+    display(units)
+
+    round = 1
     while True:
+        print(f'\n==== round {round} ====\n')
         units = play_round(units)
+        print()
+        display(units)
         if len({u.type for u in units}) <= 1:
             break
+        round += 1
 
     if locals().get('aa') is not None:
         print('part1:', aa)
