@@ -14,22 +14,13 @@ class Unit:
     hp: int = 200
     atk: int = 3
 
-    @property
-    def is_goblin(self):
-        return self.type == 'G'
-
-    @property
-    def is_elf(self):
-        return self.type == 'E'
-
     @override
     def __repr__(self):
-        n = 'GE'[self.is_elf]
-        return f'{n}({self.hp}, {self.pos})'
+        return f'{self.type}({self.hp}, {self.pos})'
 
 
 def display(units: list[Unit]):
-    chars = {p: '.' for p in WALKABLE} | {u.pos: 'GE'[u.is_elf] for u in units}
+    chars = {p: '.' for p in WALKABLE} | {u.pos: u.type for u in units}
 
     print()
     for r in range(ROWS):
@@ -52,10 +43,10 @@ def open_neighbors(p: Point, units: list[Unit]):
     return {p for p in neighbors(*p) if p in WALKABLE and p not in occupied}
 
 
-def find_adjacent_targets(attacker: Unit, units: list[Unit]):
+def find_adjacent_target(attacker: Unit, units: list[Unit]):
     neighbor_tiles = {p for p in neighbors(*attacker.pos)}
     targets = [u for u in units if u.pos in neighbor_tiles and u.type != attacker.type]
-    return sorted(targets, key=lambda u: (u.hp, u.pos))
+    return min(targets, key=lambda u: (u.hp, u.pos), default=None)
 
 
 def find_reachable_target(src: Unit, units: list[Unit]):
@@ -88,15 +79,15 @@ def find_reachable_target(src: Unit, units: list[Unit]):
         for path in paths:
             routes.add(path)
 
-    if routes:
-        return min(
-            routes,
-            key=lambda route: (
-                len(route),
-                route[-1],
-                route[0],
-            ),
-        )
+    return min(
+        routes,
+        key=lambda route: (
+            len(route),
+            route[-1],
+            route[0],
+        ),
+        default=None,
+    )
 
 
 def play_round(units: list[Unit]):
@@ -104,8 +95,7 @@ def play_round(units: list[Unit]):
     units.sort(key=lambda u: u.pos)
 
     def try_attack():
-        if targets := find_adjacent_targets(unit, units):
-            target = targets[0]
+        if target := find_adjacent_target(unit, units):
             target.hp -= unit.atk
             if target.hp <= 0:
                 units.remove(target)
@@ -124,8 +114,7 @@ def play_round(units: list[Unit]):
             continue
 
         if route := find_reachable_target(unit, units):
-            newpos = route[0]
-            unit.pos = newpos
+            unit.pos = route[0]
             try_attack()
 
     return units, True  # completed round
@@ -156,7 +145,7 @@ def part2(units: list[Unit]):
         units = deepcopy(original_units)
 
         for u in units:
-            if u.is_elf:
+            if u.type == 'E':
                 u.atk = atk
 
         round, units = play_game(units)
