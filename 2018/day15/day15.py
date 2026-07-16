@@ -94,6 +94,10 @@ def play_round(units: list[Unit]):
     units.sort(key=lambda u: u.pos)
 
     for unit in units.copy():
+        # first check if game is over
+        if len({u.type for u in units}) <= 1:
+            return units
+
         if unit not in units:
             continue
 
