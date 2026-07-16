@@ -159,17 +159,7 @@ def play_round(units: list[Unit]):
     return units, True  # completed round
 
 
-def main():
-    global WALKABLE, WALLS
-
-    aa = bb = None
-    lines = sys.stdin.read().strip().split('\n')
-
-    grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
-    WALLS = {p for p, v in grid.items() if v == '#'}
-    WALKABLE = {p for p, v in grid.items() if v != '#'}
-    units = [Unit(p, v) for p, v in grid.items() if v in 'EG']
-
+def part1(units: list[Unit]):
     display(units)
 
     round = 0
@@ -188,6 +178,21 @@ def main():
     s = sum(u.hp for u in units)
     aa = round * s
     print(round, '*', s, '=', aa)
+    return aa
+
+
+def main():
+    global WALKABLE, WALLS
+
+    aa = bb = None
+    lines = sys.stdin.read().strip().split('\n')
+
+    grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
+    WALLS = {p for p, v in grid.items() if v == '#'}
+    WALKABLE = {p for p, v in grid.items() if v != '#'}
+    units = [Unit(p, v) for p, v in grid.items() if v in 'EG']
+
+    aa = part1(units.copy())
 
     if locals().get('aa') is not None:
         print('part1:', aa)
@@ -195,7 +200,7 @@ def main():
     if locals().get('bb') is not None:
         print('part2:', bb)
 
-    # assert aa == 0
+    # assert aa == 229950
     # assert bb == 0
 
 
