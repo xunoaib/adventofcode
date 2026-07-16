@@ -1,5 +1,7 @@
 import sys
+from copy import deepcopy
 from dataclasses import dataclass
+from itertools import count
 
 type Point = tuple[int, int]
 
@@ -50,6 +52,7 @@ def display(units: list[Unit]):
     chars |= {p: '.' for p in WALKABLE}
     chars |= {u.pos: 'GE'[u.is_elf] for u in units}
 
+    print()
     for r in range(ROWS):
         s = ''.join(chars[r, c] for c in range(COLS))
         hps = ', '.join(
@@ -58,6 +61,7 @@ def display(units: list[Unit]):
         if hps:
             hps = '  ' + hps
         print(s, hps)
+    print()
 
 
 def neighbors(r, c):
@@ -159,26 +163,51 @@ def play_round(units: list[Unit]):
     return units, True  # completed round
 
 
-def part1(units: list[Unit]):
-    display(units)
-
+def play_game(units: list[Unit]):
+    units = deepcopy(units)
     round = 0
     while True:
-        print(f'\n==== round {round} ====\n')
+        # print(f'\n==== round {round} ====\n')
         units, completed = play_round(units)
-        debug()
-        display(units)
+        # debug()
+        # display(units)
         round += completed
         if len({u.type for u in units}) <= 1:
             break
+    return round, units
 
-    for u in units:
-        print(u)
 
+def part1(units: list[Unit]):
+    round, units = play_game(units)
     s = sum(u.hp for u in units)
     aa = round * s
     print(round, '*', s, '=', aa)
     return aa
+
+
+def part2(units: list[Unit]):
+
+    display(units)
+
+    num_elves = sum(u.type == 'E' for u in units)
+    original_units = deepcopy(units)
+
+    for atk in count(4):
+        print('testing atk =', atk)
+        units = deepcopy(original_units)
+        for u in units:
+            if u.is_elf:
+                u.atk = atk
+
+        round, units = play_game(units)
+
+        if sum(u.type == 'E' for u in units) == num_elves:
+            s = sum(u.hp for u in units)
+            aa = round * s
+            print('attack =', atk)
+            print(round, '*', s, '=', aa)
+            display(units)
+            return aa
 
 
 def main():
@@ -192,7 +221,8 @@ def main():
     WALKABLE = {p for p, v in grid.items() if v != '#'}
     units = [Unit(p, v) for p, v in grid.items() if v in 'EG']
 
-    aa = part1(units.copy())
+    # aa = part1(deepcopy(units))
+    bb = part2(deepcopy(units))
 
     if locals().get('aa') is not None:
         print('part1:', aa)
