@@ -138,9 +138,9 @@ def play_round(units: list[Unit]):
         return False
 
     for unit in units.copy():
-        # first check if game is over
+        # check if game is over
         if len({u.type for u in units}) <= 1:
-            return units
+            return units, False  # didnt complete round
 
         if unit not in units:
             continue
@@ -156,7 +156,7 @@ def play_round(units: list[Unit]):
         else:
             debug('⏳', unit, 'stuck')
 
-    return units
+    return units, True  # completed round
 
 
 def main():
@@ -175,10 +175,10 @@ def main():
     round = 0
     while True:
         print(f'\n==== round {round} ====\n')
-        units = play_round(units)
+        units, completed = play_round(units)
         debug()
         display(units)
-        round += 1
+        round += completed
         if len({u.type for u in units}) <= 1:
             break
 
