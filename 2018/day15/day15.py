@@ -178,17 +178,13 @@ def play_game(units: list[Unit]):
 
 
 def part1(units: list[Unit]):
+    print('Solving part 1...')
     round, units = play_game(units)
-    s = sum(u.hp for u in units)
-    aa = round * s
-    print(round, '*', s, '=', aa)
-    return aa
+    return round * sum(u.hp for u in units)
 
 
 def part2(units: list[Unit]):
-
-    display(units)
-
+    print('\nSolving part 2...')
     num_elves = sum(u.type == 'E' for u in units)
     original_units = deepcopy(units)
 
@@ -202,18 +198,13 @@ def part2(units: list[Unit]):
         round, units = play_game(units)
 
         if sum(u.type == 'E' for u in units) == num_elves:
-            s = sum(u.hp for u in units)
-            aa = round * s
-            print('attack =', atk)
-            print(round, '*', s, '=', aa)
-            display(units)
-            return aa
+            return round * sum(u.hp for u in units)
 
 
 def main():
     global WALKABLE, WALLS
 
-    aa = bb = None
+    a1 = a2 = None
     lines = sys.stdin.read().strip().split('\n')
 
     grid = {(r, c): ch for r, line in enumerate(lines) for c, ch in enumerate(line)}
@@ -221,17 +212,11 @@ def main():
     WALKABLE = {p for p, v in grid.items() if v != '#'}
     units = [Unit(p, v) for p, v in grid.items() if v in 'EG']
 
-    # aa = part1(deepcopy(units))
-    bb = part2(deepcopy(units))
+    print('part1:', a1 := part1(deepcopy(units)))
+    print('part2:', a2 := part2(deepcopy(units)))
 
-    if locals().get('aa') is not None:
-        print('part1:', aa)
-
-    if locals().get('bb') is not None:
-        print('part2:', bb)
-
-    # assert aa == 229950
-    # assert bb == 0
+    assert a1 == 229950
+    assert a2 == 54360
 
 
 if __name__ == '__main__':
