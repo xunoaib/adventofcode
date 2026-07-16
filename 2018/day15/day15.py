@@ -4,6 +4,11 @@ from dataclasses import dataclass
 type Point = tuple[int, int]
 
 
+def debug(*args):
+    if '-v' in sys.argv:
+        print(*args)
+
+
 @dataclass
 class Unit:
     pos: Point
@@ -20,8 +25,8 @@ class Unit:
         return self.type == 'E'
 
     def __repr__(self):
-        n = ['Goblin', 'Elf'][self.is_elf]
-        return f'{n}(pos={self.pos}, hp={self.hp})'
+        n = 'GE'[self.is_elf]
+        return f'{n}({self.hp}, {self.pos})'
 
 
 @dataclass
@@ -46,7 +51,13 @@ def display(units: list[Unit]):
     chars |= {u.pos: 'GE'[u.is_elf] for u in units}
 
     for r in range(ROWS):
-        print(''.join(chars[r, c] for c in range(COLS)))
+        s = ''.join(chars[r, c] for c in range(COLS))
+        hps = ', '.join(
+            f'{u.type}({u.hp})' for u in units for c in range(COLS) if u.pos == (r, c)
+        )
+        if hps:
+            hps = '  ' + hps
+        print(s, hps)
 
 
 def neighbors(r, c):
@@ -64,29 +75,51 @@ def find_adjacent_targets(attacker: Unit, units: list[Unit]):
     return sorted(targets, key=lambda u: (u.hp, u.pos))
 
 
-def find_reachable_targets(src: Unit, units: list[Unit]):
-    q: list[tuple[Point, int, tuple[Point, ...]]] = [(src.pos, 0, tuple())]
-    routes: dict[Point, tuple[Point, ...]] = {src.pos: tuple()}
+def find_reachable_target(src: Unit, units: list[Unit]):
 
-    while q:
-        p, dist, path = q.pop(0)
-        for n in open_neighbors(p, units):
-            if n not in routes:
-                routes[n] = path + (n,)
-                q.append((n, dist + 1, path + (n,)))
+    enemy_targets = {
+        pos
+        for tar in units
+        for pos in open_neighbors(tar.pos, units)
+        if tar.type != src.type
+    }
 
-    # filter to reachable targets only, sorted by distance
-    enemy_neighbors = sorted(
-        {
-            pos
-            for tar in units
-            for pos in open_neighbors(tar.pos, units)
-            if tar.type != src.type and pos in routes
-        }
+    def find(src: Point):
+        q: list[tuple[Point, int, tuple[Point, ...]]] = [(src, 0, (src,))]
+        routes: dict[Point, tuple[Point, ...]] = {src: (src,)}
+
+        while q:
+            p, dist, path = q.pop(0)
+            for n in open_neighbors(p, units):
+                if n not in routes:
+                    routes[n] = path + (n,)
+                    q.append((n, dist + 1, path + (n,)))
+
+        return {path for p, path in routes.items() if path[-1] in enemy_targets}
+
+    # collect unique routes from all directions
+    routes = set()
+    for p in open_neighbors(src.pos, units):
+        paths = find(p)
+        for path in paths:
+            routes.add(path)
+
+    routes = sorted(
+        routes,
+        key=lambda route: (
+            len(route),
+            # [manhattan_dist(p, route[-1]) for p in route],
+            # route,
+            route[-1],
+            route[0],
+        ),
     )
 
-    final = [routes[pos] for pos in enemy_neighbors]
-    return sorted(final, key=lambda route: (len(route), route[-1]))
+    return routes[0] if routes else None
+
+
+def manhattan_dist(a: Point, b: Point):
+    return sum(abs(x - y) for x, y in zip(a, b))
 
 
 def play_round(units: list[Unit]):
@@ -103,19 +136,19 @@ def play_round(units: list[Unit]):
 
         if targets := find_adjacent_targets(unit, units):
             target = targets[0]
-            print('🩸', unit, 'attacks', target)
+            debug('🩸', unit, 'attacks', target)
             target.hp -= unit.atk
             if target.hp <= 0:
-                print('💀', unit, 'killed', target)
+                debug('💀', unit, 'killed', target)
                 units.remove(target)
 
-        elif routes := find_reachable_targets(unit, units):
-            newpos = routes[0][0]
-            print('🦶', unit, 'moving to', newpos)
+        elif route := find_reachable_target(unit, units):
+            newpos = route[0]
+            debug('🏃', unit, 'moving to', newpos)
             unit.pos = newpos
 
         else:
-            print('🛑', unit, 'stuck')
+            debug('⏳', unit, 'stuck')
 
     return units
 
@@ -133,15 +166,21 @@ def main():
 
     display(units)
 
-    round = 1
+    round = 0
     while True:
         print(f'\n==== round {round} ====\n')
         units = play_round(units)
-        print()
+        debug()
         display(units)
         if len({u.type for u in units}) <= 1:
             break
         round += 1
+
+    for u in units:
+        print(u)
+
+    s = sum(u.hp for u in units)
+    print(round, '*', s, '=', round * s)
 
     if locals().get('aa') is not None:
         print('part1:', aa)
