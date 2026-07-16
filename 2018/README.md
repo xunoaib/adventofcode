@@ -16,7 +16,7 @@
 | [Day 12: Subterranean Sustainability](https://adventofcode.com/2018/day/12) | [Code](day12/day12.py) |
 | [Day 13: Mine Cart Madness](https://adventofcode.com/2018/day/13) | [Code](day13/day13.py) |
 | [Day 14: Chocolate Charts](https://adventofcode.com/2018/day/14) | [Code](day14/day14.py) |
-| [Day 15: Beverage Bandits](https://adventofcode.com/2018/day/15) | Code |
+| [Day 15: Beverage Bandits](https://adventofcode.com/2018/day/15) | [Code](day15/day15.py) |
 | [Day 16: Chronal Classification](https://adventofcode.com/2018/day/16) | Code |
 | [Day 17: Reservoir Research](https://adventofcode.com/2018/day/17) | Code |
 | [Day 18: Settlers of The North Pole](https://adventofcode.com/2018/day/18) | Code |
