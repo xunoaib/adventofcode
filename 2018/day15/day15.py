@@ -42,9 +42,15 @@ def open_neighbors(p: Point, units: list[Unit]):
     return {p for p in neighbors(*p) if p in WALKABLE and p not in occupied}
 
 
-def reachable(src: Point, units: list[Unit]):
-    q: list[tuple[Point, int, tuple[Point, ...]]] = [(src, 0, tuple())]
-    routes: dict[Point, tuple[Point, ...]] = {src: tuple()}
+def find_adjacent_targets(attacker: Unit, units: list[Unit]):
+    neighbor_tiles = {p for p in neighbors(*attacker.pos)}
+    targets = [u for u in units if u.pos in neighbor_tiles and u.type != attacker.type]
+    return sorted(targets, key=lambda u: (u.hp, u.pos))
+
+
+def find_reachable_targets(src: Unit, units: list[Unit]):
+    q: list[tuple[Point, int, tuple[Point, ...]]] = [(src.pos, 0, tuple())]
+    routes: dict[Point, tuple[Point, ...]] = {src.pos: tuple()}
 
     while q:
         p, dist, path = q.pop(0)
@@ -53,27 +59,36 @@ def reachable(src: Point, units: list[Unit]):
                 routes[n] = path + (n,)
                 q.append((n, dist + 1, path + (n,)))
 
-    return routes
+    # filter to reachable targets only, sorted by distance
+    enemy_neighbors = sorted(
+        {
+            pos
+            for tar in units
+            for pos in open_neighbors(tar.pos, units)
+            if tar.type != src.type and pos in routes
+        }
+    )
+
+    # return {pos: routes[pos] for pos in enemy_neighbors}
+    # return [routes[pos] for pos in enemy_neighbors]
+    final = [routes[pos] for pos in enemy_neighbors]
+    return sorted(final, key=lambda route: (len(route), route[-1]))
 
 
 def step(units):
-    # # targets adjacent to elves (or goblins)
-    # elf_targets = {n for p in state.elves for n in open_neighbors(p, state)}
-    # goblin_targets = {n for p in state.goblins for n in open_neighbors(p, state)}
-
     units.sort(key=lambda u: u.pos)
 
-    goblins = [u for u in units if u.type == 'G']
-    elves = [u for u in units if u.type == 'E']
+    # goblins = [u for u in units if u.type == 'G']
+    # elves = [u for u in units if u.type == 'E']
+    # type_units = [goblins, elves]
 
-    type_units = [goblins, elves]
-
-    # targets_of = {'E': [], 'E'
-
-    for u in units:
-        # 1. check for adjacent targets
-        # if targets := {(n, u) for n,u in units.items()}
-        print(u)
+    for unit in units.copy():
+        if targets := find_adjacent_targets(unit, units):
+            print(unit, 'has targets')
+        elif routes := find_reachable_targets(unit, units):
+            print(unit, 'can reach', routes)
+        else:
+            print(unit, 'stuck')
 
     # for p, goblin in sorted(state.goblins.items()):
     #     print(p, reachable(p, elf_targets, state))
