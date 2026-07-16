@@ -19,6 +19,10 @@ class Unit:
     def is_elf(self):
         return self.type == 'E'
 
+    def __repr__(self):
+        n = ['Goblin', 'Elf'][self.is_elf]
+        return f'{n}(pos={self.pos}, hp={self.hp})'
+
 
 @dataclass
 class State:
@@ -69,36 +73,36 @@ def find_reachable_targets(src: Unit, units: list[Unit]):
         }
     )
 
-    # return {pos: routes[pos] for pos in enemy_neighbors}
-    # return [routes[pos] for pos in enemy_neighbors]
     final = [routes[pos] for pos in enemy_neighbors]
     return sorted(final, key=lambda route: (len(route), route[-1]))
 
 
-def step(units):
+def play_round(units: list[Unit]):
+    print('\n==== playing round ====\n')
+    units = units.copy()
     units.sort(key=lambda u: u.pos)
 
-    # goblins = [u for u in units if u.type == 'G']
-    # elves = [u for u in units if u.type == 'E']
-    # type_units = [goblins, elves]
-
     for unit in units.copy():
+        if unit not in units:
+            continue
+
         if targets := find_adjacent_targets(unit, units):
-            print(unit, 'has targets')
+            target = targets[0]
+            print('🩸', unit, 'attacked', target)
+            target.hp -= unit.atk
+            if target.hp <= 0:
+                print('💀', unit, 'killed', target)
+                units.remove(target)
+
         elif routes := find_reachable_targets(unit, units):
-            print(unit, 'can reach', routes)
+            newpos = routes[0][0]
+            print('🦶', unit, 'moved to', newpos)
+            unit.pos = newpos
+
         else:
-            print(unit, 'stuck')
+            print('🛑', unit, 'stuck')
 
-    # for p, goblin in sorted(state.goblins.items()):
-    #     print(p, reachable(p, elf_targets, state))
-
-    # # find elf routes to goblin targets
-    # for p, elf in sorted(state.elves.items()):
-    #     routes = reachable(p, state)
-    #     routes = {k: v for k, v in routes.items() if k in goblin_targets}
-    #     for k, v in routes.items():
-    #         print(p, k, v)
+    return units
 
 
 def main():
@@ -111,7 +115,10 @@ def main():
     WALKABLE = {p for p, v in grid.items() if v != '#'}
     units = [Unit(p, v) for p, v in grid.items() if v in 'EG']
 
-    state = step(units)
+    while True:
+        units = play_round(units)
+        if len({u.type for u in units}) <= 1:
+            break
 
     if locals().get('aa') is not None:
         print('part1:', aa)
