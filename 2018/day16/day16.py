@@ -62,63 +62,41 @@ def execute(opname: str, regs: tuple[int, ...], a: int, b: int, c: int):
     return tuple(r)
 
 
-aa = bb = None
+SAMPLES, TEST_PROGRAM = sys.stdin.read().split('\n\n\n')
 
-data = sys.stdin.read()
+a1 = 0
 
-g1, g2 = data.split('\n\n\n')
+candidates = {n: set(OPNAMES) for n in range(16)}
 
-aa = 0
-
-multi_candidates = defaultdict(list)
-
-for log in g1.split('\n\n'):
+for sample in SAMPLES.split('\n\n'):
     before, (opcode, a, b, c), after = [
-        tuple(map(int, re.findall(r'\d+', l))) for l in log.split('\n')
+        tuple(map(int, re.findall(r'\d+', d))) for d in sample.split('\n')
     ]
 
     ops = {opname for opname in OPNAMES if after == execute(opname, before, a, b, c)}
-    multi_candidates[opcode].append(ops)
-    aa += len(ops) > 2
+    candidates[opcode] &= ops
+    a1 += len(ops) > 2
 
-opcode_names = {}
-candidates = {}
-
-# find the intersection of possibilities for each opcode
-for opcode, opsets in multi_candidates.items():
-    intersect = set(OPNAMES)
-    grp = opsets.copy()
-    while grp:
-        intersect &= grp.pop()
-    candidates[opcode] = intersect
+opcode_names = {}  # known assignments
 
 while candidates:
     # identify unique opcode names
     for opcode, opset in list(candidates.items()):
         if len(opset) == 1:
-            opcode_names[opcode] = [*opset][0]
+            opcode_names[opcode] = opset.pop()
             del candidates[opcode]
 
     # remove already assigned names from other candidates
     for opcode, opset in candidates.items():
         candidates[opcode] -= set(opcode_names.values())
 
-print(opcode_names)
-for k, v in sorted(opcode_names.items()):
-    print(k, v)
-
 regs = (0, 0, 0, 0)
-for g in g2.strip().split('\n'):
-    op, a, b, c = map(int, g.split())
+for line in TEST_PROGRAM.strip().split('\n'):
+    op, a, b, c = map(int, line.split())
     regs = execute(opcode_names[op], regs, a, b, c)
 
-bb = regs[0]
+print('part1:', a1)
+print('part2:', a2 := regs[0])
 
-if locals().get('aa') is not None:
-    print('part1:', aa)
-
-if locals().get('bb') is not None:
-    print('part2:', bb)
-
-# assert aa == 0
-# assert bb == 0
+assert a1 == 544
+assert a2 == 600
