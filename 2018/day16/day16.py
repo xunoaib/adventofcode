@@ -1,7 +1,8 @@
 import re
 import sys
+from collections import defaultdict
 
-OPS = (
+OPNAMES = (
     'addi',
     'addr',
     'bani',
@@ -21,9 +22,9 @@ OPS = (
 )
 
 
-def execute(op: str, regs: tuple[int, ...], a: int, b: int, c: int):
+def execute(opname: str, regs: tuple[int, ...], a: int, b: int, c: int):
     r = list(regs)
-    match op:
+    match opname:
         case 'addr':
             r[c] = r[a] + r[b]
         case 'addi':
@@ -57,7 +58,7 @@ def execute(op: str, regs: tuple[int, ...], a: int, b: int, c: int):
         case 'eqrr':
             r[c] = int(r[a] == r[b])
         case _:
-            raise NotImplementedError('Unknown op:', op)
+            raise NotImplementedError('Unknown op:', opname)
     return tuple(r)
 
 
@@ -69,22 +70,49 @@ g1, g2 = data.split('\n\n\n')
 
 aa = 0
 
+multi_candidates = defaultdict(list)
+
 for log in g1.split('\n\n'):
     before, (opcode, a, b, c), after = [
         tuple(map(int, re.findall(r'\d+', l))) for l in log.split('\n')
     ]
-    print(before, (opcode, a, b, c), after)
 
-    candidates = []
-    for opname in OPS:
-        if after == execute(opname, before, a, b, c):
-            candidates.append(opname)
-    print(candidates)
-    aa += len(candidates) > 2
+    ops = {opname for opname in OPNAMES if after == execute(opname, before, a, b, c)}
+    multi_candidates[opcode].append(ops)
+    aa += len(ops) > 2
 
+opcode_names = {}
+candidates = {}
 
-# for line in g2.strip().split('\n'):
-#     opname, a, b, c = map(int, line.split())
+# find the intersection of possibilities for each opcode
+for opcode, opsets in multi_candidates.items():
+    intersect = set(OPNAMES)
+    grp = opsets.copy()
+    while grp:
+        intersect &= grp.pop()
+    candidates[opcode] = intersect
+
+while candidates:
+    # identify unique opcode names
+    for opcode, opset in list(candidates.items()):
+        if len(opset) == 1:
+            opcode_names[opcode] = [*opset][0]
+            del candidates[opcode]
+
+    # remove already assigned names from other candidates
+    for opcode, opset in candidates.items():
+        candidates[opcode] -= set(opcode_names.values())
+
+print(opcode_names)
+for k, v in sorted(opcode_names.items()):
+    print(k, v)
+
+regs = (0, 0, 0, 0)
+for g in g2.strip().split('\n'):
+    op, a, b, c = map(int, g.split())
+    regs = execute(opcode_names[op], regs, a, b, c)
+
+bb = regs[0]
 
 if locals().get('aa') is not None:
     print('part1:', aa)
