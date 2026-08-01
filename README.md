@@ -24,4 +24,4 @@ Below are my solutions for each year, along with total ⭐ counts.
 | 2016 | ⭐ 26 / 50 | [Solutions](2016/README.md) |
 | 2015 | ⭐ 50 / 50 | [Solutions](2015/README.md) |
 
-Total stars: ⭐ 444
+Total stars: ⭐ 444 / 524
