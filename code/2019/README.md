@@ -18,7 +18,7 @@
 | [Day 14: Space Stoichiometry](https://adventofcode.com/2019/day/14) | [Code](day14/day14.py) |
 | [Day 15: Oxygen System](https://adventofcode.com/2019/day/15) | [Code](day15/day15.py) |
 | [Day 16: Flawed Frequency Transmission](https://adventofcode.com/2019/day/16) | [Code](day16/day16.py) |
-| [Day 17: Set and Forget](https://adventofcode.com/2019/day/17) | [Code](day17/day17.py) |
+| [Day 17: Set and Forget](https://adventofcode.com/2019/day/17) | Code |
 | [Day 18: Many-Worlds Interpretation](https://adventofcode.com/2019/day/18) | Code |
 | [Day 19: Tractor Beam](https://adventofcode.com/2019/day/19) | [Code](day19/day19.py) |
 | [Day 20: Donut Maze](https://adventofcode.com/2019/day/20) | [Code](day20/day20.py) |

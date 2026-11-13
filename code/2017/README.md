@@ -2,8 +2,8 @@
 
 |                      Day                      |         Solution       |
 | :-------------------------------------------- | :--------------------- |
-| [Day 1: Inverse Captcha](https://adventofcode.com/2017/day/1) | [Code](day01/day01.py) |
-| [Day 2: Corruption Checksum](https://adventofcode.com/2017/day/2) | [Code](day02/day02.py) |
+| [Day 1: Inverse Captcha](https://adventofcode.com/2017/day/1) | Code |
+| [Day 2: Corruption Checksum](https://adventofcode.com/2017/day/2) | Code |
 | [Day 3: Spiral Memory](https://adventofcode.com/2017/day/3) | [Code](day03/day03.py) |
 | [Day 4: High-Entropy Passphrases](https://adventofcode.com/2017/day/4) | [Code](day04/day04.py) |
 | [Day 5: A Maze of Twisty Trampolines, All Alike](https://adventofcode.com/2017/day/5) | [Code](day05/day05.py) |
