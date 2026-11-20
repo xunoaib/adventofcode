@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
 import pathlib
 import re
@@ -23,6 +24,8 @@ else:
     _cookiepath = None
 
 FIREFOX_COOKIES_FILE = _cookiepath
+
+LEADERBOARD_LOG = pathlib.Path(__file__).parent / 'leaderboard_log.jsonl'
 
 # websocket server used to refresh the web browser
 WS_REFRESH_URI = "ws://localhost:8765"
@@ -151,7 +154,30 @@ def parse_stats(html: str) -> dict[int, dict[str, int]]:
     return results
 
 
-def on_success(year: int, day: int, level: int):
+def log_leaderboard_position(
+    year: int, day: int, level: int, answer: str, rank: int, part1: int,
+    part2: int
+):
+    '''
+    Appends an estimated global leaderboard position for one of your own
+    successful submissions to LEADERBOARD_LOG (one JSON object per line),
+    so that it can be tracked over time.
+    '''
+    entry = {
+        'timestamp': datetime.now().isoformat(),
+        'year': year,
+        'day': day,
+        'level': level,
+        'answer': answer,
+        'rank': rank,
+        'part1_solves': part1,
+        'part2_solves': part2,
+    }
+    with open(LEADERBOARD_LOG, 'a') as f:
+        f.write(json.dumps(entry) + '\n')
+
+
+def on_success(year: int, day: int, level: int, answer: str):
     send_page_refresh(verbose=False)
 
     # retrieve and print global stats
@@ -164,6 +190,8 @@ def on_success(year: int, day: int, level: int):
 
     assert level in [1, 2], f'Invalid level: {level}'
     rank = (part1 + part2) if level == 1 else part2
+
+    log_leaderboard_position(year, day, level, answer, rank, part1, part2)
 
     print()
     print(
@@ -192,7 +220,7 @@ def main(args=None):
         level, answer = parse_level_answer_from_output(output)
         year, day = AOC.parse_date(args.challenge)
         if success := submit(year, day, level, answer, aoc):
-            on_success(year, day, level)
+            on_success(year, day, level, answer)
         return success
 
     elif args.cmd == 'download':
