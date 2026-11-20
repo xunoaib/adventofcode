@@ -4,7 +4,6 @@ import pathlib
 import re
 import requests
 
-import browser_cookie3
 from dotenv import dotenv_values, find_dotenv
 
 class AOC:
@@ -26,6 +25,7 @@ class AOC:
     @staticmethod
     def from_firefox(cookie_file=None):
         # Ex: ~/.mozilla/firefox/xxxxxxxx.default-release/cookies.sqlite
+        import browser_cookie3
         cookies = browser_cookie3.firefox(cookie_file=cookie_file, domain_name='adventofcode.com')
         return AOC(cookies)
 
